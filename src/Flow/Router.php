@@ -5,6 +5,8 @@ namespace Simples\Core\Flow;
 use Simples\Core\App;
 use Simples\Core\Gateway\Request;
 use Simples\Core\Gateway\Response;
+use \RecursiveIteratorIterator;
+use \RecursiveDirectoryIterator;
 
 /**
  * Class Router
@@ -66,7 +68,11 @@ class Router extends Engine
             /** @var Router $router */
 
             if (!is_array($files)) {
-                $files = [$files];
+                if (is_dir(path(true, $files))) {
+                    $files = $this->files($files);
+                } else {
+                    $files = [$files];
+                }
             }
 
             $router->setUri($parameter . '/');
@@ -88,6 +94,36 @@ class Router extends Engine
     public function otherWise($method, $callback, $options = [])
     {
         return $this->on($method, '/(.*)', $callback, $options);
+    }
+
+    /**
+     * @param $dir
+     * @return array
+     */
+    function files($dir)
+    {
+        $files = [];
+
+        $dir = path(true, $dir);
+
+        if (!is_dir($dir)) {
+            return $files;
+        }
+
+        $resources = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir), RecursiveIteratorIterator::SELF_FIRST);
+        foreach ($resources as $resource) {
+            if (is_dir($resource->getFilename())) {
+                continue;
+            } else {
+                $pattern = '/' . preg_quote(App::$ROOT, '/') . '/';
+                $file = preg_replace($pattern, '', $resource->getPathname(), 1);
+                if ($file) {
+                    $files[] = $file;
+                }
+            }
+        }
+
+        return $files;
     }
 
 }

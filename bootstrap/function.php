@@ -4,7 +4,7 @@
 if (!function_exists('path')) {
 
     /**
-     * @uses __APP_ROOT__
+     * @uses \Simples\Core\App::$ROOT
      * @uses DIRECTORY_SEPARATOR
      * @uses func_get_args()
      *
@@ -19,7 +19,7 @@ if (!function_exists('path')) {
         if (is_bool($root)) {
             array_shift($args);
             if ($root) {
-                $peaces = [__APP_ROOT__];
+                $peaces = [\Simples\Core\App::$ROOT];
             }
         }
         $path = array_merge($peaces, $args);

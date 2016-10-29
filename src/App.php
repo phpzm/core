@@ -28,13 +28,21 @@ class App
     private static $CONFIGS = [];
 
     /**
+     * @var string
+     */
+    public static $ROOT;
+
+    /**
+     * @param string $root (path to root dir)
      * @return mixed
      */
-    public static function output()
+    public static function output($root)
     {
         //ob_start();
 
-        $router = new Router(self::request(), self::response());
+        self::$ROOT = $root;
+
+        $router = new Router(self::request(), self::response(), $root);
 
         $run = self::routes($router)->run();
 
@@ -116,7 +124,7 @@ class App
 
         foreach ($files as $file) {
 
-            $filename = __APP_ROOT__ . '/' . $file;
+            $filename = self::$ROOT . '/' . $file;
             if (file_exists($filename)) {
 
                 /** @noinspection PhpIncludeInspection */
