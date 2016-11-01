@@ -121,7 +121,7 @@ class Engine extends Tools
      * @param bool $print
      * @return string
      */
-    protected function section($name, $print = true)
+    protected function grant($name, $print = true)
     {
         $section = sif($this->sections, $name);
         if ($print) {

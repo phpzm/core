@@ -103,7 +103,7 @@ class App
         }
 
         $config = [];
-        $filename = path(true, 'app', 'configs', $name . '.php');
+        $filename = path(true, 'config', $name . '.php');
         if (file_exists($filename)) {
             /** @noinspection PhpIncludeInspection */
             $config = require $filename;
@@ -111,6 +111,18 @@ class App
         self::$CONFIGS[$name] = (object)$config;
 
         return self::$CONFIGS[$name];
+    }
+
+    /**
+     * @return string
+     */
+    public static function env()
+    {
+        $filename = path(true, '.env');
+        if (!file_exists($filename) || !is_file($filename)) {
+            return '';
+        }
+        return trim(file_get_contents($filename));
     }
 
     /**
@@ -123,16 +135,7 @@ class App
         $files = $files ? $files : self::config('route')->files;
 
         foreach ($files as $file) {
-
-            $filename = self::$ROOT . '/' . $file;
-            if (file_exists($filename)) {
-
-                /** @noinspection PhpIncludeInspection */
-                $callable = require_once $filename;
-                if (is_callable($callable)) {
-                    $callable($router);
-                }
-            }
+            $router->load(path(true, $file));
         }
 
         return $router;

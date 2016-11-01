@@ -97,6 +97,20 @@ class Router extends Engine
     }
 
     /**
+     * @param $filename
+     */
+    public function load($filename)
+    {
+        if (file_exists($filename)) {
+            /** @noinspection PhpIncludeInspection */
+            $callable = require_once $filename;
+            if (is_callable($callable)) {
+                call_user_func_array($callable, [$this]);
+            }
+        }
+    }
+
+    /**
      * @param $dir
      * @return array
      */

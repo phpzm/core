@@ -126,7 +126,7 @@ class Engine extends Share
     }
 
     /**
-     * @param $method
+     * @param $methods
      * @param $uri
      * @param $callback
      * @param array $options
