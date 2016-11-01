@@ -49,36 +49,41 @@ class Request
     {
         $server = $_SERVER;
 
-        $self = isset($server['PHP_SELF']) ? $server['PHP_SELF'] : '';
-        $request_uri = isset($server['REQUEST_URI']) ? explode('?', $server['REQUEST_URI'])[0] : '';
+        $self = isset($server['PHP_SELF']) ? str_replace('index.php/', '', $server['PHP_SELF']) : '';
+        $uri = isset($server['REQUEST_URI']) ? explode('?', $server['REQUEST_URI'])[0] : '';
+        $start = '';
 
-        $peaces = explode('/', $self);
-        array_pop($peaces);
+        if ($self !== $uri) {
 
-        $start = implode('/', $peaces);
-        $search = '/' . preg_quote($start, '/') . '/';
-        $uri = preg_replace($search, '', $request_uri, 1);
+            $peaces = explode('/', $self);
+            array_pop($peaces);
+
+            $start = implode('/', $peaces);
+            $search = '/' . preg_quote($start, '/') . '/';
+            $uri = preg_replace($search, '', $uri, 1);
+        }
 
         $this->uri = $uri;
         $this->method = isset($server['REQUEST_METHOD']) ? $server['REQUEST_METHOD'] : $this->method;
         $this->url = isset($server['HTTP_HOST']) ? $server['HTTP_HOST'] . $start : $this->url;
 
-        $this->uri = isset($_GET['_uri']) ? $_GET['_uri'] : $this->uri;
-        $this->uri = isset($_POST['_uri']) ? $_POST['_uri'] : $this->uri;
-
-        $this->method = isset($_GET['_method']) ? $_GET['_method'] : $this->method;
-        $this->method = isset($_POST['_method']) ? $_POST['_method'] : $this->method;
-
-        $this->url = isset($_GET['_url']) ? $_GET['_url'] : $this->url;
-        $this->url = isset($_POST['_url']) ? $_POST['_url'] : $this->url;
-
+        foreach (['uri', 'method', 'url'] as $item) {
+            $this->$item = isset($_GET["_{$item}"]) ? $_GET["_{$item}"] : $this->$item;
+            $this->$item = isset($_POST["_{$item}"]) ? $_POST["_{$item}"] : $this->$item;
+        }
 
         $this->uri = substr($this->uri, -1) !== '/' ? $this->uri . '/' : $this->uri ;
         $this->method = strtoupper($this->method);
 
+        $_PAYLOAD = (array) json_decode(file_get_contents("php://input"));
+        if ($_PAYLOAD) {
+            $_PAYLOAD = [];
+        }
         $this->set('GET', $_GET);
-        $this->set('POST', $_POST);
-        $this->set($this->method, json_decode(file_get_contents("php://input")));
+        $this->set($this->method === 'GET' ? 'POST' : $this->method, array_merge($_POST, $_PAYLOAD));
+
+        $_GET = [];
+        $_POST = [];
     }
 
     /**

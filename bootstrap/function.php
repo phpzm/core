@@ -58,11 +58,6 @@ if (!function_exists('out')) {
             case TYPE_NULL:
             case TYPE_UNKNOWN_TYPE:
                 $value = '';
-                break;
-
-            case TYPE_DATE:
-                $value = date("d/m/Y", strtotime($value));
-                break;
         }
         if ($print) {
             print $value;
@@ -91,8 +86,12 @@ if (!function_exists('sif')) {
      *
      * @return mixed
      */
-    function sif($value, $property = false, $default = null)
+    function sif($value, $property = null, $default = null)
     {
+        if (is_null($property)) {
+            return $default;
+        }
+
         if (is_array($value)) {
             return isset($value[$property]) ? $value[$property] : $default;
         } else if (is_object($value)) {
