@@ -54,7 +54,7 @@ class Response
      */
     public function json($data)
     {
-        $this->body = gettype($data) === TYPE_STRING ? $data : json_encode($data);
+        $this->body = gettype($data) === TYPE_STRING ? $data : json_encode($data, JSON_NUMERIC_CHECK);
 
         return $this;
     }
