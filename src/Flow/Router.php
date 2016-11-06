@@ -75,9 +75,11 @@ class Router extends Engine
                 }
             }
 
-            $router->setUri($parameter . '/');
+            $router
+                ->setUri($parameter . '/')
+                ->clear();
 
-            return App::routes($router->clear(), $files)->run();
+            return App::routes($router, $files)->run();
         };
 
         $this->on($method, $start . '*', $callback, $options);
