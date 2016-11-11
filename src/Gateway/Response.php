@@ -52,7 +52,7 @@ class Response extends ResponseStream
      */
     public function json($data)
     {
-        $this->write(gettype($data) === TYPE_STRING ? $data : json_encode($data));
+        $this->write(gettype($data) === TYPE_STRING ? $data : json_encode($data, JSON_NUMERIC_CHECK));
 
         return $this;
     }
