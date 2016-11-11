@@ -53,40 +53,33 @@ class Router extends Engine
     }
 
     /**
-     * @param $method this is the method to perform a server response
-     * @param $path this is a controller callback function, the full path to use class methods.
-     * When receives a path /path/my-service/one/two/three/show and call Namespace\MyService\One\Two\Three->show()
+     * @param string $method
+     * @param string $path
+     * @param string $namespace
+     * @param array $options
      * @return $this
      */
-    public function mirror($method, $path, $namespace)
+    public function mirror($method, $path, $namespace, $options = [])
     {
         $peaces = explode('/', $path);
+
         if (isset($peaces)) {
+
             $call = array_pop($peaces);
-            if (strpos($call, '@') !== false) {//se encontrar o '@' na chamada de funcao
-                $tmp = explode('@', $call);
-                $call = array_pop($tmp);
-                $peaces[] = array_pop($tmp);
-            }
+
             array_shift($peaces);
 
-            for($i = 0; $i <  count($peaces) ; $i++){
-
+            for ($i = 0; $i < count($peaces); $i++) {
                 $peaces[$i] = ucwords($peaces[$i]);
-
             }
 
             $class = implode('\\', $peaces);
+
             if (isset($call) && isset($class)) {
 
-                $this->on($method, $path, function () use ($namespace, $class, $call, $peaces) {
+                $use = $class = (($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
 
-                    $class = ( ($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
-
-                    $obj = new $class();
-
-                    return $obj->$call();
-                });
+                $this->on($method, $path, "{$use}@{$call}", $options);
             }
         }
         return $this;
@@ -135,7 +128,7 @@ class Router extends Engine
      */
     public function otherWise($method, $callback, $options = [])
     {
-        return $this->on($method, '/(.*)', $callback, $options);
+        return $this->otherWise[strtolower($method)] = ['callback' => $callback, 'options' => $options];
     }
 
     /**
