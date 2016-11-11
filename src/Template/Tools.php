@@ -97,4 +97,38 @@ class Tools
         return $this->href('assets/' . $path, $print);
     }
 
+    /**
+     * @param $value
+     * @param $index
+     * @return string
+     */
+    public function e($value, $index = null)
+    {
+        if (is_null($index)) {
+            return out($value);
+        }
+        return $this->ee($value, $index);
+    }
+
+    /**
+     * @param $value
+     * @param $index
+     * @return string
+     */
+    public function ee($value, $index)
+    {
+        return $this->out(sif($value, $index));
+    }
+
+    /**
+     * @param $value
+     * @param bool $print
+     * @param null $type
+     * @return string
+     */
+    public function out($value, $print = true, $type = null)
+    {
+        return out($value, $print, $type);
+    }
+
 }

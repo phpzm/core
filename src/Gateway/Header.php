@@ -2,7 +2,10 @@
 
 namespace Simples\Core\Gateway;
 
-
+/**
+ * Class Header
+ * @package Simples\Core\Gateway
+ */
 class Header
 {
     /**
@@ -32,6 +35,5 @@ class Header
         $this->replace = $replace;
         $this->status = $status;
     }
-
 
 }
