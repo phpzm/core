@@ -9,17 +9,15 @@ use Simples\Core\Template\Engine;
  * Class Response
  * @package Simples\Core\Gateway
  */
-class Response
+class Response extends ResponseStream
 {
     /**
-     * @var array
+     * Response constructor.
      */
-    private $headers = [];
-
-    /**
-     * @var mixed
-     */
-    private $body;
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
     /**
      * @param $string
@@ -43,7 +41,7 @@ class Response
     {
         $engine = new Engine(path(true, App::config('app')->views['root']));
 
-        $this->body = $engine->render($view, $data);
+        $this->write($engine->render($view, $data));
 
         return $this;
     }
@@ -54,46 +52,9 @@ class Response
      */
     public function json($data)
     {
-        $this->body = gettype($data) === TYPE_STRING ? $data : json_encode($data);
+        $this->write(gettype($data) === TYPE_STRING ? $data : json_encode($data));
 
         return $this;
     }
-
-    /**
-     * @return array
-     */
-    public function getHeaders()
-    {
-        return $this->headers;
-    }
-
-    /**
-     * @param array $headers
-     * @return Response
-     */
-    public function setHeaders($headers)
-    {
-        $this->headers = $headers;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    /**
-     * @param mixed $body
-     * @return Response
-     */
-    public function setBody($body)
-    {
-        $this->body = $body;
-        return $this;
-    }
-
 
 }
