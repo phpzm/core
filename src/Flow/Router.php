@@ -53,6 +53,46 @@ class Router extends Engine
     }
 
     /**
+     * @param $method this is the method to perform a server response
+     * @param $path this is a controller callback function, the full path to use class methods.
+     * When receives a path /path/my-service/one/two/three/show and call Namespace\MyService\One\Two\Three->show()
+     * @return $this
+     */
+    public function mirror($method, $path, $namespace)
+    {
+        $peaces = explode('/', $path);
+        if (isset($peaces)) {
+            $call = array_pop($peaces);
+            if (strpos($call, '@') !== false) {//se encontrar o '@' na chamada de funcao
+                $tmp = explode('@', $call);
+                $call = array_pop($tmp);
+                $peaces[] = array_pop($tmp);
+            }
+            array_shift($peaces);
+
+            for($i = 0; $i <  count($peaces) ; $i++){
+
+                $peaces[$i] = ucwords($peaces[$i]);
+
+            }
+
+            $class = implode('\\', $peaces);
+            if (isset($call) && isset($class)) {
+
+                $this->on($method, $path, function () use ($namespace, $class, $call, $peaces) {
+
+                    $class = ( ($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
+
+                    $obj = new $class();
+
+                    return $obj->$call();
+                });
+            }
+        }
+        return $this;
+    }
+
+    /**
      * @param $method
      * @param $start
      * @param $files
