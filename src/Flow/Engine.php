@@ -47,6 +47,11 @@ class Engine extends Share
     public $debug = [];
 
     /**
+     * @var array
+     */
+    protected $otherWise = [];
+
+    /**
      * Router constructor.
      * @param Request $request
      * @param Response $response
@@ -225,6 +230,13 @@ class Engine extends Share
 
                 return $this->resolve($callback, array_merge(array_values($params)), $options);
             }
+        }
+
+        if (isset($this->otherWise[strtolower($method)])) {
+
+            $context = $this->otherWise[strtolower($method)];
+
+            return $this->resolve($context['callback'], [], $context['options']);
         }
 
         return null;

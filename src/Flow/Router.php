@@ -53,6 +53,39 @@ class Router extends Engine
     }
 
     /**
+     * @param string $method
+     * @param string $path
+     * @param string $namespace
+     * @param array $options
+     * @return $this
+     */
+    public function mirror($method, $path, $namespace, $options = [])
+    {
+        $peaces = explode('/', $path);
+
+        if (isset($peaces)) {
+
+            $call = array_pop($peaces);
+
+            array_shift($peaces);
+
+            for ($i = 0; $i < count($peaces); $i++) {
+                $peaces[$i] = ucwords($peaces[$i]);
+            }
+
+            $class = implode('\\', $peaces);
+
+            if (isset($call) && isset($class)) {
+
+                $use = $class = (($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
+
+                $this->on($method, $path, "{$use}@{$call}", $options);
+            }
+        }
+        return $this;
+    }
+
+    /**
      * @param $method
      * @param $start
      * @param $files
@@ -95,7 +128,7 @@ class Router extends Engine
      */
     public function otherWise($method, $callback, $options = [])
     {
-        return $this->on($method, '/(.*)', $callback, $options);
+        return $this->otherWise[strtolower($method)] = ['callback' => $callback, 'options' => $options];
     }
 
     /**
