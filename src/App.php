@@ -176,7 +176,8 @@ class App
     public static function http($output)
     {
         if (method_exists($output, 'getBody')) {
-            $output = $output->getBody();
+            /** @var Response $output */
+            $output = $output->getBody()->getContents();
         }
         out($output);
     }
@@ -187,7 +188,7 @@ class App
     public static function cli($output)
     {
         if (method_exists($output, 'getBody')) {
-            $output = $output->getBody();
+            $output = $output->getBody()->getContents();
         }
         out(
             '|--------------------------------------------------------------------------|' . PHP_EOL .
@@ -199,7 +200,7 @@ class App
         echo PHP_EOL;
         out('|--------------------------------------------------------------------------|' . PHP_EOL);
         echo PHP_EOL;
-        out($output);
+        out($output | '');
         echo PHP_EOL;
         out('---------------------------------------------------------------------------|' . PHP_EOL);
         echo PHP_EOL;

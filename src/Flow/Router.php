@@ -7,6 +7,7 @@ use Simples\Core\Gateway\Request;
 use Simples\Core\Gateway\Response;
 use \RecursiveIteratorIterator;
 use \RecursiveDirectoryIterator;
+use Stringy\StaticStringy as stringy;
 
 /**
  * Class Router
@@ -61,27 +62,25 @@ class Router extends Engine
      */
     public function mirror($method, $path, $namespace, $options = [])
     {
-        $peaces = explode('/', $path);
+        $path = substr($path, -1) === '/' ? $path . '(.*)' : $path . '/(.*)';
 
-        if (isset($peaces)) {
+        $this->on($method, $path, function ($path) use ($namespace, $options) {
 
-            $call = array_pop($peaces);
+            $fragments = explode('/', $path);
 
-            array_shift($peaces);
+            $method = stringy::camelize(array_pop($fragments));
 
-            for ($i = 0; $i < count($peaces); $i++) {
-                $peaces[$i] = ucwords($peaces[$i]);
-            }
+            $peaces = array_map(function ($peace) {
+                return stringy::upperCamelize($peace);
+            }, $fragments);
 
             $class = implode('\\', $peaces);
 
-            if (isset($call) && isset($class)) {
+            $use = (($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
 
-                $use = $class = (($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
+            return $this->resolve("{$use}@{$method}", [$this->data], $options);
+        });
 
-                $this->on($method, $path, "{$use}@{$call}", $options);
-            }
-        }
         return $this;
     }
 

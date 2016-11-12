@@ -100,3 +100,18 @@ if (!function_exists('sif')) {
         return $default;
     }
 }
+
+if (!function_exists('stop')) {
+    /**
+     *
+     */
+    function stop()
+    {
+        ob_start();
+        var_dump(func_get_args());
+        $contents = ob_get_contents();
+        ob_end_clean();
+        echo "<textarea>{$contents}</textarea>";
+        die("");
+    }
+}

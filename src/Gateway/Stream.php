@@ -5,6 +5,7 @@ namespace Simples\Core\Gateway;
 use Psr\Http\Message\StreamInterface;
 use \InvalidArgumentException;
 use \RuntimeException;
+use \Exception;
 
 /**
  * Class Stream
@@ -30,16 +31,22 @@ class Stream implements StreamInterface
     public function __construct($stream, $mode = 'r')
     {
         $this->stream = $stream;
+
         if (is_resource($stream)) {
+
             $this->resource = $stream;
+
         } else if (is_string($stream)) {
-            set_error_handler(function ($errno, $errstr) {
+
+            try {
+                $this->resource = fopen($this->stream, $mode);
+
+            } catch (Exception $e) {
                 throw new InvalidArgumentException(
-                    'Invalid file provided for stream; must be a valid path with valid permissions'
+                    $e->getMessage()
                 );
-            }, E_WARNING);
-            $this->resource = fopen($stream, $mode);
-            restore_error_handler();
+            }
+
         } else {
             throw new InvalidArgumentException(
                 'Invalid stream provided; must be a string stream identifier or resource'
@@ -262,7 +269,9 @@ class Stream implements StreamInterface
         if (!$this->resource) {
             throw new RuntimeException('No resource available; cannot write');
         }
+
         $result = fwrite($this->resource, $string);
+
         if (false === $result) {
             throw new RuntimeException('Error writing to stream');
         }
@@ -302,6 +311,7 @@ class Stream implements StreamInterface
         if (!$this->isReadable()) {
             throw new RuntimeException('Stream is not readable');
         }
+
         $result = fread($this->resource, $length);
         if (false === $result) {
             throw new RuntimeException('Error reading stream');
@@ -322,6 +332,8 @@ class Stream implements StreamInterface
         if (!$this->isReadable()) {
             return '';
         }
+        rewind($this->resource);
+
         $result = stream_get_contents($this->resource);
         if (false === $result) {
             throw new RuntimeException('Error reading from stream');

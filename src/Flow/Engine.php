@@ -9,8 +9,13 @@ use Simples\Core\Gateway\Response;
  * Class Engine
  * @package Simples\Core\Flow
  */
-class Engine extends Share
+class Engine
 {
+    /**
+     * @trait Share
+     */
+    use Sharable;
+
     /**
      * @var Request
      */
@@ -147,6 +152,8 @@ class Engine extends Share
             }
         }
 
+        $uri = substr($uri, 0, 1) !== '/' ? '/' . $uri : $uri;
+
         foreach ($methods as $method) {
 
             $method = strtoupper($method);
@@ -174,11 +181,25 @@ class Engine extends Share
 
     /**
      * @param $callback
+     * @param $params
+     * @return Response
+     */
+    private function parse($callback, $params)
+    {
+        $result = call_user_func_array($callback, $params);
+        if ($result instanceof Response) {
+            return $result;
+        }
+        return (new Response())->plain($result);
+    }
+
+    /**
+     * @param $callback
      * @param array $params
      * @param array $options
-     * @return mixed
+     * @return Response
      */
-    private final function resolve($callback, array $params, array $options)
+    protected final function resolve($callback, array $params, array $options)
     {
         if (!is_callable($callback)) {
             $peaces = explode('@', $callback);
@@ -198,7 +219,7 @@ class Engine extends Share
         }
         $params[] = array_merge($this->data, $options);
 
-        return call_user_func_array($callback, $params);
+        return $this->parse($callback, $params);
     }
 
     /**

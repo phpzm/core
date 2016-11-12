@@ -37,7 +37,7 @@ class Controller
      * @param Response $response
      * @param object $route
      */
-    public function __construct(Request $request, Response $response, $route = null)
+    public final function __construct(Request $request, Response $response, $route = null)
     {
         $this->request = $request;
         $this->response = $response;
@@ -57,7 +57,7 @@ class Controller
         $data['assign'] = '@index';
         $data['view'] = $view;
 
-        return $this->response()->view($view . '/view.php', $data);
+        return $this->response()->html($view . '/view.php', $data);
     }
 
     /**
@@ -71,7 +71,7 @@ class Controller
         $data['assign'] = '@create';
         $data['view'] = $view;
 
-        return $this->response()->view($view . '/view.php', $data);
+        return $this->response()->html($view . '/view.php', $data);
     }
 
     /**
@@ -87,7 +87,7 @@ class Controller
         $data['id'] = $id;
         $data['view'] = $view;
 
-        return $this->response()->view($view . '/view.php', $data);
+        return $this->response()->html($view . '/view.php', $data);
     }
 
     /**
@@ -103,7 +103,7 @@ class Controller
         $data['id'] = $id;
         $data['view'] = $view;
 
-        return $this->response()->view($view . '/view.php', $data);
+        return $this->response()->html($view . '/view.php', $data);
     }
 
     /**
@@ -118,7 +118,7 @@ class Controller
         $data['input'] = $this->request->all();
         $data['view'] = $view;
 
-        return $this->response()->view($view . '/view.php', $data);
+        return $this->response()->html($view . '/view.php', $data);
     }
 
     /**
@@ -135,7 +135,7 @@ class Controller
         $data['input'] = $this->request->all();
         $data['view'] = $view;
 
-        return $this->response()->view($view . '/view.php',$data);
+        return $this->response()->html($view . '/view.php',$data);
     }
 
     /**
@@ -151,7 +151,7 @@ class Controller
         $data['id'] = $id;
         $data['view'] = $view;
 
-        return $this->response()->view($view . '/view.php', $data);
+        return $this->response()->html($view . '/view.php', $data);
     }
 
     /**

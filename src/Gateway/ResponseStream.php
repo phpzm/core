@@ -13,9 +13,14 @@ use \InvalidArgumentException;
 class ResponseStream implements ResponseInterface
 {
     /**
+     * @var StreamInterface
+     */
+    private $stream;
+
+    /**
      * @var string
      */
-    private $protocol = '1.1';
+    protected $protocol = '1.1';
 
     /**
      * @var string
@@ -23,19 +28,14 @@ class ResponseStream implements ResponseInterface
     protected $statusCode = 200;
 
     /**
-     * @var string
-     */
-    private $reasonPhrase = '';
-
-    /**
      * @var array
      */
     protected $headers = [];
 
     /**
-     * @var StreamInterface
+     * @var string
      */
-    private $stream;
+    private $reasonPhrase = '';
 
     /**
      * Map of standard HTTP status code/reason phrases
@@ -108,12 +108,13 @@ class ResponseStream implements ResponseInterface
     ];
 
     /**
-     * @param string|resource|StreamInterface $body Stream identifier and/or actual stream resource
-     * @param int $status Status code for the response, if any.
-     * @param array $headers Headers for the response, if any.
+     * @param string|resource|StreamInterface $body
+     * @param string $protocol
+     * @param int $statusCode
+     * @param array $headers
      * @throws InvalidArgumentException on any invalid element.
      */
-    public function __construct($body = 'php://memory', $status = 200, array $headers = [])
+    public function __construct($body = 'php://memory', $protocol = null, $statusCode = null, array $headers = null)
     {
         if (!is_string($body) && !is_resource($body) && !$body instanceof StreamInterface) {
             throw new InvalidArgumentException(
@@ -123,12 +124,13 @@ class ResponseStream implements ResponseInterface
             );
         }
 
-        if (null !== $status) {
-            $this->validateStatus($status);
+        if (null !== $statusCode) {
+            $this->validateStatus($statusCode);
         }
         $this->stream = ($body instanceof StreamInterface) ? $body : new Stream($body, 'wb+');
-        $this->statusCode = $status ? (int)$status : 200;
-        $this->headers = $headers;
+        $this->protocol = $protocol ? $protocol : (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : $this->protocol);
+        $this->statusCode = $statusCode ? (int)$statusCode : $this->statusCode;
+        $this->headers = $headers ? $headers : $this->headers;
     }
 
     /**
@@ -167,7 +169,9 @@ class ResponseStream implements ResponseInterface
      */
     public function withProtocolVersion($version)
     {
-        // TODO: Implement withProtocolVersion() method.
+        $new = clone $this;
+        $new->protocol = $version;
+        return $new;
     }
 
     /**

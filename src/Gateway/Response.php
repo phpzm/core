@@ -34,10 +34,10 @@ class Response extends ResponseStream
 
     /**
      * @param $view
-     * @param null $data
+     * @param $data
      * @return $this
      */
-    public function view($view, $data = null)
+    public function html($view, $data = [])
     {
         $engine = new Engine(path(true, App::config('app')->views['root']));
 
@@ -51,6 +51,17 @@ class Response extends ResponseStream
      * @return $this
      */
     public function json($data)
+    {
+        $this->write(json_encode($data, JSON_NUMERIC_CHECK));
+
+        return $this;
+    }
+
+    /**
+     * @param $data
+     * @return $this
+     */
+    public function plain($data)
     {
         $this->write(gettype($data) === TYPE_STRING ? $data : json_encode($data, JSON_NUMERIC_CHECK));
 
