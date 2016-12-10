@@ -5,7 +5,7 @@
   "keywords": ["php","micro service", "api", "resource", "gennesis.io"],
   "homepage": "https://github.com/phpzm/core",
   "license": "MIT",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "package",
   "authors": [
     {
