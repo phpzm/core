@@ -35,15 +35,18 @@ class Controller
     /**
      * @param Request $request
      * @param Response $response
-     * @param object $route
+     * @param Route $route
+     * @return $this
      */
-    public final function __construct(Request $request, Response $response, $route = null)
+    public final function __init(Request $request, Response $response, Route $route)
     {
         $this->request = $request;
         $this->response = $response;
-
         $this->route = $route;
-        $this->view = isset($route->uri) ? $route->uri : App::config('app')->views['controller'];
+
+        $this->view = $route->getUri() ? $route->getUri() : App::config('app')->views['controller'];
+
+        return $this;
     }
 
     /**
@@ -166,7 +169,7 @@ class Controller
     /**
      * @return Request
      */
-    public function request()
+    protected final function request()
     {
         return $this->request;
     }
@@ -174,7 +177,7 @@ class Controller
     /**
      * @return Response
      */
-    public function response()
+    protected final function response()
     {
         return $this->response;
     }

@@ -22,6 +22,11 @@ use Simples\Core\App;
 class Tools
 {
     /**
+     * @var mixed
+     */
+    protected $data;
+
+    /**
      * @param $path
      * @param bool $print
      * @return string
@@ -58,33 +63,33 @@ class Tools
     }
 
     /**
-     * @param $string
+     * @param string $path
      * @param bool $print
      * @return string
      */
-    public function image($string, $print = true)
+    public function image($path, $print = true)
     {
-        return $this->asset('images/' . $string, $print);
+        return $this->asset('image/' . $this->fix($path), $print);
     }
 
     /**
-     * @param $string
+     * @param string $path
      * @param bool $print
      * @return string
      */
-    public function style($string, $print = true)
+    public function css($path, $print = true)
     {
-        return $this->asset('styles/' . $string, $print);
+        return $this->asset('css/' . $this->fix($path), $print);
     }
 
     /**
-     * @param $string
+     * @param string $path
      * @param bool $print
      * @return string
      */
-    public function javascript($string, $print = true)
+    public function js($path, $print = true)
     {
-        return $this->asset('scripts/' . $string, $print);
+        return $this->asset('js/' . $this->fix($path), $print);
     }
 
     /**
@@ -94,7 +99,16 @@ class Tools
      */
     public function asset($path, $print = true)
     {
-        return $this->href('assets/' . $path, $print);
+        return $this->href('assets/' . $this->fix($path) . $this->test(), $print);
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    private function fix($path)
+    {
+        return (gettype($path) === TYPE_STRING && $path{0} === '/') ? substr($path, 1) : $path;
     }
 
     /**
@@ -102,12 +116,12 @@ class Tools
      * @param $index
      * @return string
      */
-    public function e($value, $index = null)
+    public function stamp($value, $index = null)
     {
         if (is_null($index)) {
             return out($value);
         }
-        return $this->ee($value, $index);
+        return $this->off($value, $index);
     }
 
     /**
@@ -115,20 +129,36 @@ class Tools
      * @param $index
      * @return string
      */
-    public function ee($value, $index)
+    public function off($value, $index)
     {
-        return $this->out(sif($value, $index));
+        return out(off($value, $index));
     }
 
     /**
-     * @param $value
-     * @param bool $print
-     * @param null $type
+     * @param $index
      * @return string
      */
-    public function out($value, $print = true, $type = null)
+    public function out($index)
     {
-        return out($value, $print, $type);
+        return out($this->get($index));
+    }
+
+    /**
+     * @param $index
+     * @param $default
+     * @return mixed
+     */
+    protected function get($index, $default = null)
+    {
+        return off($this->data, $index, $default);
+    }
+
+    /**
+     * @return string
+     */
+    private function test()
+    {
+        return App::env('test') ? '?c=' . uniqid() : '';
     }
 
 }

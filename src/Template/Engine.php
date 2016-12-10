@@ -19,11 +19,6 @@ class Engine extends Tools
     private $layout;
 
     /**
-     * @var mixed
-     */
-    private $data;
-
-    /**
      * @var array
      */
     private $sections;
@@ -103,27 +98,13 @@ class Engine extends Tools
     }
 
     /**
-     * @param $index
-     * @param bool $print
-     * @return mixed
-     */
-    protected function get($index, $print = true)
-    {
-        $get = sif($this->data, $index);
-        if ($print) {
-            out($get);
-        }
-        return $get;
-    }
-
-    /**
      * @param $name
      * @param bool $print
      * @return string
      */
     protected function grant($name, $print = true)
     {
-        $section = sif($this->sections, $name);
+        $section = off($this->sections, $name);
         if ($print) {
             out($section);
         }

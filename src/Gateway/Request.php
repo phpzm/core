@@ -183,6 +183,18 @@ class Request implements RequestInterface
     }
 
     /**
+     * @param $name
+     * @param null $default
+     * @return mixed
+     */
+    public function input($name, $default = null)
+    {
+        $input = off($this->input, $name, $default);
+
+        return $input['value'];
+    }
+
+    /**
      * Retrieves the HTTP protocol version as a string.
      *
      * The string MUST contain only the HTTP version number (e.g., "1.1", "1.0").

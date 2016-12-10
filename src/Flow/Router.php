@@ -12,6 +12,11 @@ use Stringy\StaticStringy as stringy;
 /**
  * Class Router
  * @package Simples\Core\Flow
+ *
+ * @method Router get($route, $callable)
+ * @method Router post($route, $callable)
+ * @method Router put($route, $callable)
+ * @method Router delete($route, $callable)
  */
 class Router extends Engine
 {

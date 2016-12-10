@@ -32,7 +32,7 @@ class Engine
     private $routes = [];
 
     /**
-     * @var object
+     * @var Route
      */
     private $route;
 
@@ -212,7 +212,9 @@ class Engine
             if (method_exists($class, $method)) {
 
                 /** @var \Simples\Core\Flow\Controller $controller */
-                $controller = new $class($this->request(), $this->response(), $this->route);
+                $controller = new $class();
+
+                $controller->__init($this->request(), $this->response(), $this->route);
 
                 $callback = [$controller, $method];
             }
@@ -232,21 +234,21 @@ class Engine
             return null;
         }
 
-        foreach ($this->routes[$method] as $route => $context) {
+        foreach ($this->routes[$method] as $path => $context) {
 
             $this->debug[] = [
-                'fetch' => [$route, $this->uri]
+                'fetch' => [$path, $this->uri]
             ];
 
-            if (preg_match($route, $this->uri, $params)) {
+            if (preg_match($path, $this->uri, $params)) {
 
                 array_shift($params);
                 $options = $context['options'];
 
                 $callback = $context['callback'];
-                $this->route = (object)['method' => $method, 'uri' => $this->uri, 'route' => $route, 'callback' => $callback];
+                $this->route = new Route($method, $this->uri, $path, $callback);
                 $this->debug[] = [
-                    'match' => [$route, $this->uri]
+                    'match' => [$path, $this->uri]
                 ];
 
                 return $this->resolve($callback, array_merge(array_values($params)), $options);

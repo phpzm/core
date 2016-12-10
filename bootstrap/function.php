@@ -1,5 +1,18 @@
 <?php
 
+if (!function_exists('env')) {
+    /**
+     * @return string
+     */
+    function env()
+    {
+        $filename = path(true, 'config', '.env');
+        if (!file_exists($filename) || !is_file($filename)) {
+            return '';
+        }
+        return trim(file_get_contents($filename));
+    }
+}
 
 if (!function_exists('path')) {
 
@@ -78,7 +91,7 @@ if (!function_exists('iif')) {
     }
 }
 
-if (!function_exists('sif')) {
+if (!function_exists('off')) {
     /**
      * @param $value
      * @param $property
@@ -86,7 +99,7 @@ if (!function_exists('sif')) {
      *
      * @return mixed
      */
-    function sif($value, $property = null, $default = null)
+    function off($value, $property = null, $default = null)
     {
         if (is_null($property)) {
             return $default;
@@ -113,5 +126,17 @@ if (!function_exists('stop')) {
         ob_end_clean();
         echo "<textarea>{$contents}</textarea>";
         die("");
+    }
+}
+
+
+if (!function_exists('config')) {
+    /**
+     * @param $name
+     * @return object
+     */
+    function config($name)
+    {
+        return \Simples\Core\App::config($name);
     }
 }

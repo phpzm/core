@@ -114,15 +114,12 @@ class App
     }
 
     /**
-     * @return string
+     * @param $property
+     * @return mixed
      */
-    public static function env()
+    public static function env($property)
     {
-        $filename = path(true, '.env');
-        if (!file_exists($filename) || !is_file($filename)) {
-            return '';
-        }
-        return trim(file_get_contents($filename));
+        return off(self::config(env()), $property);
     }
 
     /**
