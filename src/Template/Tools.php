@@ -69,7 +69,7 @@ class Tools
      */
     public function image($path, $print = true)
     {
-        return $this->asset('image/' . $this->fix($path), $print);
+        return $this->asset('images/' . $this->fix($path), $print);
     }
 
     /**
@@ -77,9 +77,9 @@ class Tools
      * @param bool $print
      * @return string
      */
-    public function css($path, $print = true)
+    public function style($path, $print = true)
     {
-        return $this->asset('css/' . $this->fix($path), $print);
+        return $this->asset('styles/' . $this->fix($path), $print);
     }
 
     /**
@@ -87,9 +87,9 @@ class Tools
      * @param bool $print
      * @return string
      */
-    public function js($path, $print = true)
+    public function script($path, $print = true)
     {
-        return $this->asset('js/' . $this->fix($path), $print);
+        return $this->asset('scripts/' . $this->fix($path), $print);
     }
 
     /**
