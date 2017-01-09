@@ -1,12 +1,12 @@
 <?php
 
-namespace Simples\Core\Template;
+namespace Simples\Core\View;
 
 /**
  * Class Engine
- * @package Simples\Core\Template
+ * @package Simples\Core\View
  */
-class Engine extends Tools
+class Template extends Tools
 {
     /**
      * @var string
@@ -69,13 +69,16 @@ class Engine extends Tools
         ob_start();
         if (file_exists($filename)) {
 
+            if (!is_array($data)) {
+                $data = [$data];
+            }
             extract($data);
 
             /** @noinspection PhpIncludeInspection */
             $callable = include $filename;
 
             if (is_callable($callable)) {
-                call_user_func_array($callable, is_array($data) ? array_values($data) : [$data]);
+                call_user_func_array($callable, array_values($data));
             }
         }
         $content = ob_get_contents();

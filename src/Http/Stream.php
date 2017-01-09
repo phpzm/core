@@ -1,6 +1,6 @@
 <?php
 
-namespace Simples\Core\Gateway;
+namespace Simples\Core\Http;
 
 use Psr\Http\Message\StreamInterface;
 use \InvalidArgumentException;
@@ -9,7 +9,7 @@ use \Exception;
 
 /**
  * Class Stream
- * @package Simples\Core\Gateway
+ * @package Simples\Core\Http
  */
 class Stream implements StreamInterface
 {
@@ -167,7 +167,7 @@ class Stream implements StreamInterface
         }
         $result = ftell($this->resource);
         if (!is_int($result)) {
-            throw new RuntimeException('Error occurred during tell operation');
+            throw new RuntimeException('Erro occurred during tell operation');
         }
         return $result;
     }
@@ -223,7 +223,7 @@ class Stream implements StreamInterface
         }
         $result = fseek($this->resource, $offset, $whence);
         if (0 !== $result) {
-            throw new RuntimeException('Error seeking within stream');
+            throw new RuntimeException('Erro seeking within stream');
         }
         return true;
     }
@@ -273,7 +273,7 @@ class Stream implements StreamInterface
         $result = fwrite($this->resource, $string);
 
         if (false === $result) {
-            throw new RuntimeException('Error writing to stream');
+            throw new RuntimeException('Erro writing to stream');
         }
         return $result;
     }
@@ -314,7 +314,7 @@ class Stream implements StreamInterface
 
         $result = fread($this->resource, $length);
         if (false === $result) {
-            throw new RuntimeException('Error reading stream');
+            throw new RuntimeException('Erro reading stream');
         }
 
         return $result;
@@ -335,8 +335,8 @@ class Stream implements StreamInterface
         rewind($this->resource);
 
         $result = stream_get_contents($this->resource);
-        if (false === $result) {
-            throw new RuntimeException('Error reading from stream');
+        if (!$result) {
+            return '';
         }
         return $result;
     }

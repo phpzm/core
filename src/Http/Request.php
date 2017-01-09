@@ -1,6 +1,6 @@
 <?php
 
-namespace Simples\Core\Gateway;
+namespace Simples\Core\Http;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -8,10 +8,15 @@ use Psr\Http\Message\UriInterface;
 
 /**
  * Class Request
- * @package Simples\Core\Gateway
+ * @package Simples\Core\Http
  */
 class Request implements RequestInterface
 {
+    /**
+     * @var boolean
+     */
+    private $strict;
+
     /**
      * @var string
      */
@@ -20,7 +25,7 @@ class Request implements RequestInterface
     /**
      * @var string
      */
-    private $method = 'GET';
+    private $method = '';
 
     /**
      * @var string
@@ -30,31 +35,47 @@ class Request implements RequestInterface
     /**
      * @var array
      */
-    private $data = [];
+    private $headers = [];
 
     /**
      * @var array
      */
-    private $input = [];
+    private $inputs = [];
+
+    /**
+     * @var array
+     */
+    private $data = [];
 
     /**
      * Request constructor.
+     * @param boolean $strict
+     * @param string $method
+     * @param string $url
+     * @param string $uri
+     * @param array $inputs
+     * @param array $headers
      */
-    public function __construct()
+    public function __construct($strict = false, $method = '', $url = '', $uri = '', $headers = [], $inputs = [])
     {
-        if (isset($_SERVER['REQUEST_METHOD'])) {
-            $this->http();
-        } else {
-            $this->cli();
-        }
+        $this->strict = $strict;
+        $this->method = $method;
+        $this->url = $url;
+        $this->uri = $uri;
+        $this->inputs = $inputs;
+        $this->headers = $headers;
     }
 
+
     /**
-     *
+     * TODO: do  this beautiful
+     * @return $this
      */
-    private function http()
+    public function fromServer()
     {
         $server = $_SERVER;
+
+        $this->method = isset($server['REQUEST_METHOD']) ? $server['REQUEST_METHOD'] : $this->method;
 
         $self = isset($server['PHP_SELF']) ? str_replace('index.php/', '', $server['PHP_SELF']) : '';
         $uri = isset($server['REQUEST_URI']) ? explode('?', $server['REQUEST_URI'])[0] : '';
@@ -69,34 +90,44 @@ class Request implements RequestInterface
             $search = '/' . preg_quote($start, '/') . '/';
             $uri = preg_replace($search, '', $uri, 1);
         }
-
-        $this->uri = $uri;
-        $this->method = isset($server['REQUEST_METHOD']) ? $server['REQUEST_METHOD'] : $this->method;
         $this->url = isset($server['HTTP_HOST']) ? $server['HTTP_HOST'] . $start : $this->url;
+        $this->uri = $uri;
 
         foreach (['uri', 'method', 'url'] as $item) {
+            /** @noinspection PhpVariableVariableInspection */
             $this->$item = isset($_GET["_{$item}"]) ? $_GET["_{$item}"] : $this->$item;
+            /** @noinspection PhpVariableVariableInspection */
             $this->$item = isset($_POST["_{$item}"]) ? $_POST["_{$item}"] : $this->$item;
         }
 
         $this->uri = substr($this->uri, -1) !== '/' ? $this->uri . '/' : $this->uri ;
-        $this->method = strtoupper($this->method);
+        $this->method = strtolower($this->method);
 
         $_PAYLOAD = (array) json_decode(file_get_contents("php://input"));
-        if ($_PAYLOAD) {
+        if (!$_PAYLOAD) {
             $_PAYLOAD = [];
         }
         $this->set('GET', $_GET);
-        $this->set($this->method === 'GET' ? 'POST' : $this->method, array_merge($_POST, $_PAYLOAD));
+        $this->set('POST', array_merge($_POST, $_PAYLOAD));
 
-        $_GET = [];
-        $_POST = [];
+        if ($this->strict) {
+            $_GET = [];
+            $_POST = [];
+        }
+
+        foreach ($server as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $this->headers[headerify(substr($name, 5))] = $value;
+            }
+        }
+
+        return $this;
     }
 
     /**
      *
      */
-    private function cli()
+    public function cli()
     {
         $argv = isset($_SERVER['argv']) ? $_SERVER['argv'] : [];
         array_shift($argv);
@@ -143,7 +174,7 @@ class Request implements RequestInterface
         if (is_array($this->data[$source]) or is_object($this->data[$source])) {
 
             foreach ($this->data[$source] as $key => $value) {
-                $this->input[$key] = [
+                $this->inputs[$key] = [
                     'value' => $value, 'source' => $source
                 ];
             }
@@ -179,7 +210,9 @@ class Request implements RequestInterface
      */
     public function all()
     {
-        return $this->input;
+        return array_map(function($input) {
+            return $input['value'];
+        }, $this->inputs);
     }
 
     /**
@@ -189,7 +222,7 @@ class Request implements RequestInterface
      */
     public function input($name, $default = null)
     {
-        $input = off($this->input, $name, $default);
+        $input = off($this->inputs, $name, $default);
 
         return $input['value'];
     }
@@ -251,7 +284,7 @@ class Request implements RequestInterface
      */
     public function getHeaders()
     {
-        // TODO: Implement getHeaders() method.
+        $this->headers;
     }
 
     /**
@@ -264,7 +297,7 @@ class Request implements RequestInterface
      */
     public function hasHeader($name)
     {
-        // TODO: Implement hasHeader() method.
+        return array_key_exists($name, $this->headers);
     }
 
     /**
@@ -283,7 +316,7 @@ class Request implements RequestInterface
      */
     public function getHeader($name)
     {
-        // TODO: Implement getHeader() method.
+        return $this->hasHeader($name) ? $this->headers[$name] : null;
     }
 
     /**

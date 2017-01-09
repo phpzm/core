@@ -20,3 +20,18 @@ define('TYPE_UNKNOWN_TYPE', 'unknown type');
 
 // custom types
 define('TYPE_DATE', 'date');
+
+if (!function_exists('error_handler')) {
+    /**
+     * @param $code
+     * @param $message
+     * @param $file
+     * @param $line
+     * @throws ErrorException
+     */
+    function error_handler($code, $message, $file, $line)
+    {
+        throw new ErrorException($message, $code, 0, $file, $line);
+    }
+    set_error_handler("error_handler");
+}

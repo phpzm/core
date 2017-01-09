@@ -2,9 +2,7 @@
 
 namespace Simples\Core\Flow;
 
-use Simples\Core\App;
-use Simples\Core\Gateway\Request;
-use Simples\Core\Gateway\Response;
+use Simples\Core\Kernel\App;
 use \RecursiveIteratorIterator;
 use \RecursiveDirectoryIterator;
 use Stringy\StaticStringy as stringy;
@@ -20,16 +18,6 @@ use Stringy\StaticStringy as stringy;
  */
 class Router extends Engine
 {
-    /**
-     * Router constructor.
-     * @param Request $request
-     * @param Response $response
-     */
-    public function __construct(Request $request, Response $response)
-    {
-        parent::__construct($request, $response);
-    }
-
     /**
      * @param $uri
      * @param $class
@@ -83,43 +71,58 @@ class Router extends Engine
 
             $use = (($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
 
-            return $this->resolve("{$use}@{$method}", [$this->data], $options);
+            //return $this->resolve("{$use}@{$method}", [$this->data], $options);
         });
 
         return $this;
     }
 
     /**
+     * TODO: exceptions to error input parameters
      * @param $method
      * @param $start
-     * @param $files
+     * @param $context
      * @param array $options
      * @return $this
      */
-    public function group($method, $start, $files, $options = [])
+    public function group($method, $start, $context, $options = [])
     {
-        $router = $this;
+        $type = '';
 
-        $callback = function ($parameter) use ($router, $files, $options) {
-
-            /** @var Router $router */
-
-            if (!is_array($files)) {
-                if (is_dir(path(true, $files))) {
-                    $files = $this->files($files);
-                } else {
-                    $files = [$files];
+        switch (gettype($context)) {
+            case TYPE_ARRAY: {
+                foreach ($context as $index => $file) {
+                    if (!file_exists(path(true, $file))) {
+                        unset($context[$index]);
+                    }
                 }
+                $type = 'files';
+                break;
             }
+            case TYPE_STRING: {
+                if (file_exists(path(true, $context))) {
+                    $type = 'file';
+                    if (is_dir(path(true, $context))) {
+                        $type = 'dir';
+                    }
+                }
+                break;
+            }
+            case TYPE_OBJECT: {
+                if (is_callable($context)) {
+                    $type = 'callable';
+                }
+                break;
+            }
+        }
+        $start = (substr($start, 0, 1) === '/' ?  $start : '/' . $start);
+        $start = (substr($start, -1) === '/' ?  substr($start, 0, -1) : $start);
 
-            $router
-                ->setUri($parameter . '/')
-                ->clear();
+        $options['group'] = ['start' => $this->pattern($start)['pattern'] . '/', 'type' => $type];
 
-            return App::routes($router, $files)->run();
-        };
+        $uri = $start . '*';
 
-        $this->on($method, $start . '*', $callback, $options);
+        $this->on($method, $uri, $context, $options);
 
         return $this;
     }
@@ -128,55 +131,21 @@ class Router extends Engine
      * @param $method
      * @param $callback
      * @param array $options
-     * @return Router
+     * @return $this
      */
     public function otherWise($method, $callback, $options = [])
     {
-        return $this->otherWise[strtolower($method)] = ['callback' => $callback, 'options' => $options];
-    }
-
-    /**
-     * @param $filename
-     */
-    public function load($filename)
-    {
-        if (file_exists($filename)) {
-            /** @noinspection PhpIncludeInspection */
-            $callable = require_once $filename;
-            if (is_callable($callable)) {
-                call_user_func_array($callable, [$this]);
-            }
+        if ($method === '*') {
+            $method = self::ALL;
         }
-    }
-
-    /**
-     * @param $dir
-     * @return array
-     */
-    function files($dir)
-    {
-        $files = [];
-
-        $dir = path(true, $dir);
-
-        if (!is_dir($dir)) {
-            return $files;
+        if (!is_array($method)) {
+            $method = [$method];
+        }
+        foreach ($method as $item) {
+            $this->otherWise[strtolower($item)] = ['callback' => $callback, 'options' => $options];
         }
 
-        $resources = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir), RecursiveIteratorIterator::SELF_FIRST);
-        foreach ($resources as $resource) {
-            if (is_dir($resource->getFilename())) {
-                continue;
-            } else {
-                $pattern = '/' . preg_quote(App::$ROOT, '/') . '/';
-                $file = preg_replace($pattern, '', $resource->getPathname(), 1);
-                if ($file) {
-                    $files[] = $file;
-                }
-            }
-        }
-
-        return $files;
+        return $this;
     }
 
 }

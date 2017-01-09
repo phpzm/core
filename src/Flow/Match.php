@@ -2,11 +2,13 @@
 
 namespace Simples\Core\Flow;
 
+use Simples\Core\Unit\Origin;
+
 /**
  * Class Route
  * @package Simples\Core\Flow
  */
-class Route
+class Match extends Origin
 {
     /**
      * @var string
@@ -24,6 +26,14 @@ class Route
      * @var callable
      */
     private $callback;
+    /**
+     * @var array
+     */
+    private $parameters;
+    /**
+     * @var array
+     */
+    private $options;
 
     /**
      * Route constructor.
@@ -31,13 +41,17 @@ class Route
      * @param string $uri
      * @param string $path
      * @param string|callable $callback
+     * @param $parameters
+     * @param $options
      */
-    public function __construct($method, $uri, $path, $callback)
+    public function __construct($method, $uri, $path, $callback, $parameters, $options)
     {
         $this->method = $method;
         $this->uri = $uri;
         $this->path = $path;
         $this->callback = $callback;
+        $this->parameters = $parameters;
+        $this->options = $options;
     }
 
     /**
@@ -50,9 +64,9 @@ class Route
 
     /**
      * @param string $method
-     * @return Route
+     * @return Match
      */
-    public function setMethod($method)
+    public function setMethod(string $method)
     {
         $this->method = $method;
         return $this;
@@ -68,9 +82,9 @@ class Route
 
     /**
      * @param string $uri
-     * @return Route
+     * @return Match
      */
-    public function setUri($uri)
+    public function setUri(string $uri)
     {
         $this->uri = $uri;
         return $this;
@@ -86,9 +100,9 @@ class Route
 
     /**
      * @param string $path
-     * @return Route
+     * @return Match
      */
-    public function setPath($path)
+    public function setPath(string $path)
     {
         $this->path = $path;
         return $this;
@@ -104,11 +118,47 @@ class Route
 
     /**
      * @param callable $callback
-     * @return Route
+     * @return Match
      */
-    public function setCallback($callback)
+    public function setCallback(callable $callback)
     {
         $this->callback = $callback;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * @param array $parameters
+     * @return Match
+     */
+    public function setParameters(array $parameters)
+    {
+        $this->parameters = $parameters;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * @param array $options
+     * @return Match
+     */
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
         return $this;
     }
 

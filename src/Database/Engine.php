@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Database;
 
-use Simples\Core\App;
+use Simples\Core\Kernel\App;
 
 /**
  * Class Engine

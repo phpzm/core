@@ -2,7 +2,7 @@
 /*
  -------------------------------------------------------------------
  | @project: trabalho-final
- | @package: Simples\Core\Template
+ | @package: Simples\Core\View
  | @file: ${FILE_NAME}
  -------------------------------------------------------------------
  | @user: william 
@@ -15,10 +15,14 @@
  |
  */
 
-namespace Simples\Core\Template;
+namespace Simples\Core\View;
 
-use Simples\Core\App;
+use Simples\Core\Kernel\App;
 
+/**
+ * Class Tools
+ * @package Simples\Core\View
+ */
 class Tools
 {
     /**
@@ -42,7 +46,7 @@ class Tools
      */
     public function here($print = true)
     {
-        return App::route($this->uri(), $print);
+        return $this::href($this->uri(), $print);
     }
 
     /**
@@ -148,8 +152,11 @@ class Tools
      * @param $default
      * @return mixed
      */
-    protected function get($index, $default = null)
+    protected function get($index = null, $default = null)
     {
+        if (is_null($index)) {
+            return $this->data;
+        }
         return off($this->data, $index, $default);
     }
 

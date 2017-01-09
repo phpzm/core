@@ -1,6 +1,6 @@
 <?php
 
-namespace Simples\Core\Gateway;
+namespace Simples\Core\Http;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -8,7 +8,7 @@ use \InvalidArgumentException;
 
 /**
  * Class ResponseStream
- * @package Simples\Core\Gateway
+ * @package Simples\Core\Http
  */
 class ResponseStream implements ResponseInterface
 {
@@ -42,7 +42,7 @@ class ResponseStream implements ResponseInterface
      *
      * @var array
      */
-    private $httpStatusCodes = [
+    const HTTP_STATUS_CODE = [
         // INFORMATIONAL CODES
         100 => 'Continue',
         101 => 'Switching Protocols',
@@ -55,7 +55,7 @@ class ResponseStream implements ResponseInterface
         204 => 'No Content',
         205 => 'Reset Content',
         206 => 'Partial Content',
-        207 => 'Multi-status',
+        207 => 'Multi-Status',
         208 => 'Already Reported',
         // REDIRECTION CODES
         300 => 'Multiple Choices',
@@ -83,9 +83,9 @@ class ResponseStream implements ResponseInterface
         413 => 'Request Entity Too Large',
         414 => 'Request-URI Too Large',
         415 => 'Unsupported Media Type',
-        416 => 'Requested range not satisfiable',
+        416 => 'Requested Range Not Satisfiable',
         417 => 'Expectation Failed',
-        418 => 'I\'m a teapot',
+        418 => 'I am a teapot',
         422 => 'Not Processable Entity',
         423 => 'Locked',
         424 => 'Failed Dependency',
@@ -95,12 +95,12 @@ class ResponseStream implements ResponseInterface
         429 => 'Too Many Requests',
         431 => 'Request Header Fields Too Large',
         // SERVER ERROR
-        500 => 'Internal Server Error',
+        500 => 'Internal Server Erro',
         501 => 'Not Implemented',
-        502 => 'Bad Gateway',
+        502 => 'Bad Http',
         503 => 'Service Unavailable',
-        504 => 'Gateway Time-out',
-        505 => 'HTTP Version not supported',
+        504 => 'Http Time-out',
+        505 => 'HTTP Version Not Supported',
         506 => 'Variant Also Negotiates',
         507 => 'Insufficient Storage',
         508 => 'Loop Detected',
@@ -137,9 +137,12 @@ class ResponseStream implements ResponseInterface
      * @param $string
      * @return int
      */
-    public function write($string)
+    protected function write($string)
     {
-        return $this->stream->write($string);
+        if ($string) {
+            return $this->stream->write($string);
+        }
+        return 0;
     }
 
     /**
@@ -206,13 +209,9 @@ class ResponseStream implements ResponseInterface
         $name = strtolower($name);
 
         if (!$this->hasHeader($name)) {
-            return [];
+            return null;
         }
-        $value = $this->headers[$name];
-
-        $value = is_array($value) ? $value : [$value];
-
-        return $value;
+        return $this->headers[$name];
     }
 
     /**
@@ -413,8 +412,9 @@ class ResponseStream implements ResponseInterface
      */
     public function getReasonPhrase()
     {
-        if (!$this->reasonPhrase && isset($this->httpStatusCodes[$this->statusCode])) {
-            $this->reasonPhrase = $this->httpStatusCodes[$this->statusCode];
+        $httpStatusCodes = self::HTTP_STATUS_CODE;
+        if (!$this->reasonPhrase && isset($httpStatusCodes[$this->statusCode])) {
+            $this->reasonPhrase = $httpStatusCodes[$this->statusCode];
         }
         return $this->reasonPhrase;
     }

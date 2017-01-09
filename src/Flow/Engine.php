@@ -2,9 +2,6 @@
 
 namespace Simples\Core\Flow;
 
-use Simples\Core\Gateway\Request;
-use Simples\Core\Gateway\Response;
-
 /**
  * Class Engine
  * @package Simples\Core\Flow
@@ -17,34 +14,14 @@ class Engine
     use Sharable;
 
     /**
-     * @var Request
+     * @var array
      */
-    private $request;
-
-    /**
-     * @var Response
-     */
-    private $response;
+    const ALL = ['get', 'post', 'put', 'patch', 'delete'];
 
     /**
      * @var array
      */
     private $routes = [];
-
-    /**
-     * @var Route
-     */
-    private $route;
-
-    /**
-     * @var string
-     */
-    protected $uri;
-
-    /**
-     * @var string
-     */
-    protected $method;
 
     /**
      * @var array
@@ -57,23 +34,14 @@ class Engine
     protected $otherWise = [];
 
     /**
-     * Router constructor.
-     * @param Request $request
-     * @param Response $response
+     * @var string
      */
-    public function __construct(Request $request, Response $response)
-    {
-        $this->request = $request;
-        $this->response = $response;
-
-        $this->uri = $this->request->getUri();
-        $this->method = $this->request->getMethod();
-    }
+    private $preFlight = 'options';
 
     /**
      * @param $name
      * @param $arguments
-     * @return Router
+     * @return $this
      */
     public final function __call($name, $arguments)
     {
@@ -84,54 +52,12 @@ class Engine
     }
 
     /**
-     * @return Request
-     */
-    public final function request()
-    {
-        return $this->request;
-    }
-
-    /**
-     * @return Response
-     */
-    public final function response()
-    {
-        return $this->response;
-    }
-
-    /**
-     * @return object
-     */
-    public final function route()
-    {
-        return $this->route;
-    }
-
-    /**
      * @return $this
      */
     public final function clear()
     {
         $this->routes = [];
 
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public final function getUri()
-    {
-        return $this->uri;
-    }
-
-    /**
-     * @param string $uri
-     * @return Router
-     */
-    public final function setUri($uri)
-    {
-        $this->uri = $uri;
         return $this;
     }
 
@@ -146,123 +72,202 @@ class Engine
     {
         if (gettype($methods) === 'string') {
             if ($methods === '*') {
-                $methods = ['get', 'post', 'put', 'patch', 'delete'];
+                $methods = self::ALL;
             } else {
                 $methods = explode(',', $methods);
             }
         }
 
-        $uri = substr($uri, 0, 1) !== '/' ? '/' . $uri : $uri;
-
         foreach ($methods as $method) {
 
-            $method = strtoupper($method);
+            $method = strtolower($method);
             if (!isset($this->routes[$method])) {
                 $this->routes[$method] = [];
             }
-            $peaces = explode('/', $uri);
-            foreach ($peaces as $key => $value) {
-                $peaces[$key] = str_replace('*', '(.*)', $peaces[$key]);
-                if (strpos($value, ':') === 0) {
-                    $peaces[$key] = '(\w+)';
-                }
-            }
-            if ($peaces[(count($peaces) - 1)]) {
-                $peaces[] = '';
-            }
-            $pattern = str_replace('/', '\/', implode('/', $peaces));
-            $route = '/^' . $pattern . '$/';
+            $pattern = $this->pattern($uri);
 
-            $this->routes[$method][$route] = ['callback' => $callback, 'options' => $options];
+            $route = $pattern['pattern']  . '$/';
+
+            $this->routes[$method][$route] = [
+                'callback' => $callback, 'options' => $options, 'labels' => $pattern['labels']
+            ];
         }
 
         return $this;
     }
 
     /**
-     * @param $callback
-     * @param $params
-     * @return Response
+     * @param $method
+     * @param $uri
+     * @param $options
+     * @return null
      */
-    private function parse($callback, $params)
+    public final function match($method, $uri, $options = [])
     {
-        $result = call_user_func_array($callback, $params);
-        if ($result instanceof Response) {
-            return $result;
+        $method = strtolower($method);
+
+        $path = '';
+        $callback = null;
+        $parameters = [$this->data];
+
+        foreach ($this->routes as $index => $routes) {
+
+            foreach ($routes as $path => $context) {
+
+                // TODO: simplify this
+                if (preg_match($path, $uri, $params)) {
+
+                    $options = array_merge($context['options'], $options);
+
+                    if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
+
+                        array_shift($params);
+
+                        $parameters = array_merge($params, $parameters);
+                        $callback = $context['callback'];
+
+                        break;
+                    }
+                }
+            }
         }
-        return (new Response())->plain($result);
+
+        if (!$callback && isset($this->otherWise[$method])) {
+
+            $context = $this->otherWise[$method];
+
+            $path = '';
+            $callback = $context['callback'];
+            $options = array_merge($context['options'], $options);
+        }
+
+        return $this->resolve($method, $uri, $path, $callback, $parameters, $options);
     }
 
     /**
+     * @param $method
+     * @param $uri
+     * @param $path
      * @param $callback
-     * @param array $params
-     * @param array $options
-     * @return Response
+     * @param $parameters
+     * @param $options
+     * @return Match
      */
-    protected final function resolve($callback, array $params, array $options)
+    protected function resolve($method, $uri, $path, $callback, $parameters, $options)
     {
-        if (!is_callable($callback)) {
-            $peaces = explode('@', $callback);
-            if (!isset($peaces[1])) {
-                return null;
+        $group = off($options, 'group');
+
+        if ($group) {
+
+            unset($options['group']);
+
+            $this->clear();
+
+            switch ($group['type']) {
+                case 'file': {
+                    $this->load(path(true, $callback));
+                    break;
+                }
+                case 'files': {
+                    foreach ($callback as $file) {
+                        $this->load(path(true, $file));
+                    }
+                    break;
+                }
+                case 'dir': {
+                    $files = $this->files($callback);
+                    foreach ($files as $file) {
+                        $this->load(path(true, $file));
+                    }
+                    break;
+                }
+                case 'callable': {
+                    call_user_func_array($callback, fill_parameters($callback, [$this]));
+                    break;
+                }
             }
-            $class = $peaces[0];
-            $method = $peaces[1];
 
-            if (method_exists($class, $method)) {
+            $end = str_replace_first($group['start'], '', $uri);
+            $uri = (substr($end, 0, 1) === '/') ? $end : '/' . $end;
 
-                /** @var \Simples\Core\Flow\Controller $controller */
-                $controller = new $class();
-
-                $controller->__init($this->request(), $this->response(), $this->route);
-
-                $callback = [$controller, $method];
-            }
+            return $this->match($method, $uri, $options);
         }
-        $params[] = array_merge($this->data, $options);
 
-        return $this->parse($callback, $params);
+        return new Match($method, $uri, $path, $callback, $parameters, $options);
     }
 
     /**
-     * @return mixed
+     * @param $filename
      */
-    public final function run()
+    public function load($filename)
     {
-        $method = $this->method;
-        if (!isset($this->routes[$method])) {
-            return null;
+        if (file_exists($filename)) {
+            /** @noinspection PhpIncludeInspection */
+            $callable = require_once $filename;
+            if (is_callable($callable)) {
+                call_user_func_array($callable, [$this]);
+            }
+        }
+    }
+
+    /**
+     * @param $dir
+     * @return array
+     */
+    public function files($dir)
+    {
+        $files = [];
+
+        $dir = path(true, $dir);
+
+        if (!is_dir($dir)) {
+            return $files;
         }
 
-        foreach ($this->routes[$method] as $path => $context) {
-
-            $this->debug[] = [
-                'fetch' => [$path, $this->uri]
-            ];
-
-            if (preg_match($path, $this->uri, $params)) {
-
-                array_shift($params);
-                $options = $context['options'];
-
-                $callback = $context['callback'];
-                $this->route = new Route($method, $this->uri, $path, $callback);
-                $this->debug[] = [
-                    'match' => [$path, $this->uri]
-                ];
-
-                return $this->resolve($callback, array_merge(array_values($params)), $options);
+        $resources = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir),
+            RecursiveIteratorIterator::SELF_FIRST);
+        foreach ($resources as $resource) {
+            if (is_dir($resource->getFilename())) {
+                continue;
+            } else {
+                $pattern = '/' . preg_quote(App::$ROOT, '/') . '/';
+                $file = preg_replace($pattern, '', $resource->getPathname(), 1);
+                if ($file) {
+                    $files[] = $file;
+                }
             }
         }
 
-        if (isset($this->otherWise[strtolower($method)])) {
+        return $files;
+    }
 
-            $context = $this->otherWise[strtolower($method)];
-
-            return $this->resolve($context['callback'], [], $context['options']);
+    /**
+     * @param $uri
+     * @return array
+     */
+    public function pattern($uri)
+    {
+        $labels = [];
+        $uri = (substr($uri, 0, 1) !== '/') ? '/' . $uri : $uri;
+        $peaces = explode('/', $uri);
+        foreach ($peaces as $key => $value) {
+            $peaces[$key] = str_replace('*', '(.*)', $peaces[$key]);
+            if (strpos($value, ':') === 0) {
+                $peaces[$key] = '(\w+)';
+                $labels[] = substr($value, 1);
+            } else if (strpos($value, '{') === 0) {
+                $peaces[$key] = '(\w+)';
+                $labels[] = substr($value, 1, -1);
+            }
         }
-
-        return null;
+        if ($peaces[(count($peaces) - 1)]) {
+            $peaces[] = '';
+        }
+        $pattern = str_replace('/', '\/', implode('/', $peaces));
+        return [
+            'pattern' => '/^' . $pattern,
+            'labels' => $labels
+        ];
     }
 
 }
