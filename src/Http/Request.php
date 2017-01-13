@@ -222,9 +222,11 @@ class Request implements RequestInterface
      */
     public function input($name, $default = null)
     {
-        $input = off($this->inputs, $name, $default);
-
-        return $input['value'];
+        $input = off($this->inputs, $name);
+        if ($input) {
+            return $input['value'];
+        }
+        return $default;
     }
 
     /**

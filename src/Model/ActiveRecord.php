@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Model;
 
+use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 
 /**
@@ -25,20 +26,7 @@ class ActiveRecord extends AbstractModel
 
     /**
      * @param $name
-     * @param $arguments
-     * @return $this
-     */
-    public function __call($name, $arguments)
-    {
-        return $this;
-    }
-
-    /**
-     * is utilized for reading data from inaccessible members.
-     *
-     * @param $name string
-     * @return mixed
-     * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members
+     * @return mixed|null
      */
     public function __get($name)
     {
@@ -46,16 +34,13 @@ class ActiveRecord extends AbstractModel
     }
 
     /**
-     * run when writing data to inaccessible members.
-     *
-     * @param $name string
-     * @param $value mixed
-     * @return $this
-     * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members
+     * @param $name
+     * @param $value
+     * @return $this|null
      */
     public function __set($name, $value)
     {
-        if (!in_array($name, $this->fields)) {
+        if (!$this->hasField($name)) {
             return null;
         }
         $this->values[$name] = $value;
@@ -71,46 +56,80 @@ class ActiveRecord extends AbstractModel
     }
 
     /**
-     * @param Record $record
-     * @return string
+     * @param mixed $record
+     * @return Record
      */
     public final function create($record = null)
     {
         $action = __FUNCTION__;
 
-        $record = $record ?? new Record($this->getValues());
+        $record = new Record($this->getValues());
 
         if ($this->before($action, $record)) {
 
             $created = $this
-                ->table($this->collection)
+                ->collection($this->collection)
                 ->fields(array_keys($record->all()))
-                ->insert(array_values($record->all()));
+                ->add(array_values($record->all()));
 
             $primaryKey = is_array($this->primaryKey) ? $this->primaryKey[0] : $this->primaryKey;
 
             $record->set($primaryKey, $created);
 
             if ($this->after($action, $record)) {
-                return $created;
+                return $record;
             }
         }
         return null;
     }
 
-    public final function read($record = null)
+    /**
+     * @param mixed $record
+     * @return Collection
+     */
+    public function read($record = null)
     {
+        $array = $this
+            ->collection($this->collection)
+            ->fields('*')
+            ->get();
 
+        return new Collection($array);
     }
 
-    public final function save($record = null)
+    /**
+     * @param mixed $record
+     * @return Record
+     */
+    public function update($record = null)
     {
-
+        // set
+        return new Record([]);
     }
 
-    public final function destroy($record = null)
+    /**
+     * @param mixed $record
+     * @return Record
+     */
+    public function destroy($record = null)
     {
+        // remove
+        return new Record([]);
+    }
 
+    /**
+     * @param $record
+     * @return bool
+     */
+    public function fill($record)
+    {
+        if (!is_iterator($record)) {
+            return false;
+        }
+        foreach ($record as $field => $value) {
+            $this->$field = $value;
+        }
+        return true;
     }
 
 }

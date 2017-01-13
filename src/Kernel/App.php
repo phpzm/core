@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Kernel;
 
+use Simples\Core\Console\RouteService;
 use Simples\Core\Flow\Router;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
@@ -16,11 +17,6 @@ class App
      * @var Request
      */
     private static $REQUEST = null;
-
-    /**
-     * @var Response
-     */
-    private static $RESPONSE = null;
 
     /**
      * @var array
@@ -48,6 +44,7 @@ class App
             'lang' => [
                 'default' => 'en', 'fallback' => 'en'
             ],
+            'labels' => true,
             'strict' => false
         ];
         self::$options = array_merge($default, $options);
@@ -72,50 +69,55 @@ class App
     }
 
     /**
-     * @param $type
+     * @param bool $print
      * @return mixed
      */
-    public function handler($type)
+    public function http($print = true)
     {
-        $router = new Router();
-        switch ($type)
-        {
-            case 'http': {
-                $request = self::request()->fromServer();
-                $method = $request->getMethod();
-                $uri = $request->getUri();
-                return (new Handler(self::request(), self::response()))(self::routes($router)->match($method, $uri));
-                break;
+        try {
+            $response = $this->handlerHttp();
+
+            if ($print) {
+
+                $headers = $response->getHeaders();
+                foreach ($headers as $name => $value) {
+                    header(implode(':', [$name, $value]), true);
+                }
+
+                http_response_code($response->getStatusCode());
+
+                $contents = $response->getBody()->getContents();
+                if ($contents) {
+                    out($contents);
+                }
             }
+
+            return $response;
+        }
+        catch (\Exception $exception) {
+            echo  "Exception: '", $exception->getMessage(), "' on '", $exception->getFile(), "' at '", $exception->getLine(), "'";
+        }
+        catch (\Error $exception) {
+            echo  "Error: '", $exception->getMessage(), "' on '", $exception->getFile(), "' at '", $exception->getLine(), "'";
         }
         return null;
     }
 
     /**
-     *
+     * @return Response
      */
-    public function http()
+    public function handlerHttp()
     {
-        $response = $this->handler('http');
+        // TODO: container
+        $router = new Router(self::options('labels'));
 
-        if (!($response instanceof Response)) {
-            $response = self::response()->plain($response);
-        }
+        $request = self::request();
 
-        $headers = $response->getHeaders();
+        $match = self::routes($router)->match($request->getMethod(), $request->getUri());
 
-        foreach ($headers as $name => $value) {
-            header(implode(':', [$name, $value]), true);
-        }
+        $handler = new HandlerHttp($request, $match);
 
-        http_response_code($response->getStatusCode());
-        //header(implode(':', ['Status-Reason-Phrase', $response->getReasonPhrase()]), true);
-
-        $response = $response->getBody()->getContents();
-
-        if ($response) {
-            out($response);
-        }
+        return $handler->apply();
     }
 
     /**
@@ -124,20 +126,11 @@ class App
     public static function request()
     {
         if (!self::$REQUEST) {
-            self::$REQUEST = new Request(self::$options['strict']);
+            // TODO: container
+            $request = new Request(self::$options['strict']);
+            self::$REQUEST = $request->fromServer();
         }
         return self::$REQUEST;
-    }
-
-    /**
-     * @return Response
-     */
-    public static function response()
-    {
-        if (!self::$RESPONSE) {
-            self::$RESPONSE = new Response();
-        }
-        return self::$RESPONSE;
     }
 
     /**
@@ -159,15 +152,6 @@ class App
         self::$CONFIGS[$name] = (object)$config;
 
         return self::$CONFIGS[$name];
-    }
-
-    /**
-     * @param $property
-     * @return mixed
-     */
-    public static function env($property)
-    {
-        return off(self::config(env()), $property);
     }
 
     /**
@@ -201,11 +185,17 @@ class App
     }
 
     /**
-     * @param $output
+     * @param $service
      */
-    public static function cli($output)
+    public function cli($service)
     {
+        switch ($service) {
+            case 'route': {
+                RouteService::execute($this);
+                break;
+            }
 
+        }
     }
 
 }

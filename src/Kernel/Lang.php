@@ -19,6 +19,7 @@ namespace Simples\Core\Kernel;
 
 /**
  * @method static string validation($i18, array $parameters = [])
+ * @method static string auth($i18, array $parameters = [])
  *
  * Class Lang
  * @package Simples\Core\Kernel

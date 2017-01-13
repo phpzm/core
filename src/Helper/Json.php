@@ -45,7 +45,7 @@ abstract class Json
         }
 
         if ($error) {
-            Wrapper::err('Json::encode error: ' . $error);
+            Wrapper::error('Json::encode error: ' . $error);
         }
 
         return $string;
@@ -87,7 +87,7 @@ abstract class Json
         }
 
         if ($error) {
-            Wrapper::err('Json::decode error: ' . $error);
+            Wrapper::error('Json::decode error: ' . $error);
         }
 
         return $mixed;

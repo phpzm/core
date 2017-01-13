@@ -71,6 +71,15 @@ class Record implements \IteratorAggregate
     }
 
     /**
+     * @param $name
+     * @param $value
+     */
+    public function __set($name, $value)
+    {
+        // silent
+    }
+
+    /**
      * @return bool|null|string
      */
     function __toString()
@@ -80,11 +89,30 @@ class Record implements \IteratorAggregate
 
     /**
      * @param $name
-     * @param $value
+     * @return mixed
      */
-    public function __set($name, $value)
+    public function get($name)
     {
-        Wrapper::err('One Record can not be modified, you need "inject" new values in this case');
+        return off($this->public, $name);
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     * @return $this
+     */
+    public function set($name, $value)
+    {
+        $this->public[$name] = $value;
+        return $this;
+    }
+
+    /**
+     * @param $name
+     */
+    public function remove($name)
+    {
+        unset($this->public[$name]);
     }
 
     /**
@@ -100,59 +128,13 @@ class Record implements \IteratorAggregate
 
     /**
      * @param $name
-     * @param bool $private
-     * @return mixed
      */
-    public function get($name, $private = false)
+    public function setPublic($name)
     {
-        $get = null;
-        if ($this->indexOf($name)) {
-            $get = $this->public[$name];
-        } else if ($private) {
-            $get = isset($this->private[$name]) ? $this->private[$name] : $get;
+        if ($this->indexOf($name, false)) {
+            $this->public[$name] = $this->private[$name];
+            unset($this->private[$name]);
         }
-        return $get;
-    }
-
-    /**
-     * @param $name
-     * @param $value
-     * @return bool
-     */
-    public function set($name, $value)
-    {
-        if ($this->indexOf($name)) {
-            $this->public[$name] = $value;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param $name
-     * @param $value
-     * @return bool
-     */
-    public function inject($name, $value)
-    {
-        $injected = false;
-
-        if ($this->injectable) {
-            $this->public[$name] = $value;
-            $injected = true;
-        } else {
-            Wrapper::err('This record is not "injectable"');
-        }
-
-        return $injected;
-    }
-
-    /**
-     * @param $name
-     */
-    public function remove($name)
-    {
-        unset($this->public[$name]);
     }
 
     /**
@@ -165,14 +147,15 @@ class Record implements \IteratorAggregate
 
     /**
      * @param $name
+     * @param bool $public
      * @return bool
      */
-    public function indexOf($name)
+    public function indexOf($name, $public = true)
     {
-        if (is_array($this->public)) {
+        if ($public) {
             return isset($this->public[$name]);
         }
-        return false;
+        return isset($this->private[$name]);
     }
 
     /**
@@ -231,5 +214,13 @@ class Record implements \IteratorAggregate
     public function isEmpty()
     {
         return count($this->public) === 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function size()
+    {
+        return count($this->public);
     }
 }

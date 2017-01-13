@@ -15,13 +15,13 @@
  |
  */
 
-namespace Simples\Core\View;
+namespace Simples\Core\Template;
 
 use Simples\Core\Kernel\App;
 
 /**
  * Class Tools
- * @package Simples\Core\View
+ * @package Simples\Core\Template
  */
 class Tools
 {

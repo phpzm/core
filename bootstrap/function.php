@@ -2,15 +2,20 @@
 
 if (!function_exists('env')) {
     /**
+     * @param $property
+     * @param null $default
      * @return string
      */
-    function env()
+    function env($property, $default = null)
     {
-        $filename = path(true, 'config', '.env');
-        if (!file_exists($filename) || !is_file($filename)) {
-            return '';
+        $filename = path(true, '.env');
+        if (file_exists($filename) && is_file($filename)) {
+            $properties = parse_ini_file($filename);
+            if (is_array($properties)) {
+                return off($properties, $property);
+            }
         }
-        return trim(file_get_contents($filename));
+        return $default;
     }
 }
 
@@ -119,8 +124,8 @@ if (!function_exists('stop')) {
         var_dump(func_get_args());
         $contents = ob_get_contents();
         ob_end_clean();
-        echo "<textarea style='width: 500px; height: 200px;'>{$contents}</textarea>";
-        die();
+        out($contents);
+        die;
     }
 }
 
@@ -143,7 +148,7 @@ if (!function_exists('headerify')) {
      */
     function headerify($name)
     {
-        return str_replace(' ', '-', ucwords(strtolower(str_replace(['_','-'], ' ', $name))));
+        return str_replace(' ', '-', ucwords(strtolower(str_replace(['_', '-'], ' ', $name))));
     }
 }
 
@@ -158,37 +163,10 @@ if (!function_exists('str_replace_first')) {
     function str_replace_first($from, $to, $subject, $quote = false)
     {
         if ($quote) {
-            $from = '/'.preg_quote($from, '/').'/';
+            $from = '/' . preg_quote($from, '/') . '/';
         }
 
         return preg_replace($from, $to, $subject, 1);
-    }
-}
-
-if (!function_exists('fill_parameters')) {
-    /**
-     * @param $callback
-     * @param $parameters
-     * @return array
-     */
-    function fill_parameters($callback, $parameters)
-    {
-        $requiredParameters = 0;
-        if (is_array($callback)) {
-            if (isset($callback[0]) && $callback[1]) {
-                $info = new \ReflectionMethod($callback[0], $callback[1]);
-                $requiredParameters = $info->getNumberOfRequiredParameters();
-            }
-        } else {
-            $info = new \ReflectionFunction($callback);
-            $requiredParameters = $info->getNumberOfRequiredParameters();
-        }
-        if ($requiredParameters > count($parameters)) {
-            for ($i = 0; $i < ($requiredParameters - count($parameters)); $i++) {
-                $parameters[] = null;
-            }
-        }
-        return $parameters;
     }
 }
 
@@ -210,5 +188,16 @@ if (!function_exists('guid')) {
         }
 
         return $uuid;
+    }
+}
+
+if (!function_exists('is_iterator')) {
+    /**
+     * @param $var
+     * @return bool
+     */
+    function is_iterator($var)
+    {
+        return (is_array($var) || $var instanceof Traversable);
     }
 }

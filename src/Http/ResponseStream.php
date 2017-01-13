@@ -108,26 +108,17 @@ class ResponseStream implements ResponseInterface
     ];
 
     /**
-     * @param string|resource|StreamInterface $body
-     * @param string $protocol
-     * @param int $statusCode
-     * @param array $headers
-     * @throws InvalidArgumentException on any invalid element.
+     * ResponseStream constructor.
+     * @param null $protocol
+     * @param null $statusCode
+     * @param array|null $headers
      */
-    public function __construct($body = 'php://memory', $protocol = null, $statusCode = null, array $headers = null)
+    public function __construct($protocol = null, $statusCode = null, array $headers = null)
     {
-        if (!is_string($body) && !is_resource($body) && !$body instanceof StreamInterface) {
-            throw new InvalidArgumentException(
-                'Stream must be a string stream resource identifier, '
-                . 'an actual stream resource, '
-                . 'or a Psr\Http\Message\StreamInterface implementation'
-            );
-        }
-
         if (null !== $statusCode) {
             $this->validateStatus($statusCode);
         }
-        $this->stream = ($body instanceof StreamInterface) ? $body : new Stream($body, 'wb+');
+        $this->stream = new Stream('php://memory', 'wb+');
         $this->protocol = $protocol ? $protocol : (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : $this->protocol);
         $this->statusCode = $statusCode ? (int)$statusCode : $this->statusCode;
         $this->headers = $headers ? $headers : $this->headers;
@@ -135,10 +126,14 @@ class ResponseStream implements ResponseInterface
 
     /**
      * @param $string
+     * @param bool $override
      * @return int
      */
-    protected function write($string)
+    protected function write($string, $override = false)
     {
+        if ($override) {
+            $this->stream = new Stream('php://memory', 'wb+');
+        }
         if ($string) {
             return $this->stream->write($string);
         }

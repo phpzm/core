@@ -6,10 +6,10 @@ use Iterator;
 use Simples\Core\Unit\Origin;
 
 /**
- * Class RecordSet
+ * Class Collection
  * @package Simples\Core\Domain
  */
-class RecordSet extends Origin implements Iterator
+class Collection extends Origin implements Iterator
 {
     /**
      * @var array
@@ -17,21 +17,14 @@ class RecordSet extends Origin implements Iterator
     private $records = [];
 
     /**
-     * @var
-     */
-    private $items;
-
-    /**
-     * RecordSet constructor.
+     * Collection constructor.
      * @param $array
-     * @param array $items
      */
-    public function __construct($array, $items = [])
+    public function __construct($array)
     {
         if (is_array($array)) {
             $this->records = $array;
         }
-        $this->items = $items;
     }
 
     /**
@@ -56,7 +49,7 @@ class RecordSet extends Origin implements Iterator
     public function current()
     {
         $var = current($this->records);
-        return new Record($var, true, $this->items);
+        return new Record($var);
     }
 
     /**

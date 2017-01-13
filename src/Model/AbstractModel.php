@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Model;
 
+use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Database\Engine;
 
@@ -22,6 +23,11 @@ abstract class AbstractModel extends Engine
     protected $collection = '';
 
     /**
+     * @var string
+     */
+    protected $prefix = '';
+
+    /**
      * @var array
      */
     protected $fields = [];
@@ -29,7 +35,7 @@ abstract class AbstractModel extends Engine
     /**
      * @var mixed
      */
-    protected $primaryKey = 'id';
+    protected $primaryKey = '';
 
     /**
      * @var mixed
@@ -56,48 +62,85 @@ abstract class AbstractModel extends Engine
     ];
 
     /**
+     * @var bool
+     */
+    public $log = false;
+
+    /**
      * @param $name
      * @param $type
-     * @param $label
      * @param $options
      * @return $this
      */
-    public function add($name, $type, $label, $options = [])
+    public function addField($name, $type, $options = [])
     {
         $default = [
-            'insert' => true, 'read' => true, 'update' => true
+            'label' => '', 'create' => true, 'read' => true, 'update' => true
         ];
         $this->fields[$name] = [
             'type' => $type,
-            'label' => $label,
             'options' => array_merge($default, $options)
         ];
         return $this;
     }
 
     /**
-     * @param null $record
+     * @param $name
      * @return mixed
      */
-    public abstract function create($record = null);
+    public function getField($name)
+    {
+        return off($this->fields, $name);
+    }
 
     /**
-     * @param null $record
-     * @return mixed
+     * @param $name
+     * @return bool
      */
-    public abstract function read($record = null);
+    public function hasField($name)
+    {
+        return isset($this->fields[$name]);
+    }
 
     /**
-     * @param null $record
-     * @return mixed
+     * @param $class
+     * @param $source
+     * @param $target
+     * @return $this
      */
-    public abstract function save($record = null);
+    public function addForeign($class, $source, $target)
+    {
+        return $this;
+    }
 
     /**
-     * @param null $record
+     * @param $class
+     * @param $field
+     * @return array
+     */
+    public function foreign($class, $field)
+    {
+        return [$class => $field];
+    }
+
+    /**
+     * @param $rule
+     * @param $parameters
+     * @return array
+     */
+    public function validator($rule, ...$parameters)
+    {
+        if (count($parameters)) {
+            return [$rule => $parameters];
+        }
+        return $rule;
+    }
+
+    /**
+     * @param $record
      * @return mixed
      */
-    public abstract function destroy($record = null);
+    public abstract function fill($record);
 
     /**
      * @param $action
@@ -118,5 +161,29 @@ abstract class AbstractModel extends Engine
     {
         return true;
     }
+
+    /**
+     * @param mixed $record
+     * @return Record
+     */
+    public abstract function create($record = null);
+
+    /**
+     * @param mixed $record
+     * @return Collection
+     */
+    public abstract function read($record = null);
+
+    /**
+     * @param mixed $record
+     * @return Record
+     */
+    public abstract function update($record = null);
+
+    /**
+     * @param mixed $record
+     * @return Record
+     */
+    public abstract function destroy($record = null);
 
 }

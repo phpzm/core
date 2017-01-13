@@ -2,10 +2,6 @@
 
 namespace Simples\Core\Database;
 
-use \PDO;
-use \PDOStatement;
-use \Exception;
-
 /**
  * Class Connection
  * @package Simples\Core\Database
@@ -13,71 +9,35 @@ use \Exception;
 abstract class Connection
 {
     /**
-     * @var PDO
+     * @var mixed
      */
-    private $pdo = null;
+    protected $resource = null;
+
     /**
      * @var array
      */
-    protected $options = [];
+    protected $settings = [];
 
     /**
      * Connection constructor.
-     * @param array $options
-     * @throws Exception
+     * @param array $settings
      */
-    public function __construct(array $options)
+    public function __construct(array $settings)
     {
-        $this->options = $options;
-    }
-
-    /**
-     * @return PDO
-     */
-    protected function connect()
-    {
-        if (!$this->pdo) {
-            $this->pdo = new PDO($this->dsn(), $this->options['user'], $this->options['password']);
-        }
-        return $this->pdo;
-    }
-
-    /**
-     * @return string
-     */
-    protected abstract function dsn();
-
-    /**
-     * @param $sql
-     * @return PDOStatement
-     */
-    protected final function statement($sql)
-    {
-        return $this->connect()->prepare($sql);
-    }
-
-    /**
-     * @param $sql
-     * @param array $values
-     * @return int|null
-     */
-    protected final function execute($sql, array $values)
-    {
-        $statement = $this->statement($sql);
-
-        if ($statement && $statement->execute(array_values($values))) {
-            return $statement->rowCount();
-        }
-
-        return null;
+        $this->settings = $settings;
     }
 
     /**
      * @return array
      */
-    public function getOptions()
+    public function getSettings()
     {
-        return $this->options;
+        return $this->settings;
     }
+
+    /**
+     * @return mixed
+     */
+    protected abstract function connect();
 
 }

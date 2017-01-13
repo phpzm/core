@@ -20,12 +20,12 @@ class Auth
 
     /**
      * @param $password
-     * @param $candidate
+     * @param $hash
      * @return bool
      */
-    public static function match($password, $candidate)
+    public static function match($password, $hash)
     {
-        return password_verify($password, $candidate);
+        return password_verify($password, $hash);
     }
 
 }

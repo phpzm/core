@@ -2,64 +2,39 @@
 
 namespace Simples\Core\Database;
 
-use \PDO;
-
 /**
- * Class Driver
+ * Interface Driver
  * @package Simples\Core\Database
  */
-abstract class Driver extends Connection
+interface Driver
 {
     /**
-     * @param string $sql
+     * @param $clausules
      * @param array $values
-     * @return string
+     * @return null|string
      */
-    public final function insert($sql, array $values)
-    {
-        $statement = $this->statement($sql);
-
-        if ($statement && $statement->execute(array_values($values))) {
-            return $this->connect()->lastInsertId();
-        }
-
-        return null;
-    }
+    public function create($clausules, array $values);
 
     /**
-     * @param string $sql
+     * @param $clausules
      * @param array $values
-     * @return array
+     * @return array|null
      */
-    public final function select($sql, array $values)
-    {
-        $statement = $this->statement($sql);
-
-        if ($statement && $statement->execute(array_values($values))) {
-            return $statement->fetchAll(PDO::FETCH_OBJ);
-        }
-
-        return null;
-    }
+    public function read($clausules, array $values = []);
 
     /**
-     * @param string $sql
-     * @param array $values
+     * @param $clausules
+     * @param $values
+     * @param $filters
      * @return int
      */
-    public final function update($sql, array $values)
-    {
-        return $this->execute($sql, $values);
-    }
+    public function update($clausules, $values, $filters);
 
     /**
-     * @param string $sql
+     * @param $clausules
      * @param array $values
-     * @return int
+     * @return int|null
      */
-    public final function delete($sql, array $values)
-    {
-        return $this->execute($sql, $values);
-    }
+    public function destroy($clausules, array $values);
 
 }

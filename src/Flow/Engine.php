@@ -2,6 +2,12 @@
 
 namespace Simples\Core\Flow;
 
+use Simples\Core\Http\Response;
+use \RecursiveDirectoryIterator;
+use \RecursiveIteratorIterator;
+use Simples\Core\Kernel\App;
+use Simples\Core\Kernel\Container;
+
 /**
  * Class Engine
  * @package Simples\Core\Flow
@@ -14,7 +20,7 @@ class Engine
     use Sharable;
 
     /**
-     * @var array
+     * @var array honorable mention ['options']
      */
     const ALL = ['get', 'post', 'put', 'patch', 'delete'];
 
@@ -39,16 +45,46 @@ class Engine
     private $preFlight = 'options';
 
     /**
-     * @param $name
+     * @var bool
+     */
+    protected $labels = false;
+
+    /**
+     * @var string
+     */
+    private $contentType;
+
+    /**
+     * Engine constructor.
+     * @param bool $labels
+     * @param null $contentType
+     */
+    public function __construct($labels = false, $contentType = null)
+    {
+        $this->contentType = iif($contentType, Response::CONTENT_TYPE_PLAIN);
+    }
+
+    /**
+     * @param $method
      * @param $arguments
      * @return $this
      */
-    public final function __call($name, $arguments)
+    public final function __call($method, $arguments)
     {
         if (!isset($arguments[1])) {
             return $this;
         }
-        return $this->on($name, $arguments[0], $arguments[1], isset($arguments[2]) ? $arguments[2] : []);
+        $uris = $arguments[0];
+        if (!is_array($uris)) {
+            $uris = [$uris];
+        }
+        $callback = $arguments[1];
+        $options = isset($arguments[2]) ? $arguments[2] : [];
+
+        foreach ($uris as $uri) {
+            $this->on($method, $uri, $callback, $options);
+        }
+        return $this;
     }
 
     /**
@@ -86,10 +122,10 @@ class Engine
             }
             $pattern = $this->pattern($uri);
 
-            $route = $pattern['pattern']  . '$/';
+            $route = $pattern['pattern'] . '$/';
 
             $this->routes[$method][$route] = [
-                'callback' => $callback, 'options' => $options, 'labels' => $pattern['labels']
+                'uri' => $uri, 'callback' => $callback, 'options' => $options, 'labels' => $pattern['labels']
             ];
         }
 
@@ -106,31 +142,36 @@ class Engine
     {
         $method = strtolower($method);
 
-        $path = '';
+        $path = null;
         $callback = null;
-        $parameters = [$this->data];
+        $data = [];
 
         foreach ($this->routes as $index => $routes) {
 
             foreach ($routes as $path => $context) {
 
                 // TODO: simplify this
-                if (preg_match($path, $uri, $params)) {
+                if (preg_match($path, $uri, $parameters)) {
 
                     $options = array_merge($context['options'], $options);
 
                     if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
 
-                        array_shift($params);
+                        array_shift($parameters);
 
-                        $parameters = array_merge($params, $parameters);
                         $callback = $context['callback'];
-
+                        $labels = $context['labels'];
+                        if ($this->labels || (isset($options['labels']) ? $options['labels'] : false)) {
+                            foreach ($labels as $key => $label) {
+                                $data[$label] = $parameters[$key];
+                            }
+                        }
                         break;
                     }
                 }
             }
         }
+        $parameters = array_merge($data, ['data' => $this->data]);
 
         if (!$callback && isset($this->otherWise[$method])) {
 
@@ -163,29 +204,7 @@ class Engine
 
             $this->clear();
 
-            switch ($group['type']) {
-                case 'file': {
-                    $this->load(path(true, $callback));
-                    break;
-                }
-                case 'files': {
-                    foreach ($callback as $file) {
-                        $this->load(path(true, $file));
-                    }
-                    break;
-                }
-                case 'dir': {
-                    $files = $this->files($callback);
-                    foreach ($files as $file) {
-                        $this->load(path(true, $file));
-                    }
-                    break;
-                }
-                case 'callable': {
-                    call_user_func_array($callback, fill_parameters($callback, [$this]));
-                    break;
-                }
-            }
+            $this->deep($group['type'], $callback);
 
             $end = str_replace_first($group['start'], '', $uri);
             $uri = (substr($end, 0, 1) === '/') ? $end : '/' . $end;
@@ -193,7 +212,42 @@ class Engine
             return $this->match($method, $uri, $options);
         }
 
+        if (!isset($options['type'])) {
+            $options['type'] = $this->getContentType();
+        }
+
         return new Match($method, $uri, $path, $callback, $parameters, $options);
+    }
+
+    /**
+     * @param $type
+     * @param $callback
+     */
+    protected function deep($type, $callback)
+    {
+        switch ($type) {
+            case 'file': {
+                $this->load(path(true, $callback));
+                break;
+            }
+            case 'files': {
+                foreach ($callback as $file) {
+                    $this->load(path(true, $file));
+                }
+                break;
+            }
+            case 'dir': {
+                $files = $this->files($callback);
+                foreach ($files as $file) {
+                    $this->load(path(true, $file));
+                }
+                break;
+            }
+            case 'callable': {
+                call_user_func_array($callback,  Container::getInstance()->resolveFunctionParameters($callback, [$this]));
+                break;
+            }
+        }
     }
 
     /**
@@ -248,14 +302,17 @@ class Engine
     public function pattern($uri)
     {
         $labels = [];
+
         $uri = (substr($uri, 0, 1) !== '/') ? '/' . $uri : $uri;
         $peaces = explode('/', $uri);
+
         foreach ($peaces as $key => $value) {
             $peaces[$key] = str_replace('*', '(.*)', $peaces[$key]);
             if (strpos($value, ':') === 0) {
                 $peaces[$key] = '(\w+)';
                 $labels[] = substr($value, 1);
-            } else if (strpos($value, '{') === 0) {
+            }
+            else if (strpos($value, '{') === 0) {
                 $peaces[$key] = '(\w+)';
                 $labels[] = substr($value, 1, -1);
             }
@@ -268,6 +325,68 @@ class Engine
             'pattern' => '/^' . $pattern,
             'labels' => $labels
         ];
+    }
+
+    /**
+     * @param array $trace
+     * @return array
+     */
+    public function getTrace($trace = [])
+    {
+        $groups = [];
+        foreach ($this->routes as $method => $paths) {
+            foreach ($paths as $path => $route) {
+                $trace[] = [
+                    'method' => $method,
+                    'uri' => $route['uri'],
+                    'options' => $route['options'],
+                    'callback' => stripslashes(json_encode($route['callback']))
+                ];
+                $group = off($route['options'], 'group');
+                if ($group) {
+                    $groups[] = [
+                        'type'=> $group['type'], 'callback' => $route['callback']
+                    ];
+                }
+            }
+        }
+
+        foreach ($this->otherWise as $method => $othersWise) {
+            $trace[] = [
+                'method' => $method,
+                'uri' => '/other-wise',
+                'options' => $othersWise['options'],
+                'callback' => stripslashes(json_encode($othersWise['callback']))
+            ];
+        }
+        $this->otherWise = [];
+
+        if (count($groups)) {
+            foreach ($groups as $group) {
+                $this->clear();
+                $this->deep($group['type'], $group['callback']);
+
+                $trace = $this->getTrace($trace);
+            }
+        }
+
+        return $trace;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContentType(): string
+    {
+        return $this->contentType;
+    }
+
+    /**
+     * @param string $contentType
+     */
+    public function setContentType(string $contentType)
+    {
+        $this->contentType = $contentType;
     }
 
 }

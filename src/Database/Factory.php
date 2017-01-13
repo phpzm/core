@@ -9,17 +9,18 @@ namespace Simples\Core\Database;
 class Factory
 {
     /**
-     * @param $options
-     * @return MySQL
-     * @throws \Exception
+     * @param $settings
+     * @param string $hashKey
+     * @param string $deletedKey
+     * @param array $timestampsKeys
+     * @return null
      */
-    public static function create($options)
+    public static function create($settings, $hashKey = '', $deletedKey = '', array $timestampsKeys = [])
     {
-        $platform = strtolower($options['platform']);
-        switch ($platform) {
-            case 'mysql':
-                return new MySQL($options);
+        $driver = $settings['driver'];
+        if (class_exists($driver)) {
+            return new $driver($settings, $hashKey, $deletedKey, $timestampsKeys);
         }
-        throw new \Exception('There is no driver to "' . $platform . '"');
+        return null;
     }
 }

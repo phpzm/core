@@ -1,12 +1,12 @@
 <?php
 
-namespace Simples\Core\View;
+namespace Simples\Core\Template;
 
 /**
- * Class Engine
- * @package Simples\Core\View
+ * Class View
+ * @package Simples\Core\Template
  */
-class Template extends Tools
+class View extends Tools
 {
     /**
      * @var string

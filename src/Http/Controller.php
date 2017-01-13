@@ -123,7 +123,7 @@ abstract class Controller
      * @param int $code
      * @return Response
      */
-    protected abstract function answer($content = null, $meta = [], $code = 200);
+    protected abstract function answer($content = null, $meta = [], $code = 200) : Response;
 
     /**
      * @param $name
@@ -135,7 +135,7 @@ abstract class Controller
         $httpStatusCodes = ResponseStream::HTTP_STATUS_CODE;
 
         $content = off($arguments, 0, '');
-        $meta = off($arguments, 1, '');
+        $meta = off($arguments, 1, []);
         $code = 501;
 
         if (substr($name, 0, 6) === 'answer') {
