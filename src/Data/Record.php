@@ -2,16 +2,15 @@
 
 namespace Simples\Core\Data;
 
-
-use Simples\Core\Flow\Wrapper;
 use Simples\Core\Helper\Json;
+use Simples\Core\Unit\Origin;
 
 /**
  * Class Record
  * @property string json
  * @package Simples\Core\Domain
  */
-class Record implements \IteratorAggregate
+class Record extends Origin implements \IteratorAggregate
 {
     /**
      * @var array
@@ -77,14 +76,6 @@ class Record implements \IteratorAggregate
     public function __set($name, $value)
     {
         // silent
-    }
-
-    /**
-     * @return bool|null|string
-     */
-    function __toString()
-    {
-        return $this->json;
     }
 
     /**
@@ -222,5 +213,13 @@ class Record implements \IteratorAggregate
     public function size()
     {
         return count($this->public);
+    }
+
+    /**
+     * @return bool|null|string
+     */
+    function __toString()
+    {
+        return $this->json;
     }
 }

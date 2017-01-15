@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Http;
 
-use Simples\Core\Flow\Match;
+use Simples\Core\Route\Match;
 
 /**
  * @method Response answerContinue($content = null, $meta = []) // 100

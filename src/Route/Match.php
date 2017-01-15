@@ -1,12 +1,12 @@
 <?php
 
-namespace Simples\Core\Flow;
+namespace Simples\Core\Route;
 
 use Simples\Core\Unit\Origin;
 
 /**
  * Class Route
- * @package Simples\Core\Flow
+ * @package Simples\Core\Route
  */
 class Match extends Origin
 {

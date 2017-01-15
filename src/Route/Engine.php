@@ -1,6 +1,6 @@
 <?php
 
-namespace Simples\Core\Flow;
+namespace Simples\Core\Route;
 
 use Simples\Core\Http\Response;
 use \RecursiveDirectoryIterator;
@@ -10,7 +10,7 @@ use Simples\Core\Kernel\Container;
 
 /**
  * Class Engine
- * @package Simples\Core\Flow
+ * @package Simples\Core\Route
  */
 class Engine
 {
@@ -161,6 +161,7 @@ class Engine
 
                         $callback = $context['callback'];
                         $labels = $context['labels'];
+                        $data = $parameters;
                         if ($this->labels || (isset($options['labels']) ? $options['labels'] : false)) {
                             foreach ($labels as $key => $label) {
                                 $data[$label] = $parameters[$key];

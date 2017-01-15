@@ -4,7 +4,7 @@ namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
-use Simples\Core\Flow\Wrapper;
+use Simples\Core\Route\Wrapper;
 
 /**
  * Class DataMapper

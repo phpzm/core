@@ -2,10 +2,11 @@
 
 error_reporting(E_ALL);
 
-ini_set('display_errors', 'On');
-ini_set('log_errors', 'On');
-ini_set('track_errors', 'Off');
-ini_set('html_errors', 'Off');
+// system settings
+ini_set('display_errors', env('ERRORS_DISPLAY', 'On'));
+ini_set('log_errors', env('ERRORS_DISPLAY', 'On'));
+ini_set('track_errors', env('ERRORS_DISPLAY', 'Off'));
+ini_set('html_errors', env('ERRORS_DISPLAY', 'Off'));
 
 // native types
 define('TYPE_BOOLEAN', 'boolean');
@@ -31,7 +32,12 @@ if (!function_exists('error_handler')) {
      */
     function error_handler($code, $message, $file, $line)
     {
-        throw new ErrorException($message, $code, 0, $file, $line);
+        throw new ErrorException($message, $code, 1, $file, $line);
     }
+
     set_error_handler("error_handler");
+
+    set_exception_handler(function (Throwable $exception) {
+        error_handler($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine());
+    });
 }

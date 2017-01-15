@@ -4,7 +4,7 @@ namespace Simples\Core\Http\Specialty;
 
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Collection;
-use Simples\Core\Data\Repository\ApiRepository;
+use Simples\Core\Model\Repository\ApiRepository;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Response;
 

@@ -1,13 +1,28 @@
 <?php
 
-namespace Simples\Core\Database;
+namespace Simples\Core\Persistence;
 
 /**
  * Interface Driver
- * @package Simples\Core\Database
+ * @package Simples\Core\Persistence
  */
 interface Driver
 {
+    /**
+     * @return bool
+     */
+    public function start();
+
+    /**
+     * @return bool
+     */
+    public function commit();
+
+    /**
+     * @return bool
+     */
+    public function rollback();
+
     /**
      * @param $clausules
      * @param array $values

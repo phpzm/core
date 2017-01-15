@@ -161,39 +161,33 @@ class Container
      */
     private function resolveParameters($parameters, $data, $labels = false)
     {
-        // resolved array of parameters
         $parametersToPass = [];
 
-        // for each expected parameter,
-        // go through the container and resolve it
         /** @var \ReflectionParameter $reflectionParameter */
         foreach ($parameters as $reflectionParameter) {
 
-            // get the expected class
             $parameterClassName = isset($reflectionParameter->getClass()->name) ? $reflectionParameter->getClass()->name : '';
 
-            // if there is a class
             if ($parameterClassName) {
-                // ask the container to resolve it
+
                 $parametersToPass[] = self::make($parameterClassName);
 
-            } else if ($labels && isset($data[$reflectionParameter->getName()])) {
-                // get parameter by name
-                $parametersToPass[] = $data[$reflectionParameter->getName()];
-                // remove from list
-                unset($data[$reflectionParameter->getName()]);
+            } else if (isset($data[$reflectionParameter->getName()]) || count($data)) {
 
-            } else if (!$labels && count($data)) {
-
-                // add a null info to complete arguments
-                $parametersToPass[] = $data[0];
-                // remove the first
-                array_shift($data);
-                // reconfigure the array
-                reset($data);
+                $parameter = null;
+                if ($labels && isset($data[$reflectionParameter->getName()])) {
+                    $parameter = $data[$reflectionParameter->getName()];
+                    unset($data[$reflectionParameter->getName()]);
+                }
+                if (!$parameter) {
+                    $parameter = $data[0];
+                    array_shift($data);
+                    reset($data);
+                }
+                $parametersToPass[] = $parameter;
 
             } else {
-                // send null to fill
+
                 $parametersToPass[] = null;
             }
         }

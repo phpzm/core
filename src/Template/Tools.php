@@ -165,7 +165,7 @@ class Tools
      */
     private function test()
     {
-        return App::env('test') ? '?c=' . uniqid() : '';
+        return env('TEST_MODE') ? '?c=' . uniqid() : '';
     }
 
 }

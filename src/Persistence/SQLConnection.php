@@ -1,13 +1,13 @@
 <?php
 
-namespace Simples\Core\Database;
+namespace Simples\Core\Persistence;
 
 use \PDO;
 use \PDOStatement;
 
 /**
  * Class Connection
- * @package Simples\Core\Database
+ * @package Simples\Core\Persistence
  */
 abstract class SQLConnection extends Connection
 {
@@ -17,7 +17,14 @@ abstract class SQLConnection extends Connection
     protected function connect()
     {
         if (!$this->resource) {
-            $this->resource = new PDO($this->dsn(), $this->settings['user'], $this->settings['password']);
+            $default = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_PERSISTENT => true,
+            ];
+            $options = array_merge($this->settings['options'], $default);
+            $this->resource = new PDO(
+                $this->dsn(), $this->settings['user'], $this->settings['password'], $options
+            );
         }
         return $this->resource;
     }

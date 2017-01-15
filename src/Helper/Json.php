@@ -2,7 +2,8 @@
 
 namespace Simples\Core\Helper;
 
-use Simples\Core\Flow\Wrapper;
+use Simples\Core\Route\Wrapper;
+use Error;
 
 /**
  * Class Json
@@ -15,6 +16,7 @@ abstract class Json
      * @param int $options
      * @param int $depth
      * @return string
+     * @throws Error
      */
     public static function encode($mixed, $options = 0, $depth = 512)
     {
@@ -45,7 +47,7 @@ abstract class Json
         }
 
         if ($error) {
-            Wrapper::error('Json::encode error: ' . $error);
+            throw new Error('Json::encode error: ' . $error);
         }
 
         return $string;
@@ -57,6 +59,7 @@ abstract class Json
      * @param int $depth
      * @param int $options
      * @return mixed
+     * @throws Error
      */
     public static function decode($string, $assoc = false, $depth = 512, $options = 0)
     {
@@ -87,7 +90,7 @@ abstract class Json
         }
 
         if ($error) {
-            Wrapper::error('Json::decode error: ' . $error);
+            throw new Error('Json::decode error: ' . $error);
         }
 
         return $mixed;

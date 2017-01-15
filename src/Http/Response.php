@@ -170,6 +170,7 @@ class Response extends ResponseStream
     }
 
     /**
+     * https://labs.omniti.com/labs/jsend
      * @param $content
      * @param int $code
      * @param array $meta
@@ -178,7 +179,7 @@ class Response extends ResponseStream
     public function api($content, $code = null, $meta = [])
     {
         $json = [
-            'content' => $content,
+            'data' => $content,
             'meta' => $meta,
             'status' => $this->parseStatus($code ?? $this->getStatusCode()),
         ];
@@ -222,19 +223,19 @@ class Response extends ResponseStream
         $startsWith = $statusCode{0};
         switch ($startsWith) {
             case '1':
-                $statusType = 'information';
+                $statusType = 'success';
                 break;
             case '2':
                 $statusType = 'success';
                 break;
             case '3':
-                $statusType = 'redirect';
+                $statusType = 'success';
                 break;
             case '4':
-                $statusType = 'client-error';
+                $statusType = 'fail';
                 break;
             case '5':
-                $statusType = 'server-error';
+                $statusType = 'error';
                 break;
         }
         $status = [

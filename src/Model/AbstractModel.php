@@ -4,7 +4,7 @@ namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
-use Simples\Core\Database\Engine;
+use Simples\Core\Persistence\Engine;
 
 /**
  * Class AbstractModel

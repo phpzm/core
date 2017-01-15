@@ -1,10 +1,10 @@
 <?php
 
-namespace Simples\Core\Database;
+namespace Simples\Core\Persistence;
 
 /**
  * Class Factory
- * @package Simples\Core\Database
+ * @package Simples\Core\Persistence
  */
 class Factory
 {
@@ -19,7 +19,10 @@ class Factory
     {
         $driver = $settings['driver'];
         if (class_exists($driver)) {
-            return new $driver($settings, $hashKey, $deletedKey, $timestampsKeys);
+            $connection = new $driver($settings, $hashKey, $deletedKey, $timestampsKeys);
+            Transaction::register($driver, $connection);
+
+            return $connection;
         }
         return null;
     }

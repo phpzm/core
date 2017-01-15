@@ -1,13 +1,12 @@
 <?php
 
-namespace Simples\Core\Database;
+namespace Simples\Core\Persistence;
 
 use \PDO;
-use Simples\Core\Flow\Wrapper;
 
 /**
  * Class SQLDriver
- * @package Simples\Core\Database
+ * @package Simples\Core\Persistence
  */
 abstract class SQLDriver extends SQLConnection implements Driver
 {
@@ -43,6 +42,30 @@ abstract class SQLDriver extends SQLConnection implements Driver
     }
 
     /**
+     * @return bool
+     */
+    public function start()
+    {
+        return $this->connect()->beginTransaction();
+    }
+
+    /**
+     * @return bool
+     */
+    public function commit()
+    {
+        return $this->connect()->commit();
+    }
+
+    /**
+     * @return bool
+     */
+    public function rollback()
+    {
+        return $this->connect()->rollBack();
+    }
+
+    /**
      * @param $clausules
      * @param array $values
      * @return null|string
@@ -50,9 +73,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
     public final function create($clausules, array $values)
     {
         $sql = $this->getInsert($clausules);
-        if (off($clausules, 'log')) {
-            Wrapper::log($sql, $values);
-        }
+        $this->addLog($sql, $values, off($clausules, 'log'));
         $statement = $this->statement($sql);
 
         if ($statement && $statement->execute(array_values($values))) {
@@ -93,9 +114,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
     public final function read($clausules, array $values = [])
     {
         $sql = $this->getSelect($clausules);
-        if (off($clausules, 'log')) {
-            Wrapper::log($sql, $values);
-        }
+        $this->addLog($sql, $values, off($clausules, 'log'));
         $statement = $this->statement($sql);
 
         if ($statement && $statement->execute(array_values($values))) {
@@ -159,9 +178,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
     public final function update($clausules, $values, $filters)
     {
         $sql = $this->getUpdate($clausules);
-        if (off($clausules, 'log')) {
-            Wrapper::log($sql, $values);
-        }
+        $this->addLog($sql, $values, off($clausules, 'log'));
+
         return $this->execute($sql, array_merge($values, $filters));
     }
 
@@ -216,9 +234,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
     public final function destroy($clausules, array $values)
     {
         $sql = $this->getDelete($clausules);
-        if (off($clausules, 'log')) {
-            Wrapper::log($sql, $values);
-        }
+        $this->addLog($sql, $values, off($clausules, 'log'));
         return $this->execute($sql, $values);
     }
 

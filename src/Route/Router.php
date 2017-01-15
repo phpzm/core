@@ -1,6 +1,6 @@
 <?php
 
-namespace Simples\Core\Flow;
+namespace Simples\Core\Route;
 
 use Simples\Core\Kernel\App;
 use \RecursiveIteratorIterator;
@@ -9,7 +9,7 @@ use Stringy\StaticStringy as stringy;
 
 /**
  * Class Router
- * @package Simples\Core\Flow
+ * @package Simples\Core\Route
  *
  * @method Router get($route, $callable, $options = [])
  * @method Router post($route, $callable, $options = [])

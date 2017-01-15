@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Console;
 
-use Simples\Core\Flow\Router;
+use Simples\Core\Route\Router;
 use Simples\Core\Kernel\App;
 
 /**

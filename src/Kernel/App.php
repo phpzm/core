@@ -3,7 +3,7 @@
 namespace Simples\Core\Kernel;
 
 use Simples\Core\Console\RouteService;
-use Simples\Core\Flow\Router;
+use Simples\Core\Route\Router;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 
@@ -45,6 +45,7 @@ class App
                 'default' => 'en', 'fallback' => 'en'
             ],
             'labels' => true,
+            'separator' => '@',
             'strict' => false
         ];
         self::$options = array_merge($default, $options);
@@ -94,11 +95,8 @@ class App
 
             return $response;
         }
-        catch (\Exception $exception) {
-            echo  "Exception: '", $exception->getMessage(), "' on '", $exception->getFile(), "' at '", $exception->getLine(), "'";
-        }
-        catch (\Error $exception) {
-            echo  "Error: '", $exception->getMessage(), "' on '", $exception->getFile(), "' at '", $exception->getLine(), "'";
+        catch (\ErrorException $error) {
+            echo  "ErrorException: '", error_message($error);
         }
         return null;
     }
@@ -115,7 +113,7 @@ class App
 
         $match = self::routes($router)->match($request->getMethod(), $request->getUri());
 
-        $handler = new HandlerHttp($request, $match);
+        $handler = new HandlerHttp($request, $match, self::$options['separator']);
 
         return $handler->apply();
     }

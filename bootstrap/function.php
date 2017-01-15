@@ -201,3 +201,14 @@ if (!function_exists('is_iterator')) {
         return (is_array($var) || $var instanceof Traversable);
     }
 }
+
+if (!function_exists('error_message')) {
+    /**
+     * @param Throwable $throw
+     * @return string
+     */
+    function error_message (Throwable $throw)
+    {
+        return "[{$throw->getMessage()}] ON [{$throw->getFile()}] AT [{$throw->getLine()}]";
+    }
+}

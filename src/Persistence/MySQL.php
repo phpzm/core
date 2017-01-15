@@ -1,10 +1,10 @@
 <?php
 
-namespace Simples\Core\Database;
+namespace Simples\Core\Persistence;
 
 /**
  * Class MySQL
- * @package Simples\Core\Database
+ * @package Simples\Core\Persistence
  */
 class MySQL extends SQLDriver
 {

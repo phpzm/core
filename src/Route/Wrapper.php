@@ -1,10 +1,10 @@
 <?php
 
-namespace Simples\Core\Flow;
+namespace Simples\Core\Route;
 
 /**
  * Class Wrapper
- * @package Simples\Core\Flow
+ * @package Simples\Core\Route
  */
 abstract class Wrapper
 {
@@ -12,14 +12,6 @@ abstract class Wrapper
      * @var array
      */
     private static $messages = [];
-
-    /**
-     * @param $message
-     */
-    public static function error($message)
-    {
-        self::message('error', $message);
-    }
 
     /**
      * @param $message
@@ -38,12 +30,28 @@ abstract class Wrapper
     }
 
     /**
+     * @param $message
+     */
+    public static function buffer($message)
+    {
+        self::message('buffer', $message);
+    }
+
+    /**
+     * @param $log
+     */
+    public static function log($log)
+    {
+        self::message('log', $log);
+    }
+
+    /**
      * @param $type
      * @param $message
      */
     public static function message($type, $message)
     {
-        self::$messages[] = ['status' => $type, 'message' => $message];
+        self::$messages[] = ['type' => $type, 'message' => $message];
     }
 
     /**
@@ -52,11 +60,6 @@ abstract class Wrapper
     public static function messages()
     {
         return self::$messages;
-    }
-
-    public static function log($message, $values)
-    {
-        self::info([$message, $values]);
     }
 
 }

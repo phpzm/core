@@ -1,6 +1,6 @@
 <?php
 
-namespace Simples\Core\Data\Repository;
+namespace Simples\Core\Model\Repository;
 
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Collection;
@@ -9,7 +9,7 @@ use Simples\Core\Model\AbstractModel;
 
 /**
  * Class ApiRepository
- * @package Simples\Core\Data\Repository
+ * @package Simples\Core\Model\Repository
  */
 class ApiRepository
 {
@@ -82,9 +82,7 @@ class ApiRepository
      */
     public function unique($record = null, $log = false): Record
     {
-        $this->model->log = $log;
-
-        $exists = $this->model->read($record);
+        $exists = $this->model->log($log)->read($record);
         if ($exists->size()) {
             return $exists->current();
         }
@@ -98,8 +96,7 @@ class ApiRepository
      */
     public function get($record = null, $log = false): Collection
     {
-        $this->model->log = $log;
-        $getting = $this->model->read($record);
+        $getting = $this->model->log($log)->read($record);
         if ($getting) {
             return $getting;
         }
@@ -113,9 +110,7 @@ class ApiRepository
      */
     public function post($record, $log = false): Record
     {
-        $this->model->log = $log;
-
-        $posting = $this->model->create($record);
+        $posting = $this->model->log($log)->create($record);
         if ($posting) {
             return $posting;
         }
@@ -153,9 +148,7 @@ class ApiRepository
      */
     public function delete($record, $log = false): Record
     {
-        $this->model->log = $log;
-
-        $deleting = $this->model->destroy($record);
+        $deleting = $this->model->log($log)->destroy($record);
         if ($deleting) {
             return $deleting;
         }

@@ -1,10 +1,10 @@
 <?php
 
-namespace Simples\Core\Flow;
+namespace Simples\Core\Route;
 
 /**
  * Class Share
- * @package Simples\Core\Flow
+ * @package Simples\Core\Route
  */
 trait Sharable
 {
