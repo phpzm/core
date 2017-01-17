@@ -33,20 +33,15 @@ class Stream implements StreamInterface
         $this->stream = $stream;
 
         if (is_resource($stream)) {
-
             $this->resource = $stream;
-
-        } else if (is_string($stream)) {
-
+        } elseif (is_string($stream)) {
             try {
                 $this->resource = fopen($this->stream, $mode);
-
             } catch (Exception $e) {
                 throw new InvalidArgumentException(
                     $e->getMessage()
                 );
             }
-
         } else {
             throw new InvalidArgumentException(
                 'Invalid stream provided; must be a string stream identifier or resource'

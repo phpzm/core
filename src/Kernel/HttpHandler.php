@@ -133,10 +133,9 @@ class HttpHandler extends Response
     /**
      * @return Response
      */
-    private final function resolve()
+    final private function resolve()
     {
         if ($this->isCors() && $this->isPreFlight()) {
-
             return
                 $this
                     ->cors($this->request()->getHeader($this->__headerOrigin))
@@ -228,14 +227,11 @@ class HttpHandler extends Response
 
         try {
             $result = call_user_func_array($callback, $parameters);
-        }
-        catch (\Error $error) {
+        } catch (\Error $error) {
             $result = $error;
-        }
-        catch (\ErrorException $error) {
+        } catch (\ErrorException $error) {
             $result = $error;
-        }
-        catch (\Exception $error) {
+        } catch (\Exception $error) {
             $result = $error;
         }
 
@@ -289,5 +285,4 @@ class HttpHandler extends Response
 
         return $this->$method($content, $status, $meta);
     }
-
 }

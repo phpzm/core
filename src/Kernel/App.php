@@ -84,7 +84,6 @@ class App
         $fail = null;
 
         try {
-
             $http = new Http();
 
             $response = $http->handler(self::request());
@@ -140,7 +139,6 @@ class App
 
             echo "$ ";
             $service = trim(fgets(STDIN));
-
         } while (!in_array($service, Service::KILLERS));
     }
 
@@ -215,5 +213,4 @@ class App
         }
         return $route;
     }
-
 }

@@ -32,13 +32,13 @@ abstract class SQLConnection extends Connection
     /**
      * @return string
      */
-    protected abstract function dsn();
+    abstract protected function dsn();
 
     /**
      * @param $sql
      * @return PDOStatement
      */
-    protected final function statement($sql)
+    final protected function statement($sql)
     {
         return $this->connect()->prepare($sql);
     }
@@ -48,7 +48,7 @@ abstract class SQLConnection extends Connection
      * @param array $values
      * @return int|null
      */
-    protected final function execute($sql, array $values)
+    final protected function execute($sql, array $values)
     {
         $statement = $this->statement($sql);
 
@@ -58,5 +58,4 @@ abstract class SQLConnection extends Connection
 
         return null;
     }
-
 }

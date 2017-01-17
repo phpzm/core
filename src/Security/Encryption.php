@@ -43,5 +43,4 @@ class Encryption
 
         return openssl_decrypt(base64_decode($string), self::$ENCRYPT_MODE, $key, 0, $iv);
     }
-
 }

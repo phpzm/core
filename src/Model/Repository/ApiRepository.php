@@ -174,5 +174,4 @@ class ApiRepository
         }
         return new Record([]);
     }
-
 }

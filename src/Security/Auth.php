@@ -2,7 +2,6 @@
 
 namespace Simples\Core\Security;
 
-
 /**
  * Class Auth
  * @package Simples\Core\Security
@@ -27,5 +26,4 @@ class Auth
     {
         return password_verify($password, $hash);
     }
-
 }

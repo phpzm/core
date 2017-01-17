@@ -30,7 +30,6 @@ abstract class ModelService extends Service
 
             echo "[ model ]$ ";
             $option = trim(fgets(STDIN));
-
         } while (!in_array($option, Service::KILLERS));
     }
 
@@ -65,10 +64,8 @@ abstract class ModelService extends Service
             }
             echo "[ model.create ]{$message}$ ";
             $option = trim(fgets(STDIN));
-
         } while (!in_array($option, Service::KILLERS));
 
         return null;
     }
-
 }

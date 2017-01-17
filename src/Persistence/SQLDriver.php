@@ -71,7 +71,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @return string
      * @throws \ErrorException
      */
-    public final function create($clausules, array $values)
+    final public function create($clausules, array $values)
     {
         $sql = $this->getInsert($clausules);
         $this->addLog($sql, $values, off($clausules, 'log'));
@@ -112,7 +112,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @return array
      * @throws \ErrorException
      */
-    public final function read($clausules, array $values = [])
+    final public function read($clausules, array $values = [])
     {
         $sql = $this->getSelect($clausules);
         $this->addLog($sql, $values, off($clausules, 'log'));
@@ -177,7 +177,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @return int
      * @throws \ErrorException
      */
-    public final function update($clausules, $values, $filters)
+    final public function update($clausules, $values, $filters)
     {
         $sql = $this->getUpdate($clausules);
         $this->addLog($sql, $values, off($clausules, 'log'));
@@ -239,7 +239,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @return int
      * @throws \ErrorException
      */
-    public final function destroy($clausules, array $values)
+    final public function destroy($clausules, array $values)
     {
         $sql = $this->getDelete($clausules);
         $this->addLog($sql, $values, off($clausules, 'log'));
@@ -298,5 +298,4 @@ abstract class SQLDriver extends SQLConnection implements Driver
         }
         return $command;
     }
-
 }

@@ -69,7 +69,7 @@ class Engine
      * @param $arguments
      * @return $this
      */
-    public final function __call($method, $arguments)
+    final public function __call($method, $arguments)
     {
         if (!isset($arguments[1])) {
             return $this;
@@ -90,7 +90,7 @@ class Engine
     /**
      * @return $this
      */
-    public final function clear()
+    final public function clear()
     {
         $this->routes = [];
 
@@ -104,7 +104,7 @@ class Engine
      * @param array $options
      * @return $this
      */
-    public final function on($methods, $uri, $callback, $options = [])
+    final public function on($methods, $uri, $callback, $options = [])
     {
         if (gettype($methods) === 'string') {
             if ($methods === '*') {
@@ -115,7 +115,6 @@ class Engine
         }
 
         foreach ($methods as $method) {
-
             $method = strtolower($method);
             if (!isset($this->routes[$method])) {
                 $this->routes[$method] = [];
@@ -138,7 +137,7 @@ class Engine
      * @param $options
      * @return null
      */
-    public final function match($method, $uri, $options = [])
+    final public function match($method, $uri, $options = [])
     {
         $method = strtolower($method);
 
@@ -147,16 +146,13 @@ class Engine
         $data = [];
 
         foreach ($this->routes as $index => $routes) {
-
             foreach ($routes as $path => $context) {
 
                 // TODO: simplify this
                 if (preg_match($path, $uri, $parameters)) {
-
                     $options = array_merge($context['options'], $options);
 
                     if ($method === $index || (off($options, 'cors') && $method === $this->preFlight)) {
-
                         array_shift($parameters);
 
                         $callback = $context['callback'];
@@ -175,7 +171,6 @@ class Engine
         $parameters = array_merge($data, ['data' => $this->data]);
 
         if (!$callback && isset($this->otherWise[$method])) {
-
             $context = $this->otherWise[$method];
 
             $path = '';
@@ -200,7 +195,6 @@ class Engine
         $group = off($options, 'group');
 
         if ($group) {
-
             unset($options['group']);
 
             $this->clear();
@@ -245,7 +239,7 @@ class Engine
                 break;
             }
             case 'callable': {
-                call_user_func_array($callback,  Container::getInstance()->resolveFunctionParameters($callback, [$this]));
+                call_user_func_array($callback, Container::getInstance()->resolveFunctionParameters($callback, [$this]));
                 break;
             }
         }
@@ -312,8 +306,7 @@ class Engine
             if (strpos($value, ':') === 0) {
                 $peaces[$key] = '(\w+)';
                 $labels[] = substr($value, 1);
-            }
-            else if (strpos($value, '{') === 0) {
+            } elseif (strpos($value, '{') === 0) {
                 $peaces[$key] = '(\w+)';
                 $labels[] = substr($value, 1, -1);
             }
@@ -389,5 +382,4 @@ class Engine
     {
         $this->contentType = $contentType;
     }
-
 }

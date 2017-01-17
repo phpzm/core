@@ -40,11 +40,6 @@ class Request implements RequestInterface
     /**
      * @var array
      */
-    private $inputs = [];
-
-    /**
-     * @var array
-     */
     private $data = [];
 
     /**
@@ -53,16 +48,14 @@ class Request implements RequestInterface
      * @param string $method
      * @param string $url
      * @param string $uri
-     * @param array $inputs
      * @param array $headers
      */
-    public function __construct($strict = false, $method = '', $url = '', $uri = '', $headers = [], $inputs = [])
+    public function __construct($strict = false, $method = '', $url = '', $uri = '', $headers = [])
     {
         $this->strict = $strict;
         $this->method = $method;
         $this->url = $url;
         $this->uri = $uri;
-        $this->inputs = $inputs;
         $this->headers = $headers;
     }
 
@@ -82,7 +75,6 @@ class Request implements RequestInterface
         $start = '';
 
         if ($self !== $uri) {
-
             $peaces = explode('/', $self);
             array_pop($peaces);
 
@@ -125,41 +117,6 @@ class Request implements RequestInterface
     }
 
     /**
-     *
-     */
-    public function cli()
-    {
-        $argv = isset($_SERVER['argv']) ? $_SERVER['argv'] : [];
-        array_shift($argv);
-
-        $cli = [];
-        foreach ($argv as $arg) {
-            $in = explode("=", $arg);
-            if (count($in) == 2) {
-                $cli[$in[0]] = $in[1];
-            } else {
-                $cli[$in[0]] = 0;
-            }
-        }
-
-        if (isset($cli['-uri'])) {
-            $this->uri = $cli['-uri'];
-        }
-        if (isset($cli['-method'])) {
-            $this->method = $cli['-method'];
-        }
-        if (isset($cli['-url'])) {
-            $this->url = $cli['-url'];
-        }
-
-
-        $this->uri = substr($this->uri, -1) !== '/' ? $this->uri . '/' : $this->uri ;
-        $this->method = strtoupper('cli');
-
-        $this->set('CLI', $cli);
-    }
-
-    /**
      * @param $source
      * @param $data
      */
@@ -169,15 +126,6 @@ class Request implements RequestInterface
 
         if (isset($this->data[$source]['_method'])) {
             unset($this->data[$source]['_method']);
-        }
-
-        if (is_array($this->data[$source]) or is_object($this->data[$source])) {
-
-            foreach ($this->data[$source] as $key => $value) {
-                $this->inputs[$key] = [
-                    'value' => $value, 'source' => $source
-                ];
-            }
         }
     }
 
@@ -208,24 +156,49 @@ class Request implements RequestInterface
     /**
      * @return array
      */
-    public function all()
+    public function getInputs()
     {
-        return array_map(function($input) {
-            return new Input($input['value']);
-        }, $this->inputs);
+        $inputs = [];
+        foreach ($this->data as $datum) {
+            foreach ($datum as $key => $value) {
+                $inputs[$key] = new Input($value);
+            }
+        }
+        return $inputs;
     }
 
     /**
      * @param $name
      * @return null|Input
      */
-    public function input($name)
+    public function getInput($name)
     {
-        $input = off($this->inputs, $name);
-        if ($input) {
-            return new Input($input['value']);
+        $value = $this->get($name);
+        if (is_null($value)) {
+            $value = $this->post($name);
         }
-        return null;
+        if (is_null($value)) {
+            return null;
+        }
+        return new Input($value);
+    }
+
+    /**
+     * @param $name
+     * @return mixed
+     */
+    public function get($name)
+    {
+        return off($this->data['GET'], $name);
+    }
+
+    /**
+     * @param $name
+     * @return mixed
+     */
+    public function post($name)
+    {
+        return off($this->data['POST'], $name);
     }
 
     /**

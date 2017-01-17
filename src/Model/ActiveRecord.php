@@ -59,14 +59,13 @@ class ActiveRecord extends AbstractModel
      * @param mixed $record
      * @return Record
      */
-    public final function create($record = null)
+    final public function create($record = null)
     {
         $action = __FUNCTION__;
 
         $record = new Record($this->getValues());
 
         if ($this->before($action, $record)) {
-
             $created = $this
                 ->collection($this->collection)
                 ->fields(array_keys($record->all()))
@@ -131,5 +130,4 @@ class ActiveRecord extends AbstractModel
         }
         return true;
     }
-
 }

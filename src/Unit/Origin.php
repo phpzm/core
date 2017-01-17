@@ -11,7 +11,7 @@ class Origin
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
         $properties = [];
         foreach ($this as $key => $value) {
@@ -19,5 +19,4 @@ class Origin
         }
         return json_encode($properties);
     }
-
 }

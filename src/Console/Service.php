@@ -16,5 +16,5 @@ abstract class Service
     /**
      * @param $app
      */
-    public static abstract function execute($app);
+    abstract public static function execute($app);
 }

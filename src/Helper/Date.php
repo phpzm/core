@@ -64,9 +64,7 @@ class Date extends \DateTime
         $dated = 0;
 
         if (self::isDate($date)) {
-
             do {
-
                 $peaces = explode('-', $date);
                 $day = $peaces[2] . '-' . $peaces[1];
                 $is_weekend = in_array(date('w', strtotime($date)), ['0', '6']);
@@ -74,9 +72,7 @@ class Date extends \DateTime
                 $is_dated = $days === null ? true : ($dated >= (int)$days);
 
                 if (!$is_weekend && !$is_holiday && $is_dated) {
-
                     $valid = true;
-
                 } else {
                     /*
                     echo "$date, $dated, $days";
@@ -91,7 +87,7 @@ class Date extends \DateTime
                     }
                 }
                 //echo "<hr>";
-            } while(!$valid);
+            } while (!$valid);
         }
 
         return $date;
@@ -116,5 +112,4 @@ class Date extends \DateTime
 
         return $this->format($this->format);
     }
-
 }

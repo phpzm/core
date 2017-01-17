@@ -191,5 +191,4 @@ abstract class File
     {
         return fgets($handle);
     }
-
 }

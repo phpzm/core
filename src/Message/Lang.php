@@ -79,5 +79,4 @@ abstract class Lang
         }
         return $i18n;
     }
-
 }

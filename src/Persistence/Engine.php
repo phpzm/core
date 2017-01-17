@@ -96,7 +96,7 @@ class Engine
      * @param $values
      * @return string
      */
-    public final function get($values = [])
+    final public function get($values = [])
     {
         return $this->driver()->read($this->clausules, $values);
     }
@@ -119,5 +119,4 @@ class Engine
     {
         return $this->driver()->destroy($this->clausules, $filters);
     }
-
 }

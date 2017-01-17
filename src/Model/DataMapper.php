@@ -24,7 +24,7 @@ class DataMapper extends AbstractModel
      * @param mixed $record
      * @return Record|null
      */
-    public final function create($record = null)
+    final public function create($record = null)
     {
         if (!$record) {
             return null;
@@ -36,7 +36,6 @@ class DataMapper extends AbstractModel
         $action = __FUNCTION__;
 
         if ($this->before($action, $record)) {
-
             $created = $this
                 ->collection($this->collection)
                 ->fields(array_keys($record->all()))
@@ -107,7 +106,6 @@ class DataMapper extends AbstractModel
         $action = __FUNCTION__;
 
         if ($this->before($action, $record)) {
-
             $where = [];
             $values = [];
             if (!$record->isEmpty()) {
@@ -174,5 +172,4 @@ class DataMapper extends AbstractModel
     {
         return array_values($data);
     }
-
 }

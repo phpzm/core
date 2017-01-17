@@ -51,5 +51,4 @@ interface Driver
      * @return int|null
      */
     public function destroy($clausules, array $values);
-
 }

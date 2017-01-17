@@ -42,7 +42,6 @@ class View extends Tools
         $content = $this->compile($template, $data);
 
         while ($this->layout) {
-
             $layout = $this->layout;
 
             $this->sections[$layout->section] = $content;
@@ -68,7 +67,6 @@ class View extends Tools
 
         ob_start();
         if (file_exists($filename)) {
-
             if (!is_array($data)) {
                 $data = [$data];
             }
@@ -125,5 +123,4 @@ class View extends Tools
         /** @noinspection PhpIncludeInspection */
         return include $filename;
     }
-
 }

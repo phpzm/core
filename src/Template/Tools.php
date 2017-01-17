@@ -152,5 +152,4 @@ class Tools
     {
         return env('TEST_MODE') ? '?c=' . uniqid() : '';
     }
-
 }

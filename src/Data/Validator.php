@@ -661,7 +661,7 @@ class Validator
      */
     public function isUrl($value)
     {
-        // 
+        //
         return $value;
     }
 
@@ -713,5 +713,4 @@ class Validator
         }
         return new Record($errors);
     }
-
 }

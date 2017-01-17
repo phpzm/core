@@ -2,7 +2,6 @@
 
 namespace Simples\Core\Kernel;
 
-
 /**
  * Class Container
  * @package Simples\Core\Kernel
@@ -165,15 +164,11 @@ class Container
 
         /** @var \ReflectionParameter $reflectionParameter */
         foreach ($parameters as $reflectionParameter) {
-
             $parameterClassName = isset($reflectionParameter->getClass()->name) ? $reflectionParameter->getClass()->name : '';
 
             if ($parameterClassName) {
-
                 $parametersToPass[] = self::make($parameterClassName);
-
-            } else if (isset($data[$reflectionParameter->getName()]) || count($data)) {
-
+            } elseif (isset($data[$reflectionParameter->getName()]) || count($data)) {
                 $parameter = null;
                 if ($labels && isset($data[$reflectionParameter->getName()])) {
                     $parameter = $data[$reflectionParameter->getName()];
@@ -185,9 +180,7 @@ class Container
                     reset($data);
                 }
                 $parametersToPass[] = $parameter;
-
             } else {
-
                 $parametersToPass[] = null;
             }
         }

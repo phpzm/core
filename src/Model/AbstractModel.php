@@ -77,31 +77,31 @@ abstract class AbstractModel extends Engine
      * @param mixed $record
      * @return Record
      */
-    public abstract function create($record = null);
+    abstract public function create($record = null);
 
     /**
      * @param mixed $record
      * @return Collection
      */
-    public abstract function read($record = null);
+    abstract public function read($record = null);
 
     /**
      * @param mixed $record
      * @return Record
      */
-    public abstract function update($record = null);
+    abstract public function update($record = null);
 
     /**
      * @param mixed $record
      * @return Record
      */
-    public abstract function destroy($record = null);
+    abstract public function destroy($record = null);
 
     /**
      * @param $record
      * @return mixed
      */
-    public abstract function fill($record);
+    abstract public function fill($record);
 
     /**
      * @param $action
@@ -274,5 +274,4 @@ abstract class AbstractModel extends Engine
     {
         return [];
     }
-
 }

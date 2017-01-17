@@ -73,7 +73,6 @@ abstract class Directory
         $files = [];
 
         if (self::exists($dir)) {
-
             foreach (new \DirectoryIterator($dir) as $fileInfo) {
                 if ($fileInfo->isDot()) {
                     continue;
@@ -84,5 +83,4 @@ abstract class Directory
 
         return $files;
     }
-
 }

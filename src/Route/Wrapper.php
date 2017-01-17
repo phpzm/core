@@ -61,5 +61,4 @@ abstract class Wrapper
     {
         return self::$messages;
     }
-
 }

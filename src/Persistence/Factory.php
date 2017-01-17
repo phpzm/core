@@ -19,7 +19,6 @@ class Factory
     {
         $driver = $settings['driver'];
         if (class_exists($driver)) {
-
             $connection = Transaction::recover($driver);
             if ($connection) {
                 return $connection;

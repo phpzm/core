@@ -101,7 +101,7 @@ class Response extends ResponseStream
      * @param $arguments
      * @return $this
      */
-    function __call($name, $arguments)
+    public function __call($name, $arguments)
     {
         $this->write($this->toString(off($arguments, 0, null)));
 
@@ -218,7 +218,6 @@ class Response extends ResponseStream
      */
     private function parseStatus($statusCode)
     {
-
         $status = [
             'code' => $statusCode,
             'phrase' => off(ResponseStream::HTTP_STATUS_CODE, $statusCode),
@@ -280,5 +279,4 @@ class Response extends ResponseStream
     {
         return $this->getStatusType($this->getStatusCode()) === 'error';
     }
-
 }

@@ -107,7 +107,7 @@ if (!function_exists('off')) {
 
         if (is_array($value)) {
             return isset($value[$property]) ? $value[$property] : $default;
-        } else if (is_object($value)) {
+        } elseif (is_object($value)) {
             return isset($value->$property) ? $value->$property : $default;
         }
         return $default;

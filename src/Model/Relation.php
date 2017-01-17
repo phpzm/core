@@ -35,5 +35,4 @@ class Relation
         $this->class = $class;
         $this->source = $source;
     }
-
 }

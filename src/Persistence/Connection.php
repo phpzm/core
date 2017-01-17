@@ -38,7 +38,7 @@ abstract class Connection
     /**
      * @return mixed
      */
-    protected abstract function connect();
+    abstract protected function connect();
 
     /**
      * @return array
@@ -71,5 +71,4 @@ abstract class Connection
         }
         return $this;
     }
-
 }

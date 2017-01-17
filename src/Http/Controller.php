@@ -107,12 +107,12 @@ abstract class Controller
      * @param int $code
      * @return Response
      */
-    protected abstract function answer($content = null, $meta = [], $code = 200) : Response;
+    abstract protected function answer($content = null, $meta = [], $code = 200) : Response;
 
     /**
      * @return Request
      */
-    protected final function request()
+    final protected function request()
     {
         return $this->request;
     }
@@ -120,7 +120,7 @@ abstract class Controller
     /**
      * @return Response
      */
-    protected final function response()
+    final protected function response()
     {
         return $this->response;
     }
@@ -156,7 +156,6 @@ abstract class Controller
         $code = 501;
 
         if (substr($name, 0, 6) === 'answer') {
-
             $reasonPhrase = substr($name, 6);
             foreach ($httpStatusCodes as $statusCode => $statusReasonPhrase) {
                 if ($reasonPhrase === str_replace([' ', '-'], '', $statusReasonPhrase)) {
@@ -168,5 +167,4 @@ abstract class Controller
 
         return $this->answer($content, $meta, $code);
     }
-
 }

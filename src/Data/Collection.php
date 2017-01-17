@@ -76,7 +76,7 @@ class Collection extends Origin implements Iterator
     public function valid()
     {
         $key = key($this->records);
-        $var = ($key !== NULL && $key !== FALSE);
+        $var = ($key !== null && $key !== false);
         return $var;
     }
 
@@ -98,5 +98,4 @@ class Collection extends Origin implements Iterator
 
         return $this;
     }
-
 }

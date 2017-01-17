@@ -130,7 +130,6 @@ class Router extends Engine
         $path = substr($path, -1) === '/' ? $path . '(.*)' : $path . '/(.*)';
 
         $this->on($method, $path, function ($path) use ($namespace, $options) {
-
             $fragments = explode('/', $path);
 
             $method = stringy::camelize(array_pop($fragments));
@@ -148,5 +147,4 @@ class Router extends Engine
 
         return $this;
     }
-
 }

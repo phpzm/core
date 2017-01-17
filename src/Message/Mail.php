@@ -124,7 +124,6 @@ class Mail
         $sent = false;
 
         if ($this->toAddress) {
-
             $file = $this->id . '.' . 'mail';
 
             $root = path(true, 'storage/files/mail');
@@ -182,7 +181,6 @@ class Mail
             $sent = $mailer->send();
 
             if (!$sent) {
-
                 $filename = path($root, self::STATUS_ERROR, $file);
                 $this->error = $mailer->ErrorInfo;
             }
@@ -219,7 +217,6 @@ class Mail
         $filename = path(true, 'storage', 'files', 'mail', $status, $id . '.' . 'mail');
 
         if (File::exists($filename)) {
-
             $properties = Json::decode(File::read($filename));
             foreach ($properties as $key => $value) {
                 /** @noinspection PhpVariableVariableInspection */
@@ -441,5 +438,4 @@ class Mail
     {
         $this->ccs = $ccs;
     }
-
 }

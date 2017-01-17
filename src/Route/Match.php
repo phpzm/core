@@ -161,5 +161,4 @@ class Match extends Origin
         $this->options = $options;
         return $this;
     }
-
 }

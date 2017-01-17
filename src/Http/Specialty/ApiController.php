@@ -20,6 +20,15 @@ abstract class ApiController extends Controller
     protected $repository;
 
     /**
+     * ApiController constructor.
+     * @param $repository
+     */
+    public function __construct(ApiRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    /**
      * @param null $content
      * @param array $meta
      * @param int $code

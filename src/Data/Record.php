@@ -218,7 +218,7 @@ class Record extends Origin implements \IteratorAggregate
     /**
      * @return bool|null|string
      */
-    function __toString()
+    public function __toString()
     {
         return $this->json;
     }
