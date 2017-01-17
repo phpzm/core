@@ -2,12 +2,15 @@
 
 namespace Simples\Core\Kernel;
 
+use Simples\Core\Console\HelpService;
+use Simples\Core\Console\ModelService;
 use Simples\Core\Console\RouteService;
-use Simples\Core\Persistence\Transaction;
-use Simples\Core\Route\Router;
+use Simples\Core\Console\Service;
+use Simples\Core\Helper\Text;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
-use ErrorException;
+use Simples\Core\Persistence\Transaction;
+use Simples\Core\Route\Router;
 
 /**
  * Class App
@@ -74,7 +77,7 @@ class App
     /**
      * @param bool $output
      * @return Response
-     * @throws ErrorException
+     * @throws \ErrorException
      */
     public function http($output = true)
     {
@@ -88,7 +91,7 @@ class App
 
             if ($response->isSuccess()) {
                 if (!Transaction::commit()) {
-                    throw new ErrorException('Transaction cant commit the changes');
+                    throw new \ErrorException("Transaction can't commit the changes");
                 }
             }
 
@@ -97,20 +100,48 @@ class App
             }
 
             return $response;
-        }
-        catch (\Error $throw) {
+        } catch (\Error $throw) {
             $fail = $throw;
-        }
-        catch (\ErrorException $throw) {
+        } catch (\ErrorException $throw) {
             $fail = $throw;
-        }
-        catch (\Exception $throw) {
+        } catch (\Exception $throw) {
             $fail = $throw;
         }
 
         echo 'Kernel Panic', throw_format($fail);
 
         return null;
+    }
+
+    /**
+     * @param $service
+     */
+    public function cli($service)
+    {
+        echo "@start/\n";
+        echo "Press ^C or type 'exit' at any time to quit.\n";
+
+        do {
+            switch ($service) {
+                case 'route': {
+                    RouteService::execute($this);
+                    $service = '';
+                    break;
+                }
+                case 'model': {
+                    ModelService::execute($this);
+                    $service = '';
+                    break;
+                }
+            };
+            if (!$service || $service === 'help') {
+                HelpService::execute($this);
+            }
+
+            echo "$ ";
+            $service = trim(fgets(STDIN));
+
+        } while (!in_array($service, Service::KILLERS));
     }
 
     /**
@@ -183,20 +214,6 @@ class App
             out($route);
         }
         return $route;
-    }
-
-    /**
-     * @param $service
-     */
-    public function cli($service)
-    {
-        switch ($service) {
-            case 'route': {
-                RouteService::execute($this);
-                break;
-            }
-
-        }
     }
 
 }

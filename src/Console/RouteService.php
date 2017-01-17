@@ -9,7 +9,7 @@ use Simples\Core\Kernel\App;
  * Class RouteService
  * @package Simples\Core\Console
  */
-abstract class RouteService
+abstract class RouteService extends Service
 {
     /**
      * @param $app
