@@ -1,21 +1,9 @@
 <?php
-/*
- -------------------------------------------------------------------
- | @project: api
- | @package: Simples\Core\Kernel
- | @file: Lang.php
- -------------------------------------------------------------------
- | @user: william 
- | @creation: 02/01/17 15:36
- | @copyright: fagoc.br / gennesis.io / arraysoftware.net
- | @license: MIT
- -------------------------------------------------------------------
- | @description:
- | PHP class
- |
- */
 
-namespace Simples\Core\Kernel;
+namespace Simples\Core\Message;
+
+use Simples\Core\Helper\File;
+use Simples\Core\Kernel\App;
 
 /**
  * @method static string validation($i18, array $parameters = [])
@@ -51,33 +39,45 @@ abstract class Lang
 
     /**
      * @param $scope
-     * @param $i18
+     * @param $path
      * @param array $parameters
      * @return string
      */
-    public static function lang($scope, $i18, array $parameters = [])
+    public static function lang($scope, $path, array $parameters = [])
     {
-        $string = "Lang '{$scope}.{$i18}' not found";
+        $i18n = "Lang '{$scope}.{$path}' not found";
 
         $languages = App::options('lang');
 
         $filename = path(true, "app/resources/locales/{$languages['default']}/{$scope}.php");
-        if (!file_exists($filename)) {
+        if (!File::exists($filename)) {
             $filename = path(true, "app/resources/locales/{$languages['fallback']}/{$scope}.php");
         }
 
-        if (file_exists($filename)) {
+        if (File::exists($filename)) {
 
             /** @noinspection PhpIncludeInspection */
             $phrases = include $filename;
-            if (isset($phrases[$i18])) {
-                $string = $phrases[$i18];
-                foreach ($parameters as $key => $value) {
-                    $string = str_replace('{' . $key . '}', out($value, false), $string);
-                }
+
+            $i18n = search($phrases, $path);
+            if (gettype($i18n) === TYPE_STRING) {
+                return self::replace($i18n, $parameters);
             }
         }
-
-        return $string;
+        return $i18n;
     }
+
+    /**
+     * @param $i18n
+     * @param $parameters
+     * @return mixed
+     */
+    public static function replace($i18n, $parameters)
+    {
+        foreach ($parameters as $key => $value) {
+            $i18n = str_replace('{' . $key . '}', out($value, false), $i18n);
+        }
+        return $i18n;
+    }
+
 }

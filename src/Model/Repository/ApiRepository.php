@@ -110,6 +110,26 @@ class ApiRepository
      */
     public function post($record, $log = false): Record
     {
+        if (is_array($record)) {
+            $record = new Record($record);
+        }
+        $defaults = $this->model->getDefaults('create');
+        foreach ($defaults as $field => $default) {
+            $record->set($field, $default);
+        }
+
+        $validators = $this->model->getValidators();
+        $rules = [];
+        foreach ($validators as $field => $validator) {
+            $rules[$field] = ['rule' => $validator, 'value' => $record->get($field)];
+        }
+
+        $errors = $this->getValidator()->parse($rules);
+        if (!$errors->isEmpty()) {
+            $this->setErrors($errors);
+            return new Record([]);
+        }
+
         $posting = $this->model->log($log)->create($record);
         if ($posting) {
             return $posting;

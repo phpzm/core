@@ -61,7 +61,7 @@ class Engine
      */
     public function __construct($labels = false, $contentType = null)
     {
-        $this->contentType = iif($contentType, Response::CONTENT_TYPE_PLAIN);
+        $this->contentType = of($contentType, Response::CONTENT_TYPE_PLAIN);
     }
 
     /**

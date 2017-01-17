@@ -133,7 +133,7 @@ class Record extends Origin implements \IteratorAggregate
      */
     public function all()
     {
-        return $this->public;
+        return array_map('strval', $this->public);
     }
 
     /**

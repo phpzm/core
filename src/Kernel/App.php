@@ -3,9 +3,11 @@
 namespace Simples\Core\Kernel;
 
 use Simples\Core\Console\RouteService;
+use Simples\Core\Persistence\Transaction;
 use Simples\Core\Route\Router;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
+use ErrorException;
 
 /**
  * Class App
@@ -70,52 +72,45 @@ class App
     }
 
     /**
-     * @param bool $print
-     * @return mixed
+     * @param bool $output
+     * @return Response
+     * @throws ErrorException
      */
-    public function http($print = true)
+    public function http($output = true)
     {
+        $fail = null;
+
         try {
-            $response = $this->handlerHttp();
 
-            if ($print) {
+            $http = new Http();
 
-                $headers = $response->getHeaders();
-                foreach ($headers as $name => $value) {
-                    header(implode(':', [$name, $value]), true);
+            $response = $http->handler(self::request());
+
+            if ($response->isSuccess()) {
+                if (!Transaction::commit()) {
+                    throw new ErrorException('Transaction cant commit the changes');
                 }
+            }
 
-                http_response_code($response->getStatusCode());
-
-                $contents = $response->getBody()->getContents();
-                if ($contents) {
-                    out($contents);
-                }
+            if ($output) {
+                $http->output($response);
             }
 
             return $response;
         }
-        catch (\ErrorException $error) {
-            echo  "ErrorException: '", error_message($error);
+        catch (\Error $throw) {
+            $fail = $throw;
         }
+        catch (\ErrorException $throw) {
+            $fail = $throw;
+        }
+        catch (\Exception $throw) {
+            $fail = $throw;
+        }
+
+        echo 'Kernel Panic', throw_format($fail);
+
         return null;
-    }
-
-    /**
-     * @return Response
-     */
-    public function handlerHttp()
-    {
-        // TODO: container
-        $router = new Router(self::options('labels'));
-
-        $request = self::request();
-
-        $match = self::routes($router)->match($request->getMethod(), $request->getUri());
-
-        $handler = new HandlerHttp($request, $match, self::$options['separator']);
-
-        return $handler->apply();
     }
 
     /**
@@ -132,24 +127,32 @@ class App
     }
 
     /**
-     * @param $name
+     * @param $path
      * @return object
      */
-    public static function config($name)
+    public static function config($path)
     {
+        $peaces = explode('.', $path);
+        $name = $peaces[0];
+        array_shift($peaces);
+
         if (isset(self::$CONFIGS[$name])) {
             return self::$CONFIGS[$name];
         }
 
         $config = [];
-        $filename = path(true, 'config', $name . '.php');
+        $filename = path(true, "config/{$name}.php");
         if (file_exists($filename)) {
             /** @noinspection PhpIncludeInspection */
             $config = require $filename;
         }
-        self::$CONFIGS[$name] = (object)$config;
+        self::$CONFIGS[$path] = (object)$config;
 
-        return self::$CONFIGS[$name];
+        if (!count($peaces)) {
+            return self::$CONFIGS[$path];
+        }
+
+        return search($config, $peaces);
     }
 
     /**

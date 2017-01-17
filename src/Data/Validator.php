@@ -1,7 +1,9 @@
 <?php
 
 namespace Simples\Core\Data;
-use Simples\Core\Kernel\Lang;
+
+use Simples\Core\Kernel\Container;
+use Simples\Core\Model\AbstractModel;
 use Stringy\Stringy;
 
 /**
@@ -13,187 +15,187 @@ class Validator
     /**
      * @var string
      */
-    const IS_ACCEPTED = 'isAccepted';
+    const ACCEPTED = 'accepted';
     /**
      * @var string
      */
-    const IS_ACTIVE = 'isActive';
+    const ACTIVE = 'active';
     /**
      * @var string
      */
-    const IS_AFTER = 'isAfter';
+    const AFTER = 'after';
     /**
      * @var string
      */
-    const IS_ALPHA = 'isAlpha';
+    const ALPHA = 'alpha';
     /**
      * @var string
      */
-    const IS_ALPHA_DASH = 'isAlphaDash';
+    const ALPHA_DASH = 'alpha-dash';
     /**
      * @var string
      */
-    const IS_ALPHA_NUMERIC = 'isAlphaNumeric';
+    const ALPHA_NUMERIC = 'alpha-numeric';
     /**
      * @var string
      */
-    const IS_ARRAY = 'isArray';
+    const ARRAY = 'array';
     /**
      * @var string
      */
-    const IS_BEFORE = 'isBefore';
+    const BEFORE = 'before';
     /**
      * @var string
      */
-    const IS_BETWEEN = 'isBetween';
+    const BETWEEN = 'between';
     /**
      * @var string
      */
-    const IS_BOOLEAN = 'isBoolean';
+    const BOOLEAN = 'boolean';
     /**
      * @var string
      */
-    const IS_CONFIRMED = 'isConfirmed';
+    const CONFIRMED = 'confirmed';
     /**
      * @var string
      */
-    const IS_DATE = 'isDate';
+    const DATE = 'date';
     /**
      * @var string
      */
-    const IS_DATE_FORMAT = 'isDateFormat';
+    const DATE_FORMAT = 'date-format';
     /**
      * @var string
      */
-    const IS_DIFFERENT = 'isDifferent';
+    const DIFFERENT = 'different';
     /**
      * @var string
      */
-    const IS_DIGITS = 'isDigits';
+    const DIGITS = 'digits';
     /**
      * @var string
      */
-    const IS_DIGITS_BETWEEN = 'isDigitsBetween';
+    const DIGITS_BETWEEN = 'digits-between';
     /**
      * @var string
      */
-    const IS_DIMENSIONS = 'isDimensions';
+    const DIMENSIONS = 'dimensions';
     /**
      * @var string
      */
-    const IS_DISTINCT = 'isDistinct';
+    const DISTINCT = 'distinct';
     /**
      * @var string
      */
-    const IS_EMAIL = 'isEmail';
+    const EMAIL = 'email';
     /**
      * @var string
      */
-    const IS_EXISTING = 'isExisting';
+    const EXISTING = 'existing';
     /**
      * @var string
      */
-    const IS_FILE = 'isFile';
+    const FILE = 'file';
     /**
      * @var string
      */
-    const IS_FILLED = 'isFilled';
+    const FILLED = 'filled';
     /**
      * @var string
      */
-    const IS_IMAGE = 'isImage';
+    const IMAGE = 'image';
     /**
      * @var string
      */
-    const IS_IN = 'isIn';
+    const IN = 'in';
     /**
      * @var string
      */
-    const IS_IN_ARRAY = 'isInArray';
+    const IN_ARRAY = 'in-array';
     /**
      * @var string
      */
-    const IS_FIELD = 'isField';
+    const FIELD = 'field';
     /**
      * @var string
      */
-    const IS_INTEGER = 'isInteger';
+    const INTEGER = 'integer';
     /**
      * @var string
      */
-    const IS_IP = 'isIp';
+    const IP = 'ip';
     /**
      * @var string
      */
-    const IS_JSON = 'isJson';
+    const JSON = 'json';
     /**
      * @var string
      */
-    const IS_MAX = 'isMax';
+    const MAX = 'max';
     /**
      * @var string
      */
-    const IS_MIMETYPES = 'isMimetypes';
+    const MIMETYPES = 'mimetypes';
     /**
      * @var string
      */
-    const IS_MIMES = 'isMimes';
+    const MIMES = 'mimes';
     /**
      * @var string
      */
-    const IS_MIN = 'isMin';
+    const MIN = 'min';
     /**
      * @var string
      */
-    const IS_NULLABLE = 'isNullable';
+    const NULLABLE = 'nullable';
     /**
      * @var string
      */
-    const IS_NOT = 'isNot';
+    const NOT = 'not';
     /**
      * @var string
      */
-    const IS_NUMERIC = 'isNumeric';
+    const NUMERIC = 'numeric';
     /**
      * @var string
      */
-    const IS_PRESENT = 'isPresent';
+    const PRESENT = 'present';
     /**
      * @var string
      */
-    const IS_REGEX = 'isRegex';
+    const REGEX = 'regex';
     /**
      * @var string
      */
-    const IS_REQUIRED = 'isRequired';
+    const REQUIRED = 'required';
     /**
      * @var string
      */
-    const IS_REQUIRED_IF = 'isRequiredIf';
+    const REQUIRED_IF = 'required-if';
     /**
      * @var string
      */
-    const IS_SAME = 'isSame';
+    const SAME = 'same';
     /**
      * @var string
      */
-    const IS_SIZE = 'isSize';
+    const SIZE = 'size';
     /**
      * @var string
      */
-    const IS_STRING = 'isString';
+    const STRING = 'string';
     /**
      * @var string
      */
-    const IS_TIMEZONE = 'isTimezone';
+    const TIMEZONE = 'timezone';
     /**
      * @var string
      */
-    const IS_UNIQUE = 'isUnique';
+    const UNIQUE = 'unique';
     /**
      * @var string
      */
-    const IS_URL = 'isUrl';
+    const URL = 'url';
 
     /**
      * @param $value
@@ -381,8 +383,7 @@ class Validator
      */
     public function isEmail($value)
     {
-        //
-        return $value;
+        return filter_var($value, FILTER_VALIDATE_EMAIL);
     }
 
     /**
@@ -581,7 +582,7 @@ class Validator
      */
     public function isRequired($value)
     {
-        return empty($value);
+        return !empty($value);
     }
 
     /**
@@ -636,12 +637,22 @@ class Validator
 
     /**
      * @param $value
+     * @param $options
      * @return mixed
      */
-    public function isUnique($value)
+    public function isUnique($value, $options)
     {
-        // :[field(...)]
-        return $value;
+        $peaces = explode(',', $options);
+        if (count($peaces) > 1) {
+            $class = $peaces[0];
+            $field = $peaces[1];
+            if (class_exists($class)) {
+                $instance = Container::getInstance()->make($class);
+                /** @var AbstractModel $instance */
+                return $instance->read([$field => $value])->size() === 0;
+            }
+        }
+        return false;
     }
 
     /**
@@ -657,30 +668,47 @@ class Validator
     /**
      * @param $rule
      * @param $value
+     * @param $options
      * @return bool
      */
-    public function apply($rule, $value)
+    public function apply($rule, $value, $options)
     {
         $method = (string)Stringy::create("is-{$rule}")->camelize();
         if (method_exists($this, $method)) {
-            return $this->$method($value);
+            return $this->$method($value, $options);
         }
         return false;
     }
 
     /**
-     * @param array $rules
+     * @param array $validationRules
      * @return Record
+     * @throws \ErrorException
      */
-    public function parse(array $rules): Record
+    public function parse(array $validationRules): Record
     {
         $errors = [];
-        foreach ($rules as $attribute => $options) {
-            $keys = array_keys($options);
-            foreach ($keys as $rule) {
-                if ($this->apply($rule, $options[$rule])) {
-                    $errors[$attribute] = $rule;
+        foreach ($validationRules as $attribute => $options) {
+            $hasProblem = [];
+            $rules = off($options, 'rule');
+            if (!is_array($rules)) {
+                $rules = [$rules];
+            }
+            foreach ($rules as $validators) {
+                if (!is_array($validators)) {
+                    $validators = [$validators];
                 }
+                foreach ($validators as $rule) {
+                    $peaces = explode(':', $rule);
+                    $name = $peaces[0];
+                    $is = $this->apply($name, off($options, 'value'), off($peaces, 1));
+                    if (!$is) {
+                        $hasProblem[] = $name;
+                    }
+                }
+            }
+            if (count($hasProblem)) {
+                $errors[$attribute] = implode(',', $hasProblem);
             }
         }
         return new Record($errors);

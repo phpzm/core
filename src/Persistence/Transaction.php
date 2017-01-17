@@ -15,13 +15,25 @@ class Transaction
 
     /**
      * @param $driver
+     * @return Driver|null
+     */
+    public static function recover($driver)
+    {
+        return isset(self::$connections[$driver]) ? self::$connections[$driver] : null;
+    }
+
+    /**
+     * @param $driver
      * @param Driver $connection
+     * @return mixed
      */
     public static function register($driver, Driver $connection)
     {
         $connection->start();
 
         self::$connections[$driver] = $connection;
+
+        return self::$connections[$driver];
     }
 
     /**

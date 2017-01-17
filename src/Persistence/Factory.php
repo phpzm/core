@@ -19,10 +19,12 @@ class Factory
     {
         $driver = $settings['driver'];
         if (class_exists($driver)) {
-            $connection = new $driver($settings, $hashKey, $deletedKey, $timestampsKeys);
-            Transaction::register($driver, $connection);
 
-            return $connection;
+            $connection = Transaction::recover($driver);
+            if ($connection) {
+                return $connection;
+            }
+            return Transaction::register($driver, new $driver($settings, $hashKey, $deletedKey, $timestampsKeys));
         }
         return null;
     }

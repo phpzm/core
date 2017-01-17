@@ -211,22 +211,21 @@ class Request implements RequestInterface
     public function all()
     {
         return array_map(function($input) {
-            return $input['value'];
+            return new Input($input['value']);
         }, $this->inputs);
     }
 
     /**
      * @param $name
-     * @param null $default
-     * @return mixed
+     * @return null|Input
      */
-    public function input($name, $default = null)
+    public function input($name)
     {
         $input = off($this->inputs, $name);
         if ($input) {
-            return $input['value'];
+            return new Input($input['value']);
         }
-        return $default;
+        return null;
     }
 
     /**

@@ -171,15 +171,15 @@ class Response extends ResponseStream
 
     /**
      * https://labs.omniti.com/labs/jsend
-     * @param $content
+     * @param $data
      * @param int $code
      * @param array $meta
      * @return Response
      */
-    public function api($content, $code = null, $meta = [])
+    public function api($data, $code = null, $meta = [])
     {
         $json = [
-            'data' => $content,
+            'data' => $data,
             'meta' => $meta,
             'status' => $this->parseStatus($code ?? $this->getStatusCode()),
         ];
@@ -218,6 +218,22 @@ class Response extends ResponseStream
      */
     private function parseStatus($statusCode)
     {
+
+        $status = [
+            'code' => $statusCode,
+            'phrase' => off(ResponseStream::HTTP_STATUS_CODE, $statusCode),
+            'type' => $this->getStatusType($statusCode)
+        ];
+
+        return $status;
+    }
+
+    /**
+     * @param $statusCode
+     * @return string
+     */
+    public function getStatusType($statusCode)
+    {
         $statusType = 'unknown';
         $statusCode = (string)$statusCode;
         $startsWith = $statusCode{0};
@@ -238,13 +254,31 @@ class Response extends ResponseStream
                 $statusType = 'error';
                 break;
         }
-        $status = [
-            'code' => $statusCode,
-            'phrase' => off(ResponseStream::HTTP_STATUS_CODE, $statusCode),
-            'type' => $statusType
-        ];
+        return $statusType;
+    }
 
-        return $status;
+    /**
+     * @return bool
+     */
+    public function isSuccess()
+    {
+        return $this->getStatusType($this->getStatusCode()) === 'success';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFail()
+    {
+        return $this->getStatusType($this->getStatusCode()) === 'fail';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isError()
+    {
+        return $this->getStatusType($this->getStatusCode()) === 'error';
     }
 
 }

@@ -1,19 +1,4 @@
 <?php
-/*
- -------------------------------------------------------------------
- | @project: trabalho-final
- | @package: Simples\Core\View
- | @file: ${FILE_NAME}
- -------------------------------------------------------------------
- | @user: william 
- | @creation: 28/10/16 01:42
- | @copyright: fagoc.br / gennesis.io / arraysoftware.net
- | @license: MIT
- -------------------------------------------------------------------
- | @description:
- | PHP class
- |
- */
 
 namespace Simples\Core\Template;
 

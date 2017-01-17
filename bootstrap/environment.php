@@ -37,7 +37,8 @@ if (!function_exists('error_handler')) {
 
     set_error_handler("error_handler");
 
-    set_exception_handler(function (Throwable $exception) {
+    set_exception_handler(function ($exception) {
+        /** @var Throwable $exception */
         error_handler($exception->getCode(), $exception->getMessage(), $exception->getFile(), $exception->getLine());
     });
 }

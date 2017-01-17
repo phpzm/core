@@ -2,7 +2,6 @@
 
 namespace Simples\Core\Kernel;
 
-use Exception;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Route\Match;
@@ -13,7 +12,7 @@ use Throwable;
  * Class HandlerHttp
  * @package Simples\Core\Kernel
  */
-class HandlerHttp extends Response
+class HttpHandler extends Response
 {
     /**
      * @var Request
@@ -33,17 +32,17 @@ class HandlerHttp extends Response
     /**
      * @var string
      */
-    private $separator;
+    private $__separator;
 
     /**
      * @var string
      */
-    private $headerOrigin = 'Origin';
+    private $__headerOrigin = 'Origin';
 
     /**
      * @var string
      */
-    private $headerAccessControlRequestHeaders = 'Access-Control-Request-Headers';
+    private $__headerAccessControlRequestHeaders = 'Access-Control-Request-Headers';
 
     /**
      * HandlerHttp constructor.
@@ -58,7 +57,7 @@ class HandlerHttp extends Response
         $this->__request = $request;
         $this->__match = $match;
         $this->__container = $container = Container::getInstance();
-        $this->separator = $separator;
+        $this->__separator = $separator;
     }
 
     /**
@@ -125,7 +124,7 @@ class HandlerHttp extends Response
     {
         $response = $this->resolve();
         if ($this->isCors()) {
-            $response->cors($this->request()->getHeader($this->headerOrigin));
+            $response->cors($this->request()->getHeader($this->__headerOrigin));
         }
 
         return $response;
@@ -140,8 +139,8 @@ class HandlerHttp extends Response
 
             return
                 $this
-                    ->cors($this->request()->getHeader($this->headerOrigin))
-                    ->preFlight($this->request()->getHeader($this->headerAccessControlRequestHeaders));
+                    ->cors($this->request()->getHeader($this->__headerOrigin))
+                    ->preFlight($this->request()->getHeader($this->__headerAccessControlRequestHeaders));
         }
 
         /** @var mixed $callback */
@@ -179,7 +178,7 @@ class HandlerHttp extends Response
                 break;
             }
             case TYPE_STRING: {
-                $peaces = explode($this->separator, $callback);
+                $peaces = explode($this->__separator, $callback);
                 $class = $peaces[0];
                 $method = substr($this->match()->getUri(), 1, -1);
                 if (isset($peaces[1])) {
@@ -230,7 +229,13 @@ class HandlerHttp extends Response
         try {
             $result = call_user_func_array($callback, $parameters);
         }
-        catch (Exception $error) {
+        catch (\Error $error) {
+            $result = $error;
+        }
+        catch (\ErrorException $error) {
+            $result = $error;
+        }
+        catch (\Exception $error) {
             $result = $error;
         }
 
@@ -274,9 +279,10 @@ class HandlerHttp extends Response
         if ($content instanceof Throwable) {
             $status = 500;
             if (env('TEST_MODE')) {
+                $meta['fail'] = get_class($content);
                 $meta['trace'] = $content->getTrace();
             }
-            $content = error_message($content);
+            $content = throw_format($content);
         }
 
         $method = (string)$this->getContentType();

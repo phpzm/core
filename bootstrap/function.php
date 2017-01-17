@@ -51,7 +51,7 @@ if (!function_exists('out')) {
      */
     function out($value, $print = true, $type = null)
     {
-        $type = iif($type, gettype($value));
+        $type = of($type, gettype($value));
         switch ($type) {
             case TYPE_BOOLEAN:
                 $value = $value ? 'true' : 'false';
@@ -79,13 +79,13 @@ if (!function_exists('out')) {
     }
 }
 
-if (!function_exists('iif')) {
+if (!function_exists('of')) {
     /**
      * @param $value
      * @param $default
      * @return mixed
      */
-    function iif($value, $default = false)
+    function of($value, $default = false)
     {
         return is_null($value) ? $default : $value;
     }
@@ -202,13 +202,34 @@ if (!function_exists('is_iterator')) {
     }
 }
 
-if (!function_exists('error_message')) {
+if (!function_exists('throw_format')) {
     /**
      * @param Throwable $throw
      * @return string
      */
-    function error_message (Throwable $throw)
+    function throw_format(Throwable $throw)
     {
         return "[{$throw->getMessage()}] ON [{$throw->getFile()}] AT [{$throw->getLine()}]";
+    }
+}
+
+if (!function_exists('search')) {
+    /**
+     * @param $context
+     * @param $path
+     * @return mixed|null
+     */
+    function search($context, $path)
+    {
+        if (!is_array($path)) {
+            $path = explode('.', $path);
+        }
+        foreach ($path as $piece) {
+            if (!is_array($context) || !array_key_exists($piece, $context)) {
+                return null;
+            }
+            $context = $context[$piece];
+        }
+        return $context;
     }
 }

@@ -68,7 +68,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
     /**
      * @param $clausules
      * @param array $values
-     * @return null|string
+     * @return string
+     * @throws \ErrorException
      */
     public final function create($clausules, array $values)
     {
@@ -79,8 +80,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
         if ($statement && $statement->execute(array_values($values))) {
             return $this->connect()->lastInsertId();
         }
-
-        return null;
+        throw new \ErrorException(implode(', ', $statement->errorInfo()));
     }
 
     /**
@@ -109,7 +109,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
     /**
      * @param $clausules
      * @param array $values
-     * @return array|null
+     * @return array
+     * @throws \ErrorException
      */
     public final function read($clausules, array $values = [])
     {
@@ -120,7 +121,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
         if ($statement && $statement->execute(array_values($values))) {
             return $statement->fetchAll(PDO::FETCH_ASSOC);
         }
-        return null;
+        throw new \ErrorException(implode(', ', $statement->errorInfo()));
     }
 
     /**
@@ -174,13 +175,19 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param $values
      * @param $filters
      * @return int
+     * @throws \ErrorException
      */
     public final function update($clausules, $values, $filters)
     {
         $sql = $this->getUpdate($clausules);
         $this->addLog($sql, $values, off($clausules, 'log'));
 
-        return $this->execute($sql, array_merge($values, $filters));
+        $statement = $this->statement($sql);
+
+        if ($statement && $statement->execute(array_merge(array_values($values), array_values($filters)))) {
+            return $statement->rowCount();
+        }
+        throw new \ErrorException(implode(', ', $statement->errorInfo()));
     }
 
     /**
@@ -229,13 +236,20 @@ abstract class SQLDriver extends SQLConnection implements Driver
     /**
      * @param $clausules
      * @param array $values
-     * @return int|null
+     * @return int
+     * @throws \ErrorException
      */
     public final function destroy($clausules, array $values)
     {
         $sql = $this->getDelete($clausules);
         $this->addLog($sql, $values, off($clausules, 'log'));
-        return $this->execute($sql, $values);
+
+        $statement = $this->statement($sql);
+
+        if ($statement && $statement->execute(array_values($values))) {
+            return $statement->rowCount();
+        }
+        throw new \ErrorException(implode(', ', $statement->errorInfo()));
     }
 
     /**

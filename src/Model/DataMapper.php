@@ -22,7 +22,7 @@ class DataMapper extends AbstractModel
 
     /**
      * @param mixed $record
-     * @return Record
+     * @return Record|null
      */
     public final function create($record = null)
     {
@@ -38,7 +38,6 @@ class DataMapper extends AbstractModel
         if ($this->before($action, $record)) {
 
             $created = $this
-                ->log($this->log)
                 ->collection($this->collection)
                 ->fields(array_keys($record->all()))
                 ->add(array_values($record->all()));
@@ -75,7 +74,6 @@ class DataMapper extends AbstractModel
         }
 
         $array = $this
-            ->log($this->log)
             ->collection($this->collection)
             ->fields($this->fieldsToRead())
             ->where($where)
@@ -86,7 +84,7 @@ class DataMapper extends AbstractModel
 
     /**
      * @param mixed $record
-     * @return Record
+     * @return Record|null
      */
     public function update($record = null)
     {
@@ -96,7 +94,7 @@ class DataMapper extends AbstractModel
 
     /**
      * @param mixed $record
-     * @return Record
+     * @return Record|null
      */
     public function destroy($record = null)
     {
@@ -118,7 +116,6 @@ class DataMapper extends AbstractModel
             }
 
             $removed = $this
-                ->log($this->log)
                 ->collection($this->collection)
                 ->where($where)
                 ->remove($values);
