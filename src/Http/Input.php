@@ -2,6 +2,8 @@
 
 namespace Simples\Core\Http;
 
+use Simples\Core\Route\Wrapper;
+
 class Input
 {
     /**
@@ -32,7 +34,7 @@ class Input
     /**
      * @return mixed
      */
-    public function text()
+    public function filterString()
     {
         if (is_scalar($this->value)) {
             return filter_var($this->value, FILTER_SANITIZE_STRING);
@@ -40,6 +42,16 @@ class Input
         if (gettype($this->value) === TYPE_ARRAY) {
             return filter_var_array($this->value, FILTER_SANITIZE_STRING);
         }
+        return null;
+    }
+
+    /**
+     * @param $type
+     * @return mixed
+     */
+    public function filter($type)
+    {
+        return $this->value;
     }
 
     /**
@@ -47,6 +59,6 @@ class Input
      */
     public function __toString()
     {
-        return $this->text();
+        return $this->filterString();
     }
 }

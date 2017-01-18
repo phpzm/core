@@ -19,7 +19,7 @@ class Http
     public function handler(Request $request): Response
     {
         // TODO: container
-        $router = new Router(App::options('labels'));
+        $router = new Router(App::options('separator'), App::options('labels'), App::options('content-type'));
 
         $match = App::routes($router)->match($request->getMethod(), $request->getUri());
 

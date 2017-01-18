@@ -41,15 +41,12 @@ class Engine
     /**
      * Engine constructor.
      * @param $id
-     * @param string $hashKey
-     * @param string $deletedKey
-     * @param array $timestampsKeys
      */
-    public function __construct($id, $hashKey = '', $deletedKey = '', array $timestampsKeys = [])
+    public function __construct($id)
     {
         $this->settings = off(App::config('database'), $id);
         if ($this->settings) {
-            $this->driver = Factory::create($this->settings, $hashKey, $deletedKey, $timestampsKeys);
+            $this->driver = Factory::create($this->settings);
         }
     }
 

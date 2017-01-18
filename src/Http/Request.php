@@ -61,17 +61,54 @@ class Request implements RequestInterface
 
 
     /**
-     * TODO: do  this beautiful
      * @return $this
      */
     public function fromServer()
     {
-        $server = $_SERVER;
+        $this->getMethodFromServer();
 
-        $this->method = isset($server['REQUEST_METHOD']) ? $server['REQUEST_METHOD'] : $this->method;
+        $this->getHeadersFromServer();
 
-        $self = isset($server['PHP_SELF']) ? str_replace('index.php/', '', $server['PHP_SELF']) : '';
-        $uri = isset($server['REQUEST_URI']) ? explode('?', $server['REQUEST_URI'])[0] : '';
+        $this->getUrlFromServer();
+
+        $this->getDataFromServer();
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    private function getMethodFromServer()
+    {
+        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+        $method = isset($_GET["_method"]) ? $_GET["_method"] : $method;
+        $method = isset($_POST["_method"]) ? $_POST["_method"] : $method;
+        $this->method = strtolower($method);
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    private function getHeadersFromServer()
+    {
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $this->headers[headerify(substr($name, 5))] = $value;
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    private function getUrlFromServer()
+    {
+        $self = isset($_SERVER['PHP_SELF']) ? str_replace('index.php/', '', $_SERVER['PHP_SELF']) : '';
+        $uri = isset($_SERVER['REQUEST_URI']) ? explode('?', $_SERVER['REQUEST_URI'])[0] : '';
         $start = '';
 
         if ($self !== $uri) {
@@ -82,35 +119,29 @@ class Request implements RequestInterface
             $search = '/' . preg_quote($start, '/') . '/';
             $uri = preg_replace($search, '', $uri, 1);
         }
-        $this->url = isset($server['HTTP_HOST']) ? $server['HTTP_HOST'] . $start : $this->url;
-        $this->uri = $uri;
+        $this->uri = substr($uri, -1) !== '/' ? $uri . '/' : $uri;
 
-        foreach (['uri', 'method', 'url'] as $item) {
-            /** @noinspection PhpVariableVariableInspection */
-            $this->$item = isset($_GET["_{$item}"]) ? $_GET["_{$item}"] : $this->$item;
-            /** @noinspection PhpVariableVariableInspection */
-            $this->$item = isset($_POST["_{$item}"]) ? $_POST["_{$item}"] : $this->$item;
-        }
+        $this->url = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] . $start : $this->url;
 
-        $this->uri = substr($this->uri, -1) !== '/' ? $this->uri . '/' : $this->uri ;
-        $this->method = strtolower($this->method);
+        return $this;
+    }
 
+    /**
+     * @return $this
+     */
+    private function getDataFromServer()
+    {
         $_PAYLOAD = (array) json_decode(file_get_contents("php://input"));
         if (!$_PAYLOAD) {
             $_PAYLOAD = [];
         }
+
         $this->set('GET', $_GET);
         $this->set('POST', array_merge($_POST, $_PAYLOAD));
 
         if ($this->strict) {
             $_GET = [];
             $_POST = [];
-        }
-
-        foreach ($server as $name => $value) {
-            if (substr($name, 0, 5) == 'HTTP_') {
-                $this->headers[headerify(substr($name, 5))] = $value;
-            }
         }
 
         return $this;
@@ -122,11 +153,10 @@ class Request implements RequestInterface
      */
     private function set($source, $data)
     {
-        $this->data[$source] = $data;
-
-        if (isset($this->data[$source]['_method'])) {
-            unset($this->data[$source]['_method']);
+        if (isset($data['_method'])) {
+            unset($data['_method']);
         }
+        $this->data[$source] = $data;
     }
 
     /**
@@ -284,7 +314,7 @@ class Request implements RequestInterface
      * empty array.
      *
      * @param string $name Case-insensitive header field name.
-     * @return string[] An array of string values as provided for the given
+     * @return string An array of string values as provided for the given
      *    header. If the header does not appear in the message, this method MUST
      *    return an empty array.
      */

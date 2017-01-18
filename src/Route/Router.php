@@ -2,9 +2,6 @@
 
 namespace Simples\Core\Route;
 
-use Simples\Core\Kernel\App;
-use \RecursiveIteratorIterator;
-use \RecursiveDirectoryIterator;
 use Stringy\StaticStringy as stringy;
 
 /**
@@ -19,6 +16,24 @@ use Stringy\StaticStringy as stringy;
  */
 class Router extends Engine
 {
+    /**
+     * @var string
+     */
+    private $separator;
+
+    /**
+     * Router constructor.
+     * @param $separator
+     * @param $labels
+     * @param $contentType
+     */
+    public function __construct($separator, $labels = false, $contentType = null)
+    {
+        parent::__construct($labels, $contentType);
+
+        $this->separator = $separator;
+    }
+
     /**
      * TODO: exceptions to error input parameters
      * @param $method
@@ -57,8 +72,8 @@ class Router extends Engine
                 break;
             }
         }
-        $start = (substr($start, 0, 1) === '/' ?  $start : '/' . $start);
-        $start = (substr($start, -1) === '/' ?  substr($start, 0, -1) : $start);
+        $start = (substr($start, 0, 1) === '/' ? $start : '/' . $start);
+        $start = (substr($start, -1) === '/' ? substr($start, 0, -1) : $start);
 
         $options['group'] = ['start' => $this->pattern($start)['pattern'] . '/', 'type' => $type];
 
@@ -112,7 +127,30 @@ class Router extends Engine
         ];
         foreach ($resource as $item) {
             $item = (object)$item;
-            $this->on($item->method, $uri . '/' . $item->uri, $class . '@' . $item->callable, $options);
+            $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$this->separator}{$item->callable}", $options);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param $uri
+     * @param $class
+     * @param array $options
+     * @return $this
+     */
+    public function api($uri, $class, $options = [])
+    {
+        $resource = [
+            ['method' => 'GET', 'uri' => '', 'callable' => 'get'],
+            ['method' => 'POST', 'uri' => '', 'callable' => 'post'],
+            ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put'],
+            ['method' => 'PATCH', 'uri' => ':id', 'callable' => 'patch'],
+            ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete'],
+        ];
+        foreach ($resource as $item) {
+            $item = (object)$item;
+            $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$this->separator}{$item->callable}", $options);
         }
 
         return $this;

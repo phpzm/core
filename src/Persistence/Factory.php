@@ -10,12 +10,9 @@ class Factory
 {
     /**
      * @param $settings
-     * @param string $hashKey
-     * @param string $deletedKey
-     * @param array $timestampsKeys
-     * @return null
+     * @return Driver
      */
-    public static function create($settings, $hashKey = '', $deletedKey = '', array $timestampsKeys = [])
+    public static function create($settings)
     {
         $driver = $settings['driver'];
         if (class_exists($driver)) {
@@ -23,7 +20,7 @@ class Factory
             if ($connection) {
                 return $connection;
             }
-            return Transaction::register($driver, new $driver($settings, $hashKey, $deletedKey, $timestampsKeys));
+            return Transaction::register($driver, new $driver($settings));
         }
         return null;
     }

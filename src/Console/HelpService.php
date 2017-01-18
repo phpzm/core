@@ -2,6 +2,8 @@
 
 namespace Simples\Core\Console;
 
+use Simples\Core\Kernel\App;
+
 /**
  * Class HelpService
  * @package Simples\Core\Console
@@ -9,9 +11,9 @@ namespace Simples\Core\Console;
 abstract class HelpService extends Service
 {
     /**
-     * @param $app
+     * @param App $app
      */
-    public static function execute($app)
+    public static function execute(App $app)
     {
         echo " # HELP\n";
         echo " Choose one option:\n";

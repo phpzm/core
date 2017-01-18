@@ -50,6 +50,7 @@ class App
                 'default' => 'en', 'fallback' => 'en'
             ],
             'labels' => true,
+            'content-type' => Response::CONTENT_TYPE_HTML,
             'separator' => '@',
             'strict' => false
         ];
@@ -61,7 +62,7 @@ class App
     /**
      * @param null $key
      * @param null $value
-     * @return array
+     * @return mixed
      */
     public static function options($key = null, $value = null)
     {

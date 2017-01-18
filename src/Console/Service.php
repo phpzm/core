@@ -2,6 +2,8 @@
 
 namespace Simples\Core\Console;
 
+use Simples\Core\Kernel\App;
+
 /**
  * Class Service
  * @package Simples\Core\Console
@@ -14,7 +16,7 @@ abstract class Service
     const KILLERS = ['exit', 'q', 'quit', 'bye'];
 
     /**
-     * @param $app
+     * @param App $app
      */
-    abstract public static function execute($app);
+    abstract public static function execute(App $app);
 }

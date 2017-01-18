@@ -56,8 +56,8 @@ class Engine
 
     /**
      * Engine constructor.
-     * @param bool $labels
-     * @param null $contentType
+     * @param $labels
+     * @param $contentType
      */
     public function __construct($labels = false, $contentType = null)
     {

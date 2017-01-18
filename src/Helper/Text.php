@@ -22,4 +22,17 @@ abstract class Text
         }
         return str_replace($search, $replace, $string);
     }
+
+    /**
+     * @param $input
+     * @param $pad_length
+     * @param null $pad_string
+     * @param null $pad_type
+     * @return string
+     */
+    public static function pad($input, $pad_length, $pad_string = null, $pad_type = null)
+    {
+        return str_pad($input, $pad_length, $pad_string, $pad_type);
+    }
+
 }

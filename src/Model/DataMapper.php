@@ -4,7 +4,8 @@ namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
-use Simples\Core\Route\Wrapper;
+use Simples\Core\Helper\Date;
+use Simples\Core\Security\Auth;
 
 /**
  * Class DataMapper
@@ -13,18 +14,10 @@ use Simples\Core\Route\Wrapper;
 class DataMapper extends AbstractModel
 {
     /**
-     * ActiveRecord constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct($this->connection, $this->hashKey, $this->deletedKey, $this->timestampsKeys);
-    }
-
-    /**
      * @param mixed $record
      * @return Record|null
      */
-    final public function create($record = null)
+    public final function create($record = null)
     {
         if (!$record) {
             return null;
@@ -36,10 +29,29 @@ class DataMapper extends AbstractModel
         $action = __FUNCTION__;
 
         if ($this->before($action, $record)) {
+            if (!$record->get($this->hashKey)) {
+                $record->set($this->hashKey, uniqid());
+            }
+
+            $fields = [];
+            $values = [];
+            foreach ($record->all() as $field => $value) {
+                if (!is_null($value)) {
+                    $fields[] = $field;
+                    $values[] = $value;
+                }
+            }
+            foreach ($this->timestampsKeys as $event) {
+                foreach ($event as $type => $timestampsKey) {
+                    $fields[] = $timestampsKey;
+                    $values[] = $this->getTimestampValue($type);
+                }
+            }
+
             $created = $this
                 ->collection($this->collection)
-                ->fields(array_keys($record->all()))
-                ->add(array_values($record->all()));
+                ->fields($fields)
+                ->add($values);
 
             if ($created) {
                 $primaryKey = is_array($this->primaryKey) ? $this->primaryKey[0] : $this->primaryKey;
@@ -134,13 +146,7 @@ class DataMapper extends AbstractModel
      */
     public function fill($record)
     {
-        if (!is_iterator($record)) {
-            return false;
-        }
-        foreach ($record as $field => $value) {
-            $this->$field = $value;
-        }
-        return $record;
+        return false;
     }
 
     /**
@@ -171,5 +177,22 @@ class DataMapper extends AbstractModel
     protected function parseFilterValues($data)
     {
         return array_values($data);
+    }
+
+    /**
+     * @param $type
+     * @return null|string
+     */
+    protected function getTimestampValue($type)
+    {
+        switch ($type) {
+            case 'at':
+                return Date::create()->current();
+                break;
+            case 'by':
+                return Auth::getEmbedValue();
+                break;
+        }
+        return null;
     }
 }

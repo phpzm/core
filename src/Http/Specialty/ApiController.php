@@ -4,9 +4,13 @@ namespace Simples\Core\Http\Specialty;
 
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Collection;
+use Simples\Core\Data\Validator;
+use Simples\Core\Message\Lang;
+use Simples\Core\Model\Action;
 use Simples\Core\Model\Repository\ApiRepository;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Response;
+use Simples\Core\Route\Wrapper;
 
 /**
  * Class ApiController
@@ -23,7 +27,7 @@ abstract class ApiController extends Controller
      * ApiController constructor.
      * @param $repository
      */
-    public function __construct(ApiRepository $repository)
+    public function __construct($repository)
     {
         $this->repository = $repository;
     }
@@ -51,12 +55,32 @@ abstract class ApiController extends Controller
     }
 
     /**
-     * @param Record $record
-     * @return Record
+     * @return Response
+     * @throws \Exception
      */
-    public function post(Record $record)
+    public function post()
     {
-        return $record;
+        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+
+        $fields = $this->repository->getFields(Action::CREATE);
+
+        $data = [];
+        foreach ($fields as $name => $field) {
+            $data[$name] = $this->input($name, $field['type']);
+        }
+
+        $posted = $this->repository->post(new Record($data));
+
+        $errors = $this->repository->getErrors()->all();
+        if (count($errors)) {
+            return $this->answerBadRequest('', $errors);
+        }
+
+        if ($posted->isEmpty()) {
+            throw new \Exception(Lang::auth('error', ['action' => implode('->', [__CLASS__, __METHOD__])]));
+        }
+
+        return $this->answerOK($posted->all());
     }
 
     /**

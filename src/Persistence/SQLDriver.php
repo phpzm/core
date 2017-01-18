@@ -11,34 +11,12 @@ use \PDO;
 abstract class SQLDriver extends SQLConnection implements Driver
 {
     /**
-     * @var mixed
-     */
-    protected $hashKey = '';
-
-    /**
-     * @var mixed
-     */
-    protected $deletedKey = '';
-
-    /**
-     * @var array
-     */
-    protected $timestampsKeys = [];
-
-    /**
      * SQLDriver constructor.
      * @param array $settings
-     * @param string $hashKey
-     * @param string $deletedKey
-     * @param array $timestampsKeys
      */
-    public function __construct(array $settings, $hashKey = '', $deletedKey = '', array $timestampsKeys = [])
+    public function __construct(array $settings)
     {
         parent::__construct($settings);
-
-        $this->hashKey = $hashKey;
-        $this->deletedKey = $deletedKey;
-        $this->timestampsKeys = $timestampsKeys;
     }
 
     /**
@@ -92,9 +70,10 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $collection = off($clausules, 'collection', '<collection>');
         $fields = off($clausules, 'fields', '<fields>');
 
-        $inserts = array_map(function () {
-            return '?';
-        }, $fields);
+        $inserts = [];
+        foreach ($fields as $key => $field) {
+            $inserts[] = '?';
+        }
 
         $command = [];
         $command[] = 'INSERT INTO';

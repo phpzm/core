@@ -12,11 +12,13 @@ use Simples\Core\Kernel\App;
 abstract class RouteService extends Service
 {
     /**
-     * @param $app
+     * @param App $app
      */
-    public static function execute($app)
+    public static function execute(App $app)
     {
-        $routes = App::routes(new Router())->getTrace();
+        $router = new Router($app::options('separator'), $app::options('labels'), $app::options('content-type'));
+
+        $routes = App::routes($router)->getTrace();
 
         echo str_pad('METHOD', 10, ' '), ' | ', str_pad('URI', 50, ' '), ' | ', str_pad('GROUP', 6, ' '), PHP_EOL,
         str_pad('', 140, '-'), PHP_EOL;

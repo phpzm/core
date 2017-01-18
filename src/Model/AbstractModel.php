@@ -63,15 +63,26 @@ abstract class AbstractModel extends Engine
      * @var array
      */
     protected $timestampsKeys = [
-        'created' => [
+        'create' => [
             'at' => '_created_at',
             'by' => '_created_by'
         ],
-        'saved' => [
+        'update' => [
             'at' => '_changed_at',
             'by' => '_changed_by'
         ]
     ];
+
+    /**
+     * AbstractModel constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct($this->connection);
+
+        $this->addField($this->hashKey, 'string', ['validator' => 'unique']);
+    }
+
 
     /**
      * @param mixed $record
@@ -268,10 +279,19 @@ abstract class AbstractModel extends Engine
     /**
      * @param $action
      * @param $record
-     * @return Record|array
+     * @return array
      */
     public function getDefaults($action, $record = []): array
     {
         return [];
+    }
+
+    /**
+     * @param $action
+     * @return array
+     */
+    public function getFields($action)
+    {
+        return $this->fields;
     }
 }

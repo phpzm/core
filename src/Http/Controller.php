@@ -3,6 +3,7 @@
 namespace Simples\Core\Http;
 
 use Simples\Core\Route\Match;
+use Simples\Core\Route\Wrapper;
 
 /**
  * @method Response answerContinue($data = null, $meta = []) // 100
@@ -135,11 +136,16 @@ abstract class Controller
 
     /**
      * @param $name
-     * @return null|Input
+     * @param $type
+     * @return mixed
      */
-    public function input($name)
+    public function input($name, $type = null)
     {
-        return $this->request->input($name);
+        $input = $this->request->getInput($name);
+        if (!$input or !$type) {
+            return $input;
+        }
+        return $input->filter($type);
     }
 
     /**

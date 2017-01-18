@@ -6,6 +6,7 @@ use Simples\Core\Data\Record;
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Validator;
 use Simples\Core\Model\AbstractModel;
+use Simples\Core\Model\Action;
 
 /**
  * Class ApiRepository
@@ -104,16 +105,13 @@ class ApiRepository
     }
 
     /**
-     * @param Record|array $record
+     * @param Record $record
      * @param bool $log
      * @return Record
      */
-    public function post($record, $log = false): Record
+    public function post(Record $record, $log = false): Record
     {
-        if (is_array($record)) {
-            $record = new Record($record);
-        }
-        $defaults = $this->model->getDefaults('create');
+        $defaults = $this->model->getDefaults(Action::CREATE);
         foreach ($defaults as $field => $default) {
             $record->set($field, $default);
         }
@@ -173,5 +171,22 @@ class ApiRepository
             return $deleting;
         }
         return new Record([]);
+    }
+
+    /**
+     * @param $action
+     * @return array
+     */
+    public function getFields($action)
+    {
+        return $this->model->getFields($action);
+    }
+
+    /**
+     * @param $logging
+     */
+    public function setLog($logging)
+    {
+        $this->logging = $logging;
     }
 }
