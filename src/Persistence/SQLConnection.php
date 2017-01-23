@@ -17,14 +17,16 @@ abstract class SQLConnection extends Connection
     protected function connect()
     {
         if (!$this->resource) {
-            $default = [
+            $this->resource = new PDO(
+                $this->dsn(), $this->settings['user'], $this->settings['password'], $this->settings['options']
+            );
+            $attributes = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_PERSISTENT => true,
             ];
-            $options = array_merge($this->settings['options'], $default);
-            $this->resource = new PDO(
-                $this->dsn(), $this->settings['user'], $this->settings['password'], $options
-            );
+            foreach ($attributes as $key => $value) {
+                $this->resource->setAttribute($key, $value);
+            }
         }
         return $this->resource;
     }

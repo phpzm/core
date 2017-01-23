@@ -13,17 +13,46 @@ use Simples\Core\Route\Router;
 class Http
 {
     /**
+     * @var string
+     */
+    private $separator;
+
+    /**
+     * @var boolean
+     */
+    private $labels;
+
+    /**
+     * @var string
+     */
+    private $contentType;
+
+    /**
+     * Http constructor.
+     * @param $separator
+     * @param $labels
+     * @param $contentType
+     */
+    public function __construct($separator, $labels, $contentType)
+    {
+        $this->separator = $separator;
+        $this->labels = $labels;
+        $this->contentType = $contentType;
+    }
+
+    /**
      * @param Request $request
      * @return Response
      */
     public function handler(Request $request): Response
     {
         // TODO: container
-        $router = new Router(App::options('separator'), App::options('labels'), App::options('content-type'));
+        $router = new Router($this->separator, $this->labels, $this->contentType);
 
+        // TODO: make routes here
         $match = App::routes($router)->match($request->getMethod(), $request->getUri());
 
-        $handler = new HttpHandler($request, $match, App::options('separator'));
+        $handler = new HttpHandler($request, $match, $this->separator);
 
         return $handler->apply();
     }

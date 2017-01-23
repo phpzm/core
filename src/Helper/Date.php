@@ -43,6 +43,14 @@ class Date extends \DateTime
     }
 
     /**
+     * @return string
+     */
+    public function now()
+    {
+        return date('Y-m-d H:i:s');
+    }
+
+    /**
      * @param $date
      * @return bool
      */

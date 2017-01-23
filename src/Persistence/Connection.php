@@ -59,14 +59,14 @@ abstract class Connection
     /**
      * @param $command
      * @param $parameters
-     * @param $wrapper
+     * @param $logging
      * @return Connection
      */
-    public function addLog($command, $parameters, $wrapper): Connection
+    public function addLog($command, $parameters, $logging): Connection
     {
         $log = ['command' => $command, 'parameters' => $parameters];
         $this->logs[] = $log;
-        if ($wrapper) {
+        if ($logging || Transaction::log()) {
             Wrapper::log($log);
         }
         return $this;

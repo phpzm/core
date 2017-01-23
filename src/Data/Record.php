@@ -129,11 +129,18 @@ class Record extends Origin implements \IteratorAggregate
     }
 
     /**
+     * @param array $except
      * @return array
      */
-    public function all()
+    public function all($except = null)
     {
-        return $this->public;
+        $all = [];
+        foreach ($this->public as $key => $value) {
+            if (is_null($except) || !in_array($key, $except)) {
+                $all[$key] = $value;
+            }
+        }
+        return $all;
     }
 
     /**

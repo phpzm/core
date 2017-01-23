@@ -7,6 +7,7 @@ use Simples\Core\Data\Collection;
 use Simples\Core\Data\Validator;
 use Simples\Core\Model\AbstractModel;
 use Simples\Core\Model\Action;
+use Simples\Core\Persistence\Transaction;
 
 /**
  * Class ApiRepository
@@ -78,12 +79,11 @@ class ApiRepository
 
     /**
      * @param $record
-     * @param $log
      * @return Record
      */
-    public function unique($record = null, $log = false): Record
+    public function unique($record = null): Record
     {
-        $exists = $this->model->log($log)->read($record);
+        $exists = $this->model->read($record);
         if ($exists->size()) {
             return $exists->current();
         }
@@ -91,44 +91,24 @@ class ApiRepository
     }
 
     /**
-     * @param Record|array $record
-     * @param bool $log
-     * @return Collection
-     */
-    public function get($record = null, $log = false): Collection
-    {
-        $getting = $this->model->log($log)->read($record);
-        if ($getting) {
-            return $getting;
-        }
-        return new Collection([]);
-    }
-
-    /**
      * @param Record $record
-     * @param bool $log
      * @return Record
      */
-    public function post(Record $record, $log = false): Record
+    public function post(Record $record): Record
     {
         $defaults = $this->model->getDefaults(Action::CREATE);
         foreach ($defaults as $field => $default) {
             $record->set($field, $default);
         }
 
-        $validators = $this->model->getValidators();
-        $rules = [];
-        foreach ($validators as $field => $validator) {
-            $rules[$field] = ['rule' => $validator, 'value' => $record->get($field)];
-        }
-
-        $errors = $this->getValidator()->parse($rules);
+        $validators = $this->model->getValidators(Action::CREATE, $record);
+        $errors = $this->getValidator()->parse($validators);
         if (!$errors->isEmpty()) {
             $this->setErrors($errors);
             return new Record([]);
         }
 
-        $posting = $this->model->log($log)->create($record);
+        $posting = $this->model->create($record);
         if ($posting) {
             return $posting;
         }
@@ -136,37 +116,55 @@ class ApiRepository
     }
 
     /**
-     * @param Record|array $record
-     * @param bool $log
-     * @return Record
+     * @param Record $record
+     * @param int $start
+     * @param int $end
+     * @return Collection
      */
-    public function put($record, $log = false): Record
+    public function get(Record $record, $start = null, $end = null): Collection
     {
-        $this->model->log = $log;
-
-        return $record;
+        if (!is_null($start) && !is_null($end)) {
+            $this->model->limit([$start, $end]);
+        }
+        $getting = $this->model->read($record);
+        if ($getting) {
+            return $getting;
+        }
+        return new Collection([]);
     }
 
     /**
      * @param Record|array $record
-     * @param bool $log
      * @return Record
      */
-    public function patch($record, $log = false): Record
+    public function put($record): Record
     {
-        $this->model->log = $log;
+        $defaults = $this->model->getDefaults(Action::UPDATE);
+        foreach ($defaults as $field => $default) {
+            $record->set($field, $default);
+        }
 
-        return $record;
+        $validators = $this->model->getValidators(Action::UPDATE, $record);
+        $errors = $this->getValidator()->parse($validators);
+        if (!$errors->isEmpty()) {
+            $this->setErrors($errors);
+            return new Record([]);
+        }
+
+        $putting = $this->model->update($record);
+        if ($putting) {
+            return $putting;
+        }
+        return new Record([]);
     }
 
     /**
      * @param Record|array $record
-     * @param bool $log
      * @return Record
      */
-    public function delete($record, $log = false): Record
+    public function delete($record): Record
     {
-        $deleting = $this->model->log($log)->destroy($record);
+        $deleting = $this->model->destroy($record);
         if ($deleting) {
             return $deleting;
         }
@@ -187,6 +185,14 @@ class ApiRepository
      */
     public function setLog($logging)
     {
-        $this->logging = $logging;
+        Transaction::log($logging);
+    }
+
+    /**
+     * @return string
+     */
+    public function getHashKey()
+    {
+        return $this->model->getHashKey();
     }
 }

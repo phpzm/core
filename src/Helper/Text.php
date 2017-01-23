@@ -34,5 +34,4 @@ abstract class Text
     {
         return str_pad($input, $pad_length, $pad_string, $pad_type);
     }
-
 }

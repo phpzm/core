@@ -6,6 +6,7 @@ use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Persistence\Engine;
 use ErrorException;
+use Simples\Core\Route\Wrapper;
 
 /**
  * Class AbstractModel
@@ -55,22 +56,27 @@ abstract class AbstractModel extends Engine
     protected $hashKey = '_id';
 
     /**
-     * @var mixed
+     * @var array
      */
-    protected $deletedKey = '_trash';
+    protected $createKeys = [
+        'at' => '_created_at',
+        'by' => '_created_by'
+    ];
 
     /**
      * @var array
      */
-    protected $timestampsKeys = [
-        'create' => [
-            'at' => '_created_at',
-            'by' => '_created_by'
-        ],
-        'update' => [
-            'at' => '_changed_at',
-            'by' => '_changed_by'
-        ]
+    protected $updateKeys = [
+        'at' => '_changed_at',
+        'by' => '_changed_by'
+    ];
+
+    /**
+     * @var mixed
+     */
+    protected $destroyKeys = [
+        'at' => '_destroyed_at',
+        'by' => '_destroyed_by'
     ];
 
     /**
@@ -117,9 +123,10 @@ abstract class AbstractModel extends Engine
     /**
      * @param $action
      * @param Record $record
+     * @param Record $previous
      * @return bool
      */
-    public function before($action, Record $record)
+    public function before($action, Record $record, Record $previous = null)
     {
         return true;
     }
@@ -146,21 +153,8 @@ abstract class AbstractModel extends Engine
             'label' => '', 'validator' => '', 'create' => true, 'read' => true, 'update' => true
         ];
         $options = array_merge($default, $options);
-        $validators = off($options, 'validator');
-        if ($validators) {
-            if (!is_array($validators)) {
-                $validators = [$validators];
-            }
-            foreach ($validators as $key => $validator) {
-                switch ($validator) {
-                    case 'unique':
-                        $validators[$key] = 'unique:' . get_class($this) . ',' . $name;
-                        break;
-                }
-            }
-            $options['validator'] = $validators;
-        }
         $this->fields[$name] = [
+            'name' => $name,
             'type' => $type,
             'options' => $options
         ];
@@ -262,18 +256,58 @@ abstract class AbstractModel extends Engine
     }
 
     /**
+     * @param $action
+     * @param Record $record
      * @return array
      */
-    public function getValidators()
+    public function getValidators($action, Record $record)
     {
         $validators = [];
-        foreach ($this->fields as $name => $field) {
-            $validator = off(off($field, 'options'), 'validator');
+        foreach ($this->fields as $key => $field) {
+            $validator = $this->getValidator($field, $action);
             if ($validator) {
-                $validators[$name] = $validator;
+                $validators[$key] = ['rules' => $validator, 'value' => $record->get($key)];
             }
         }
         return $validators;
+    }
+
+    /**
+     * @param $field
+     * @return array
+     */
+    private function getValidator($field, $action)
+    {
+        $rules = null;
+        $validator = off(off($field, 'options'), 'validator');
+        if ($validator) {
+            $rules = [];
+            $validators = $validator;
+            if (!is_array($validators)) {
+                $validators = [$validator];
+            }
+            foreach ($validators as $validator) {
+                $options = null;
+                switch ($validator) {
+                    case 'unique':
+                        // TODO: fix this to support unique on update
+                        if ($action === Action::CREATE) {
+                            $options = [
+                                'class' => get_class($this),
+                                'field' => $field['name']
+                            ];
+                        }
+                        break;
+                    default:
+                        $options = [];
+                        break;
+                }
+                if (!is_null($options)) {
+                    $rules[$validator] = $options;
+                }
+            }
+        }
+        return $rules;
     }
 
     /**
@@ -293,5 +327,21 @@ abstract class AbstractModel extends Engine
     public function getFields($action)
     {
         return $this->fields;
+    }
+
+    /**
+     * @return string
+     */
+    public function hashKey()
+    {
+        return uniqid();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getHashKey()
+    {
+        return $this->hashKey;
     }
 }

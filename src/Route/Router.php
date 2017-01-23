@@ -143,6 +143,7 @@ class Router extends Engine
     {
         $resource = [
             ['method' => 'GET', 'uri' => '', 'callable' => 'get'],
+            ['method' => 'GET', 'uri' => ':id', 'callable' => 'get'],
             ['method' => 'POST', 'uri' => '', 'callable' => 'post'],
             ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put'],
             ['method' => 'PATCH', 'uri' => ':id', 'callable' => 'patch'],

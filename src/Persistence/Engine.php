@@ -24,7 +24,7 @@ use Simples\Core\Kernel\App;
 class Engine
 {
     /**
-     * @var SQLDriver
+     * @var Driver
      */
     private $driver;
 
@@ -61,14 +61,18 @@ class Engine
         if (count($arguments) > 1) {
             $clausule = $arguments;
         }
+        $name = strtolower($name);
 
-        $this->clausules[strtolower($name)] = $clausule;
+        $this->clausules[$name] = $clausule;
+        if (is_null($clausule)) {
+            unset($this->clausules[$name]);
+        }
 
         return $this;
     }
 
     /**
-     * @return SQLDriver
+     * @return Driver
      * @throws \Exception
      */
     protected function driver()
@@ -91,7 +95,7 @@ class Engine
 
     /**
      * @param $values
-     * @return string
+     * @return array
      */
     final public function get($values = [])
     {
@@ -115,5 +119,29 @@ class Engine
     public function remove($filters)
     {
         return $this->driver()->destroy($this->clausules, $filters);
+    }
+
+    /**
+     * @return Driver
+     */
+    public function getDriver(): Driver
+    {
+        return $this->driver;
+    }
+
+    /**
+     * @return array
+     */
+    public function getClausules(): array
+    {
+        return $this->clausules;
+    }
+
+    /**
+     * @return array|mixed
+     */
+    public function getSettings()
+    {
+        return $this->settings;
     }
 }

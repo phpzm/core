@@ -46,15 +46,6 @@ abstract class ApiController extends Controller
     }
 
     /**
-     * @param $id
-     * @return Collection
-     */
-    public function get($id)
-    {
-        return new Collection([]);
-    }
-
-    /**
      * @return Response
      * @throws \Exception
      */
@@ -66,7 +57,10 @@ abstract class ApiController extends Controller
 
         $data = [];
         foreach ($fields as $name => $field) {
-            $data[$name] = $this->input($name, $field['type']);
+            $value = $this->input($name, $field['type']);
+            if (!is_null($value)) {
+                $data[$name] = $value;
+            }
         }
 
         $posted = $this->repository->post(new Record($data));
@@ -77,36 +71,101 @@ abstract class ApiController extends Controller
         }
 
         if ($posted->isEmpty()) {
-            throw new \Exception(Lang::auth('error', ['action' => implode('->', [__CLASS__, __METHOD__])]));
+            return $this->answerConflict('');
         }
 
         return $this->answerOK($posted->all());
     }
 
     /**
-     * @param Record $record
-     * @return Record
+     * @param $id
+     * @return Response
      */
-    public function put(Record $record)
+    public function get($id = null)
     {
-        return $record;
+        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+
+        $data = [];
+        $start = null;
+        $end = null;
+        if ($id) {
+            $data = [$this->repository->getHashKey() => $id];
+        } else {
+            $page = (int)$this->request()->get('page');
+            $size = (int)$this->request()->get('size');
+            $start = ($page - 1) + $size;
+            $end = $size;
+            $fields = $this->repository->getFields(Action::READ);
+            foreach ($fields as $name => $field) {
+                $value = $this->input($name, $field['type']);
+                if (!is_null($value)) {
+                    $data[$name] = $value;
+                }
+            }
+        }
+        $collection = $this->repository->get(new Record($data), $start, $end);
+
+        return $this->answerOK($collection->getRecords());
     }
 
     /**
-     * @param Record $record
-     * @return Record
+     * @return Response
+     * @throws \Exception
      */
-    public function patch(Record $record)
+    public function put($id)
     {
-        return $record;
+        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+
+        $fields = $this->repository->getFields(Action::UPDATE);
+
+        $data = [
+            $this->repository->getHashKey() => $id
+        ];
+        foreach ($fields as $name => $field) {
+            $value = $this->input($name, $field['type']);
+            if (!is_null($value)) {
+                $data[$name] = $value;
+            }
+        }
+
+        $posted = $this->repository->put(new Record($data));
+
+        $errors = $this->repository->getErrors()->all();
+        if (count($errors)) {
+            return $this->answerBadRequest('', $errors);
+        }
+
+        if ($posted->isEmpty()) {
+            return $this->answerGone('');
+        }
+
+        return $this->answerOK($posted->all());
     }
 
     /**
-     * @param Record $record
-     * @return Record
+     * @param $id
+     * @return Response
+     * @throws \Exception
      */
-    public function delete(Record $record)
+    public function delete($id)
     {
-        return $record;
+        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+
+        $data = [
+            $this->repository->getHashKey() => $id
+        ];
+
+        $deleted = $this->repository->delete(new Record($data));
+
+        $errors = $this->repository->getErrors()->all();
+        if (count($errors)) {
+            return $this->answerBadRequest('', $errors);
+        }
+
+        if ($deleted->isEmpty()) {
+            return $this->answerGone('');
+        }
+
+        return $this->answerOK($deleted->all());
     }
 }

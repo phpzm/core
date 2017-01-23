@@ -174,7 +174,7 @@ class Container
                     $parameter = $data[$reflectionParameter->getName()];
                     unset($data[$reflectionParameter->getName()]);
                 }
-                if (!$parameter) {
+                if (!$parameter && isset($data[0])) {
                     $parameter = $data[0];
                     array_shift($data);
                     reset($data);

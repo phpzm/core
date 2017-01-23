@@ -3,6 +3,7 @@
 namespace Simples\Core\Persistence;
 
 use \PDO;
+use Simples\Core\Route\Wrapper;
 
 /**
  * Class SQLDriver
@@ -63,6 +64,65 @@ abstract class SQLDriver extends SQLConnection implements Driver
 
     /**
      * @param $clausules
+     * @param array $values
+     * @return array
+     * @throws \ErrorException
+     */
+    final public function read($clausules, array $values = [])
+    {
+        $sql = $this->getSelect($clausules);
+        $this->addLog($sql, $values, off($clausules, 'log'));
+        $statement = $this->statement($sql);
+
+        if ($statement && $statement->execute(array_values($values))) {
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        }
+        throw new \ErrorException(implode(', ', $statement->errorInfo()));
+    }
+
+    /**
+     * @param $clausules
+     * @param $values
+     * @param $filters
+     * @return int
+     * @throws \ErrorException
+     */
+    final public function update($clausules, $values, $filters)
+    {
+        $sql = $this->getUpdate($clausules);
+        $parameters = array_merge(array_values($values), array_values($filters));
+
+        $this->addLog($sql, $parameters, off($clausules, 'log'));
+
+        $statement = $this->statement($sql);
+
+        if ($statement && $statement->execute($parameters)) {
+            return $statement->rowCount();
+        }
+        throw new \ErrorException(implode(', ', $statement->errorInfo()));
+    }
+
+    /**
+     * @param $clausules
+     * @param array $values
+     * @return int
+     * @throws \ErrorException
+     */
+    final public function destroy($clausules, array $values)
+    {
+        $sql = $this->getDelete($clausules);
+        $this->addLog($sql, $values, off($clausules, 'log'));
+
+        $statement = $this->statement($sql);
+
+        if ($statement && $statement->execute(array_values($values))) {
+            return $statement->rowCount();
+        }
+        throw new \ErrorException(implode(', ', $statement->errorInfo()));
+    }
+
+    /**
+     * @param $clausules
      * @return string
      */
     public function getInsert($clausules)
@@ -87,30 +147,12 @@ abstract class SQLDriver extends SQLConnection implements Driver
 
     /**
      * @param $clausules
-     * @param array $values
-     * @return array
-     * @throws \ErrorException
-     */
-    final public function read($clausules, array $values = [])
-    {
-        $sql = $this->getSelect($clausules);
-        $this->addLog($sql, $values, off($clausules, 'log'));
-        $statement = $this->statement($sql);
-
-        if ($statement && $statement->execute(array_values($values))) {
-            return $statement->fetchAll(PDO::FETCH_ASSOC);
-        }
-        throw new \ErrorException(implode(', ', $statement->errorInfo()));
-    }
-
-    /**
-     * @param $clausules
      * @return string
      */
     public function getSelect($clausules)
     {
         $collection = off($clausules, 'collection', '<collection>');
-        $fields = off($clausules, 'fields', '*');
+        $fields = off($clausules, 'fields', '<fields>');
         $join = off($clausules, 'join');
 
         $command = [];
@@ -151,26 +193,6 @@ abstract class SQLDriver extends SQLConnection implements Driver
 
     /**
      * @param $clausules
-     * @param $values
-     * @param $filters
-     * @return int
-     * @throws \ErrorException
-     */
-    final public function update($clausules, $values, $filters)
-    {
-        $sql = $this->getUpdate($clausules);
-        $this->addLog($sql, $values, off($clausules, 'log'));
-
-        $statement = $this->statement($sql);
-
-        if ($statement && $statement->execute(array_merge(array_values($values), array_values($filters)))) {
-            return $statement->rowCount();
-        }
-        throw new \ErrorException(implode(', ', $statement->errorInfo()));
-    }
-
-    /**
-     * @param $clausules
      * @return string
      */
     public function getUpdate($clausules)
@@ -195,40 +217,15 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $command[] = 'SET';
         $command[] = $sets;
 
-        $clausules = [
+        $modifiers = [
             'where' => [
                 'instruction' => 'WHERE',
-                'separator' => ' ',
+                'separator' => ' AND ',
             ]
         ];
-        foreach ($clausules as $key => $clausule) {
-            $value = off($clausule, $key);
-            if (is_array($value)) {
-                $value = implode($clausule['separator'], $value);
-            }
-            $command[] = $clausule['instruction'] . ' ' . $value;
-        }
+        $command = array_merge($command, $this->modifiers($clausules, $modifiers));
 
         return implode(' ', $command);
-    }
-
-    /**
-     * @param $clausules
-     * @param array $values
-     * @return int
-     * @throws \ErrorException
-     */
-    final public function destroy($clausules, array $values)
-    {
-        $sql = $this->getDelete($clausules);
-        $this->addLog($sql, $values, off($clausules, 'log'));
-
-        $statement = $this->statement($sql);
-
-        if ($statement && $statement->execute(array_values($values))) {
-            return $statement->rowCount();
-        }
-        throw new \ErrorException(implode(', ', $statement->errorInfo()));
     }
 
     /**

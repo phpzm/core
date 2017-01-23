@@ -85,7 +85,7 @@ class App
         $fail = null;
 
         try {
-            $http = new Http();
+            $http = new Http(App::options('separator'), App::options('labels'), App::options('content-type'));
 
             $response = $http->handler(self::request());
 

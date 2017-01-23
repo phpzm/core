@@ -14,6 +14,11 @@ class Transaction
     private static $connections = [];
 
     /**
+     * @var boolean
+     */
+    private static $logging;
+
+    /**
      * @param $driver
      * @return Driver|null
      */
@@ -65,4 +70,17 @@ class Transaction
         }
         return $rollback;
     }
+
+    /**
+     * @param null $logging
+     * @return bool|null
+     */
+    public static function log($logging = null)
+    {
+        if (!is_null($logging)) {
+            self::$logging = $logging;
+        }
+        return self::$logging;
+    }
+
 }

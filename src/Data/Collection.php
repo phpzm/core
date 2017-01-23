@@ -49,7 +49,10 @@ class Collection extends Origin implements Iterator
     public function current()
     {
         $var = current($this->records);
-        return new Record($var);
+        if ($var) {
+            return new Record($var);
+        }
+        return new Record([]);
     }
 
     /**

@@ -121,7 +121,7 @@ if (!function_exists('stop')) {
     function stop()
     {
         ob_start();
-        var_dump(func_get_args());
+        echo json_encode(func_get_args());
         $contents = ob_get_contents();
         ob_end_clean();
         out($contents);

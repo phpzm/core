@@ -4,6 +4,7 @@ namespace Simples\Core\Data;
 
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
+use Simples\Core\Route\Wrapper;
 use Stringy\Stringy;
 
 /**
@@ -642,15 +643,12 @@ class Validator
      */
     public function isUnique($value, $options)
     {
-        $peaces = explode(',', $options);
-        if (count($peaces) > 1) {
-            $class = $peaces[0];
-            $field = $peaces[1];
-            if (class_exists($class)) {
-                $instance = Container::getInstance()->make($class);
-                /** @var AbstractModel $instance */
-                return $instance->read([$field => $value])->size() === 0;
-            }
+        $class = off($options, 'class');
+        $field = off($options, 'field');
+        if (class_exists($class)) {
+            $instance = Container::getInstance()->make($class);
+            /** @var AbstractModel $instance */
+            return $instance->fields($field)->read([$field => $value])->size() === 0;
         }
         return false;
     }
@@ -681,34 +679,34 @@ class Validator
     }
 
     /**
-     * @param array $validationRules
+     * @param $rules
+     * @param $value
+     * @return array
+     */
+    public function applyRules($rules, $value)
+    {
+        $error = [];
+        foreach ($rules as $rule => $options) {
+            $problem = $this->apply($rule, $value, $options);
+            if (!$problem) {
+                $error[] = $rule;
+            }
+        }
+        return $error;
+    }
+
+    /**
+     * @param array $validators
      * @return Record
      * @throws \ErrorException
      */
-    public function parse(array $validationRules): Record
+    public function parse(array $validators): Record
     {
         $errors = [];
-        foreach ($validationRules as $attribute => $options) {
-            $hasProblem = [];
-            $rules = off($options, 'rule');
-            if (!is_array($rules)) {
-                $rules = [$rules];
-            }
-            foreach ($rules as $validators) {
-                if (!is_array($validators)) {
-                    $validators = [$validators];
-                }
-                foreach ($validators as $rule) {
-                    $peaces = explode(':', $rule);
-                    $name = $peaces[0];
-                    $is = $this->apply($name, off($options, 'value'), off($peaces, 1));
-                    if (!$is) {
-                        $hasProblem[] = $name;
-                    }
-                }
-            }
-            if (count($hasProblem)) {
-                $errors[$attribute] = implode(',', $hasProblem);
+        foreach ($validators as $field => $settings) {
+            $error = $this->applyRules(off($settings, 'rules'), off($settings, 'value'));
+            if (count($error)) {
+                $errors[$field] = $error;
             }
         }
         return new Record($errors);
