@@ -185,7 +185,7 @@ class ApiRepository
      */
     public function setLog($logging)
     {
-        Transaction::log($logging);
+        Transaction::log($logging && env('TEST_MODE'));
     }
 
     /**

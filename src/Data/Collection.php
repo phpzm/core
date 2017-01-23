@@ -17,14 +17,61 @@ class Collection extends Origin implements Iterator
     private $records = [];
 
     /**
+     * @var mixed
+     */
+    private $instance;
+
+    /**
      * Collection constructor.
      * @param $array
+     * @param $instance
      */
-    public function __construct($array)
+    public function __construct($array, $instance = null)
     {
         if (is_array($array)) {
             $this->records = $array;
         }
+        $this->instance = $instance;
+    }
+
+    /**
+     * @param $instance
+     * @return $this
+     */
+    public function with($instance)
+    {
+        $this->instance = $instance;
+        return $this;
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     * @return Collection
+     */
+    public function __call($name, $arguments)
+    {
+        $instance = $this->instance;
+        if ($instance) {
+            return $this->map(function($value, $key) use ($instance, $name, $arguments) {
+                return call_user_func_array([$instance, $name], array_merge($key, $value, $arguments));
+            });
+        }
+        return $this;
+    }
+
+    /**
+     * @param callable $callback
+     * @return $this
+     */
+    public function each(callable $callback)
+    {
+        foreach ($this->records as $record) {
+            if ($callback($record) === false) {
+                break;
+            }
+        }
+        return $this;
     }
 
     /**

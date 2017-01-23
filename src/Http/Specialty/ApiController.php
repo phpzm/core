@@ -24,15 +24,6 @@ abstract class ApiController extends Controller
     protected $repository;
 
     /**
-     * ApiController constructor.
-     * @param $repository
-     */
-    public function __construct($repository)
-    {
-        $this->repository = $repository;
-    }
-
-    /**
      * @param null $content
      * @param array $meta
      * @param int $code
@@ -51,7 +42,7 @@ abstract class ApiController extends Controller
      */
     public function post()
     {
-        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+        $this->repository->setLog($this->request()->get('log'));
 
         $fields = $this->repository->getFields(Action::CREATE);
 
@@ -83,7 +74,7 @@ abstract class ApiController extends Controller
      */
     public function get($id = null)
     {
-        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+        $this->repository->setLog($this->request()->get('log'));
 
         $data = [];
         $start = null;
@@ -93,7 +84,7 @@ abstract class ApiController extends Controller
         } else {
             $page = (int)$this->request()->get('page');
             $size = (int)$this->request()->get('size');
-            $start = ($page - 1) + $size;
+            $start = ($page - 1) * $size;
             $end = $size;
             $fields = $this->repository->getFields(Action::READ);
             foreach ($fields as $name => $field) {
@@ -114,7 +105,7 @@ abstract class ApiController extends Controller
      */
     public function put($id)
     {
-        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+        $this->repository->setLog($this->request()->get('log'));
 
         $fields = $this->repository->getFields(Action::UPDATE);
 
@@ -149,7 +140,7 @@ abstract class ApiController extends Controller
      */
     public function delete($id)
     {
-        $this->repository->setLog($this->request()->get('log') && env('TEST_MODE'));
+        $this->repository->setLog($this->request()->get('log'));
 
         $data = [
             $this->repository->getHashKey() => $id
