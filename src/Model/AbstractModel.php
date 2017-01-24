@@ -17,7 +17,7 @@ abstract class AbstractModel extends Engine
     /**
      * @var string
      */
-    protected $connection = 'default';
+    protected $connection;
 
     /**
      * @var string
@@ -81,14 +81,28 @@ abstract class AbstractModel extends Engine
 
     /**
      * AbstractModel constructor.
+     * @param null $connection
      */
-    public function __construct()
+    public function __construct($connection = null)
     {
-        parent::__construct($this->connection);
+        parent::__construct($this->connection($connection));
 
         $this->addField($this->hashKey, 'string', ['validator' => 'unique']);
     }
 
+    /**
+     * @param $connection
+     * @return mixed
+     */
+    protected function connection($connection)
+    {
+        if (!is_null($connection)) {
+            $this->connection = $connection;
+        } elseif (is_null($this->connection)) {
+            $this->connection = env('DEFAULT_DATABASE');
+        }
+        return $this->connection;
+    }
 
     /**
      * @param mixed $record
@@ -153,6 +167,9 @@ abstract class AbstractModel extends Engine
             'label' => '', 'validator' => '', 'create' => true, 'read' => true, 'update' => true
         ];
         $options = array_merge($default, $options);
+        if (off($options, 'pk')) {
+            $this->primaryKey = $name;
+        }
         $this->fields[$name] = [
             'name' => $name,
             'type' => $type,

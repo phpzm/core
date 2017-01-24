@@ -250,12 +250,12 @@ class DataMapper extends AbstractModel
      */
     protected function parseReadFields()
     {
-        $fields = array_keys($this->getFields(Action::READ));
         if (off($this->getClausules(), 'fields')) {
             $fields = off($this->getClausules(), 'fields');
             $this->fields(null);
+            return $fields;
         }
-        return $fields;
+        return array_keys($this->getFields(Action::READ));
     }
 
     /**
