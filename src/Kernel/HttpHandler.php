@@ -7,6 +7,9 @@ use Simples\Core\Http\Response;
 use Simples\Core\Route\Match;
 use Simples\Core\Route\Wrapper;
 use Throwable;
+use Error;
+use ErrorException;
+use Exception;
 
 /**
  * Class HandlerHttp
@@ -213,14 +216,14 @@ class HttpHandler extends Response
     private function call($callback, $parameters)
     {
         ob_start();
-
+        // TODO: multi catch in line since 7.1
         try {
             $result = call_user_func_array($callback, $parameters);
-        } catch (\Error $error) {
+        } catch (Error $error) {
             $result = $error;
-        } catch (\ErrorException $error) {
+        } catch (ErrorException $error) {
             $result = $error;
-        } catch (\Exception $error) {
+        } catch (Exception $error) {
             $result = $error;
         }
 
