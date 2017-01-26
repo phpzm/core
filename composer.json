@@ -2,7 +2,12 @@
   "name": "phpzm/core",
   "description": "Simples Core package",
   "minimum-stability": "dev",
-  "keywords": ["php","micro service", "api", "resource", "gennesis.io"],
+  "keywords": [
+    "php",
+    "framework",
+    "api",
+    "simples"
+  ],
   "homepage": "https://github.com/phpzm/core",
   "license": "MIT",
   "version": "0.0.7",
@@ -16,7 +21,7 @@
     }
   ],
   "require": {
-    "php": ">=5.5.0",
+    "php": ">=7.0",
     "psr/http-message": "^1.0",
     "danielstjules/stringy": "^2.3",
     "phpmailer/phpmailer": "^5.2",
@@ -29,5 +34,8 @@
     "files": [
       "bootstrap/index.php"
     ]
+  },
+  "scripts": {
+    "sami": "php sami.phar update config/sami.php"
   }
 }

@@ -4,7 +4,9 @@ namespace Simples\Core\Kernel;
 
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
+use Simples\Core\Route\Match;
 use Simples\Core\Route\Router;
+use Throwable;
 
 /**
  * Class Http
@@ -13,14 +15,9 @@ use Simples\Core\Route\Router;
 class Http
 {
     /**
-     * @var string
+     * @var Request
      */
-    private $separator;
-
-    /**
-     * @var boolean
-     */
-    private $labels;
+    private $request;
 
     /**
      * @var string
@@ -28,31 +25,54 @@ class Http
     private $contentType;
 
     /**
-     * Http constructor.
-     * @param $separator
-     * @param $labels
-     * @param $contentType
+     * @var Match
      */
-    public function __construct($separator, $labels, $contentType)
+    private $match;
+
+    /**
+     * Http constructor.
+     * @param Request $request
+     */
+    public function __construct(Request $request)
     {
-        $this->separator = $separator;
-        $this->labels = $labels;
-        $this->contentType = $contentType;
+        $this->request = $request;
     }
 
     /**
-     * @param Request $request
      * @return Response
      */
-    public function handler(Request $request): Response
+    public function handler(): Response
     {
         // TODO: container
-        $router = new Router($this->separator, $this->labels, $this->contentType);
+        $router = new Router(App::options('separator'), App::options('labels'), App::options('content-type'));
 
         // TODO: make routes here
-        $match = App::routes($router)->match($request->getMethod(), $request->getUri());
+        /** @var Match $match */
+        $this->match = App::routes($router)->match($this->request->getMethod(), $this->request->getUri());
 
-        $handler = new HttpHandler($request, $match, $this->separator);
+        $handler = new HttpHandler($this->request, $this->match);
+
+        return $handler->apply();
+    }
+
+    /**
+     * @param Throwable $fail
+     * @return Response
+     */
+    public function fallback(Throwable $fail): Response
+    {
+        if (!$this->match) {
+            $method = '';
+            $uri = '';
+            $path = '';
+            $callback = null;
+            $parameters = [];
+            $options = [];
+            $this->match = new Match($method, $uri, $path, $callback, $parameters, $options);
+        }
+        $this->match->setCallback($fail);
+
+        $handler = new HttpHandler($this->request, $this->match);
 
         return $handler->apply();
     }

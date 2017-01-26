@@ -1,4 +1,11 @@
-.idea
+# directories
+/.idea
+/.docs
+/.dev
+/vendor
 
-!*.gitkeep
+# files
 *.cache
+
+# reverse
+!*.gitkeep

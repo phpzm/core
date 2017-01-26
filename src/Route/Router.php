@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Route;
 
+use Simples\Core\Kernel\App;
 use Stringy\StaticStringy as stringy;
 
 /**
@@ -17,21 +18,15 @@ use Stringy\StaticStringy as stringy;
 class Router extends Engine
 {
     /**
-     * @var string
-     */
-    private $separator;
-
-    /**
      * Router constructor.
      * @param $separator
      * @param $labels
      * @param $contentType
+     * @param $headers
      */
-    public function __construct($separator, $labels = false, $contentType = null)
+    public function __construct($separator, $labels = false, $contentType = null, $headers = null)
     {
-        parent::__construct($labels, $contentType);
-
-        $this->separator = $separator;
+        parent::__construct($labels, $contentType, $headers);
     }
 
     /**
@@ -125,9 +120,12 @@ class Router extends Engine
             ['method' => 'PUT,PATCH', 'uri' => ':id', 'callable' => 'update'],
             ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'destroy'],
         ];
+
+        $separator = App::options('separator');
+
         foreach ($resource as $item) {
             $item = (object)$item;
-            $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$this->separator}{$item->callable}", $options);
+            $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$separator}{$item->callable}", $options);
         }
 
         return $this;
@@ -149,9 +147,12 @@ class Router extends Engine
             ['method' => 'PATCH', 'uri' => ':id', 'callable' => 'patch'],
             ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete'],
         ];
+
+        $separator = App::options('separator');
+
         foreach ($resource as $item) {
             $item = (object)$item;
-            $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$this->separator}{$item->callable}", $options);
+            $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$separator}{$item->callable}", $options);
         }
 
         return $this;

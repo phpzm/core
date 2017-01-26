@@ -8,8 +8,8 @@ use Simples\Core\Helper\Json;
 use Simples\Core\Helper\Text;
 
 /**
- * Class Sender
- * @package Apocalipse\Message\Message
+ * Class Mail
+ * @package Simples\Core\Message
  */
 class Mail
 {

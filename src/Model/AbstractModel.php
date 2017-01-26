@@ -4,6 +4,7 @@ namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
+use Simples\Core\Data\Validation;
 use Simples\Core\Persistence\Engine;
 use ErrorException;
 use Simples\Core\Route\Wrapper;
@@ -279,14 +280,14 @@ abstract class AbstractModel extends Engine
      */
     public function getValidators($action, Record $record)
     {
-        $validators = [];
+        $validation = new Validation();
         foreach ($this->fields as $key => $field) {
             $validator = $this->getValidator($field, $action);
             if ($validator) {
-                $validators[$key] = ['rules' => $validator, 'value' => $record->get($key)];
+                $validation->add($key, $record->get($key), $validator);
             }
         }
-        return $validators;
+        return $validation->rules();
     }
 
     /**
@@ -329,10 +330,10 @@ abstract class AbstractModel extends Engine
 
     /**
      * @param $action
-     * @param $record
+     * @param Record $record
      * @return array
      */
-    public function getDefaults($action, $record = []): array
+    public function getDefaults($action, Record $record = null): array
     {
         return [];
     }

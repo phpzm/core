@@ -6,15 +6,17 @@ use Simples\Core\Console\HelpService;
 use Simples\Core\Console\ModelService;
 use Simples\Core\Console\RouteService;
 use Simples\Core\Console\Service;
-use Simples\Core\Helper\Text;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Persistence\Transaction;
 use Simples\Core\Route\Router;
+use Error;
+use ErrorException;
+use Exception;
 
 /**
  * Class App
- * @package Core\Kernel
+ * @package Simples\Core\Kernel
  */
 class App
 {
@@ -39,18 +41,30 @@ class App
     private static $options;
 
     /**
-     * App constructor.
-     * @param $options
+     * App constructor
+     *
+     * Create a instance of App Handler
+     *
+     * @param array $options ([
+     *      'root' => string,
+     *      'lang' => array,
+     *      'labels' => boolean,
+     *      'headers' => array,
+     *      'type' => string
+     *      'separator' => string
+     *      'strict' => boolean
+     *  ])
      */
     public function __construct($options)
     {
         $default = [
-            'root' => dirname(dirname(dirname(dirname(dirname(__DIR__))))),
+            'root' => __DIR__,
             'lang' => [
                 'default' => 'en', 'fallback' => 'en'
             ],
             'labels' => true,
-            'content-type' => Response::CONTENT_TYPE_HTML,
+            'headers' => [],
+            'type' => Response::CONTENT_TYPE_HTML,
             'separator' => '@',
             'strict' => false
         ];
@@ -60,9 +74,11 @@ class App
     }
 
     /**
-     * @param null $key
-     * @param null $value
-     * @return mixed
+     * Management to options of app
+     *
+     * @param string $key (null) The id of option to get or set
+     * @param string $value (null) The value to set
+     * @return mixed Returns the entire options if there is no $key & no $value, else return the respective $option
      */
     public static function options($key = null, $value = null)
     {
@@ -76,45 +92,49 @@ class App
     }
 
     /**
-     * @param bool $output
-     * @return Response
-     * @throws \ErrorException
+     * Used to catch http requests and handle response to their
+     *
+     * @param bool $output (true) Define if the method will generate one output with the response
+     * @return Response The match response for requested resource
+     * @throws ErrorException Generated when is not possible commit the changes
      */
     public function http($output = true)
     {
         $fail = null;
-
+        $response = null;
+        $http = new Http(self::request());
         try {
-            $http = new Http(App::options('separator'), App::options('labels'), App::options('content-type'));
 
-            $response = $http->handler(self::request());
-
+            $response = $http->handler();
             if ($response->isSuccess()) {
                 if (!Transaction::commit()) {
-                    throw new \ErrorException("Transaction can't commit the changes");
+                    throw new ErrorException("Transaction can't commit the changes");
                 }
             }
 
-            if ($output) {
-                $http->output($response);
-            }
-
-            return $response;
-        } catch (\Error $throw) {
+        } catch (Error $throw) {
             $fail = $throw;
-        } catch (\ErrorException $throw) {
+        } catch (ErrorException $throw) {
             $fail = $throw;
-        } catch (\Exception $throw) {
+        } catch (Exception $throw) {
             $fail = $throw;
         }
 
-        echo 'Kernel Panic', throw_format($fail);
+        if ($fail) {
+            $response = $http->fallback($fail);
+        }
 
-        return null;
+        if ($output) {
+            $http->output($response);
+        }
+
+        return $response;
     }
 
     /**
-     * @param $service
+     * Handler to cli services, provide a interface to access services
+     *
+     * @param string $service The requested service
      */
     public function cli($service)
     {
@@ -144,7 +164,9 @@ class App
     }
 
     /**
-     * @return Request
+     * Singleton to Request to keep only one instance for each request
+     *
+     * @return Request Request object populated by server data
      */
     public static function request()
     {
@@ -157,8 +179,10 @@ class App
     }
 
     /**
-     * @param $path
-     * @return object
+     * Interface to get config values
+     * 
+     * @param string $path The path of config ex.: "app.name", equivalent to Name of App
+     * @return mixed Instance of stdClass with the all properties or the value available in path
      */
     public static function config($path)
     {
@@ -186,13 +210,15 @@ class App
     }
 
     /**
-     * @param Router $router
-     * @param array $files
-     * @return Router
+     * Load the routes of project
+     *
+     * @param Router $router The router what will be used
+     * @param array $files (null) If not informe will be used "route.files"
+     * @return Router Object with the routes loaded in
      */
     public static function routes(Router $router, array $files = null)
     {
-        $files = $files ? $files : self::config('route')->files;
+        $files = $files ? $files : self::config('route.files');
 
         foreach ($files as $file) {
             $router->load(path(true, $file));
@@ -202,8 +228,12 @@ class App
     }
 
     /**
-     * @param $uri
-     * @param bool $print
+     * Simple helper to generate a valid route to resources of project
+     *
+     * Ex.: `self::route('/download/images/picture.png')`, will print //localhost/download/images/picture.png
+     *
+     * @param string $uri Path to route
+     * @param bool $print Output or not the route generated
      * @return string
      */
     public static function route($uri, $print = true)

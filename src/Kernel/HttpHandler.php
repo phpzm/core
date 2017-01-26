@@ -32,11 +32,6 @@ class HttpHandler extends Response
     /**
      * @var string
      */
-    private $__separator;
-
-    /**
-     * @var string
-     */
     private $__headerOrigin = 'Origin';
 
     /**
@@ -48,16 +43,14 @@ class HttpHandler extends Response
      * HandlerHttp constructor.
      * @param Request $request
      * @param Match $match
-     * @param string $separator
      */
-    public function __construct(Request $request, Match $match, $separator = '@')
+    public function __construct(Request $request, Match $match)
     {
         parent::__construct();
 
         $this->__request = $request;
         $this->__match = $match;
         $this->__container = $container = Container::getInstance();
-        $this->__separator = $separator;
     }
 
     /**
@@ -112,14 +105,6 @@ class HttpHandler extends Response
     /**
      * @return mixed
      */
-    private function getContentType()
-    {
-        return off($this->match()->getOptions(), 'type');
-    }
-
-    /**
-     * @return mixed
-     */
     public function apply()
     {
         $response = $this->resolve();
@@ -147,6 +132,10 @@ class HttpHandler extends Response
 
         if (!$callback) {
             return $this->parse(null);
+        }
+
+        if ($callback instanceof Throwable) {
+            return $this->parse($callback);
         }
 
         if (gettype($callback) !== TYPE_OBJECT) {
@@ -177,7 +166,7 @@ class HttpHandler extends Response
                 break;
             }
             case TYPE_STRING: {
-                $peaces = explode($this->__separator, $callback);
+                $peaces = explode(App::options('separator'), $callback);
                 $class = $peaces[0];
                 $method = substr($this->match()->getUri(), 1, -1);
                 if (isset($peaces[1])) {
@@ -281,7 +270,7 @@ class HttpHandler extends Response
             $content = throw_format($content);
         }
 
-        $method = (string)$this->getContentType();
+        $method = App::options('type');
 
         return $this->$method($content, $status, $meta);
     }

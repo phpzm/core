@@ -3,6 +3,7 @@
 namespace Simples\Core\Route;
 
 use Simples\Core\Unit\Origin;
+use Throwable;
 
 /**
  * Class Route
@@ -40,9 +41,9 @@ class Match extends Origin
      * @param string $method
      * @param string $uri
      * @param string $path
-     * @param string|callable $callback
-     * @param $parameters
-     * @param $options
+     * @param string|callable|Throwable $callback
+     * @param array $parameters
+     * @param array $options
      */
     public function __construct($method, $uri, $path, $callback, $parameters, $options)
     {
@@ -117,10 +118,10 @@ class Match extends Origin
     }
 
     /**
-     * @param callable $callback
+     * @param string|callable|Throwable $callback
      * @return Match
      */
-    public function setCallback(callable $callback)
+    public function setCallback($callback)
     {
         $this->callback = $callback;
         return $this;
@@ -160,5 +161,14 @@ class Match extends Origin
     {
         $this->options = $options;
         return $this;
+    }
+
+    /**
+     * @param $option
+     * @return mixed|null
+     */
+    public function getOption($option)
+    {
+        return $this->options[$option] ?? null;
     }
 }

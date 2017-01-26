@@ -52,16 +52,23 @@ class Engine
     /**
      * @var string
      */
-    private $contentType;
+    private $type;
+
+    /**
+     * @var array
+     */
+    private $headers;
 
     /**
      * Engine constructor.
      * @param $labels
      * @param $contentType
+     * @param $headers
      */
-    public function __construct($labels = false, $contentType = null)
+    public function __construct($labels = false, $contentType = null, $headers = null)
     {
-        $this->contentType = of($contentType, Response::CONTENT_TYPE_PLAIN);
+        $this->type = of($contentType, Response::CONTENT_TYPE_PLAIN);
+        $this->headers = $headers;
     }
 
     /**
@@ -192,6 +199,7 @@ class Engine
      */
     protected function resolve($method, $uri, $path, $callback, $parameters, $options)
     {
+        // TODO: simplify
         $group = off($options, 'group');
 
         if ($group) {
@@ -207,8 +215,18 @@ class Engine
             return $this->match($method, $uri, $options);
         }
 
-        if (!isset($options['type'])) {
-            $options['type'] = $this->getContentType();
+        if (isset($options['type']) || $this->type) {
+            App::options('type', isset($options['type']) ? $options['type'] : $this->type);
+        }
+        if (isset($options['headers']) || $this->headers) {
+            $headers = $this->headers;
+            if (!$headers) {
+                $headers = [];
+            }
+            if (isset($options['headers'])) {
+                $headers = array_merge($headers, $options['headers']);
+            }
+            App::options('headers', $headers);
         }
 
         return new Match($method, $uri, $path, $callback, $parameters, $options);
@@ -368,18 +386,30 @@ class Engine
     }
 
     /**
-     * @return string
+     * @param $name
+     * @param $value
      */
-    public function getContentType(): string
+    public function addHeader($name, $value)
     {
-        return $this->contentType;
+        if (!is_array($this->headers)) {
+            $this->headers = [];
+        }
+        $this->headers[$name] = $value;
     }
 
     /**
-     * @param string $contentType
+     * @return string
      */
-    public function setContentType(string $contentType)
+    public function getType(): string
     {
-        $this->contentType = $contentType;
+        return $this->type;
+    }
+
+    /**
+     * @param string $type
+     */
+    public function setType(string $type)
+    {
+        $this->type = $type;
     }
 }
