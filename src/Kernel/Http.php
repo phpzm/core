@@ -44,7 +44,7 @@ class Http
     public function handler(): Response
     {
         // TODO: container
-        $router = new Router(App::options('separator'), App::options('labels'), App::options('content-type'));
+        $router = new Router(App::options('separator'), App::options('labels'), App::options('type'));
 
         // TODO: make routes here
         /** @var Match $match */

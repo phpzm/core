@@ -172,6 +172,34 @@ class ApiRepository
     }
 
     /**
+     * @param array $filters
+     * @param array $fields
+     * @return Collection
+     */
+    public function find(array $filters, array $fields): Collection
+    {
+        $getting = $this->model->fields($fields)->read(new Record($filters));
+        if ($getting) {
+            return $getting;
+        }
+        return new Collection([]);
+    }
+
+    /**
+     * @param Record $record
+     * @param array $binds
+     * @return Record
+     */
+    public function transform(Record $record, array $binds)
+    {
+        $transformed = [];
+        foreach ($binds as $key => $value) {
+            $transformed[$value] = $record->get($key);
+        }
+        return new Record($transformed);
+    }
+
+    /**
      * @param $action
      * @return array
      */

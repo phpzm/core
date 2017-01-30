@@ -16,7 +16,7 @@ abstract class RouteService extends Service
      */
     public static function execute(App $app)
     {
-        $router = new Router($app::options('separator'), $app::options('labels'), $app::options('content-type'));
+        $router = new Router($app::options('separator'), $app::options('labels'), $app::options('type'));
 
         $routes = App::routes($router)->getTrace();
 

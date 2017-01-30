@@ -28,9 +28,10 @@ class ${NAME} extends DataMapper
     /**
      * @param $action
      * @param Record $record
+     * @param Record $previous (null)
      * @return bool
      */
-    public function before($action, Record $record)
+    public function before($action, Record $record, Record $previous = null)
     {
         return parent::before($action, $record);
     }
@@ -44,5 +45,4 @@ class ${NAME} extends DataMapper
     {
         return parent::after($action, $record);
     }
-
 }

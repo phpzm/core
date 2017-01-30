@@ -84,7 +84,7 @@ class App
     {
         if ($key) {
             if (!$value) {
-                return self::$options[$key];
+                return self::$options[$key] ?? null;
             }
             self::$options[$key] = $value;
         }
