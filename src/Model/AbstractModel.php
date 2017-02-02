@@ -205,7 +205,7 @@ abstract class AbstractModel extends Engine
         } else if (off($options, 'primaryKey')) {
             $this->primaryKey = $name;
         }
-        $field = new Field($name, $type, $options);
+        $field = new Field($this->collection, $name, $type, $options);
         $this->fields[$name] = $field;
 
         return $field;

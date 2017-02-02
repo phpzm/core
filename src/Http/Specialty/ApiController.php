@@ -6,6 +6,7 @@ use Simples\Core\Data\Record;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Response;
 use Simples\Core\Model\Action;
+use Simples\Core\Model\Field;
 use Simples\Core\Model\Repository\ApiRepository;
 
 /**
@@ -44,7 +45,8 @@ abstract class ApiController extends Controller
 
         $data = [];
         foreach ($fields as $name => $field) {
-            $value = $this->input($name, $field['type']);
+            /** @var Field $field */
+            $value = $this->input($name, $field->getType());
             if (!is_null($value)) {
                 $data[$name] = $value;
             }
@@ -83,8 +85,9 @@ abstract class ApiController extends Controller
             $start = ($page - 1) * $size;
             $end = $size;
             $fields = $this->repository->getFields(Action::READ);
+            /** @var Field $field */
             foreach ($fields as $name => $field) {
-                $value = $this->input($name, $field['type']);
+                $value = $this->input($name, $field->getType());
                 if (!is_null($value)) {
                     $data[$name] = $value;
                 }
@@ -109,7 +112,8 @@ abstract class ApiController extends Controller
             $this->repository->getHashKey() => $id
         ];
         foreach ($fields as $name => $field) {
-            $value = $this->input($name, $field['type']);
+            /** @var Field $field */
+            $value = $this->input($name, $field->getType());
             if (!is_null($value)) {
                 $data[$name] = $value;
             }

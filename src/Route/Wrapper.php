@@ -1,6 +1,7 @@
 <?php
 
 namespace Simples\Core\Route;
+use Simples\Core\Kernel\App;
 
 /**
  * Class Wrapper
@@ -51,7 +52,11 @@ abstract class Wrapper
      */
     public static function message($type, $message)
     {
-        self::$messages[] = ['type' => $type, 'message' => $message];
+        self::$messages[] = [
+            'type' => $type,
+            'message' => $message,
+            'trace' => self::trace()
+        ];
     }
 
     /**
@@ -60,5 +65,22 @@ abstract class Wrapper
     public static function messages()
     {
         return self::$messages;
+    }
+
+    /**
+     * @return array
+     */
+    protected static function trace()
+    {
+        $stack = [];
+        foreach (debug_backtrace() as $value) {
+            $trace = '-----';
+            if (off($value, 'class') && off($value, 'function')) {
+                $trace = off($value, 'class') . App::options('separator') .  off($value, 'function');
+            }
+            $stack[] = $trace;
+        }
+
+        return array_slice($stack, 4);
     }
 }
