@@ -12,9 +12,7 @@ use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Persistence\Transaction;
 use Simples\Core\Route\Router;
-use Error;
-use ErrorException;
-use Exception;
+use Throwable;
 
 /**
  * Class App
@@ -114,11 +112,7 @@ class App
                 }
             }
 
-        } catch (Error $throw) {
-            $fail = $throw;
-        } catch (ErrorException $throw) {
-            $fail = $throw;
-        } catch (Exception $throw) {
+        } catch (Throwable $throw) {
             $fail = $throw;
         }
 

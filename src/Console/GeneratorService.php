@@ -16,6 +16,11 @@ abstract class GeneratorService extends Service
     const POSITIVES = ['y', 'yes', 'yep'];
 
     /**
+     * @var string
+     */
+    protected static $layer = '';
+
+    /**
      * @param App $app
      */
     public static function execute(App $app)
@@ -38,7 +43,7 @@ abstract class GeneratorService extends Service
                     ];
                     $fileManager = new FileManager($commands['namespace'], $commands['name'], $replacements);
 
-                    $fileManager->execute('model');
+                    $fileManager->execute(static::$layer);
 
                     static::others($fileManager);
                     break;

@@ -9,6 +9,11 @@ namespace Simples\Core\Console;
 abstract class RepositoryService extends GeneratorService
 {
     /**
+     * @var string
+     */
+    protected static $layer = 'repository';
+
+    /**
      * Ask for others layers
      * @param FileManager $fileManager
      */

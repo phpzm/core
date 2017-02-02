@@ -23,7 +23,7 @@ define('TYPE_UNKNOWN_TYPE', 'unknown type');
 define('TYPE_DATE', 'date');
 
 // used to compose path do generator
-define('TEMPLATE_DIR', 'resources/templates/');
+define('TEMPLATE_DIR', 'resources/templates');
 
 if (!function_exists('error_handler')) {
     /**

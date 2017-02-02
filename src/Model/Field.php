@@ -54,6 +54,12 @@ class Field
     private $primaryKey;
 
     /**
+     * Collection to which this field belongs
+     * @var string
+     */
+    private $collection;
+
+    /**
      * The name of field, used to create schemas and instructions
      * @var string
      */
@@ -102,12 +108,14 @@ class Field
 
     /**
      * Field constructor.
-     * @param $name
-     * @param $type
+     * @param string $collection
+     * @param string $name
+     * @param string $type
      * @param array $options
      */
-    public function __construct($name, $type, array $options = [])
+    public function __construct(string $collection, string $name, string $type, array $options = [])
     {
+        $this->collection = $collection;
         $this->name = $name;
         $this->type = $type;
 
@@ -180,6 +188,14 @@ class Field
     /**
      * @return string
      */
+    public function getCollection(): string
+    {
+        return $this->collection;
+    }
+
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->name;
@@ -247,6 +263,16 @@ class Field
     public function getReferences(): array
     {
         return $this->references;
+    }
+
+    /**
+     * @param string $collection
+     * @return Field
+     */
+    public function setCollection(string $collection): Field
+    {
+        $this->collection = $collection;
+        return $this;
     }
 
     /**

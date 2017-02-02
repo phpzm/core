@@ -144,7 +144,6 @@ class Router extends Engine
             ['method' => 'GET', 'uri' => ':id', 'callable' => 'get'],
             ['method' => 'POST', 'uri' => '', 'callable' => 'post'],
             ['method' => 'PUT', 'uri' => ':id', 'callable' => 'put'],
-            ['method' => 'PATCH', 'uri' => ':id', 'callable' => 'patch'],
             ['method' => 'DELETE', 'uri' => ':id', 'callable' => 'delete'],
         ];
 

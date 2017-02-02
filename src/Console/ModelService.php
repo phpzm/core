@@ -9,6 +9,11 @@ namespace Simples\Core\Console;
 abstract class ModelService extends GeneratorService
 {
     /**
+     * @var string
+     */
+    protected static $layer = 'model';
+
+    /**
      * Ask for others layers
      * @param FileManager $fileManager
      */

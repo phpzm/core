@@ -163,23 +163,15 @@ abstract class AbstractModel extends Engine
 
     /**
      * @param string $collection
-     * @return AbstractModel
-     */
-    public function collection(string $collection): AbstractModel
-    {
-		if ($this->collection) {
-            $this->parents[] = $this->collection;
-        }
-        $this->collection = $collection;
-        return $this;
-    }
-
-    /**
      * @param string $primaryKey
      * @return AbstractModel
      */
-    public function primaryKey(string $primaryKey): AbstractModel
+    public function collection(string $collection, string $primaryKey): AbstractModel
     {
+		if ($this->collection) {
+            $this->parents[$this->collection] = $this->primaryKey;
+        }
+        $this->collection = $collection;
         $this->primaryKey = $primaryKey;
         return $this;
     }
