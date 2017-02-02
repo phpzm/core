@@ -6,6 +6,8 @@ use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Validation;
 use Simples\Core\Persistence\Engine;
+use ErrorException;
+use Simples\Core\Route\Wrapper;
 
 /**
  * Class AbstractModel
@@ -14,44 +16,47 @@ use Simples\Core\Persistence\Engine;
 abstract class AbstractModel extends Engine
 {
     /**
-     * Connection name
      * @var string
      */
     protected $connection;
 
     /**
-     * Data source name
      * @var string
      */
-    private $collection = '';
+    protected $collection = '';
 
     /**
-     * Collections parents created by extends
-     * @var array
+     * @var string
      */
-    private $parents = [];
+    protected $prefix = '';
 
     /**
-     * Fields of model
      * @var array
      */
     protected $fields = [];
 
     /**
-     * Key used to relationships and to represent the primary key database
-     * @var string
+     * @var array
      */
-    private $primaryKey = '';
+    protected $belongsTo = [];
+
 
     /**
-     * Field with a unique hash what can be used to find a record and can be
-     * created by client
-     * @var string
+     * @var array
+     */
+    protected $hasMany = [];
+
+    /**
+     * @var mixed
+     */
+    protected $primaryKey = '';
+
+    /**
+     * @var mixed
      */
     protected $hashKey = '_id';
 
     /**
-     * Fields to persist the creation object
      * @var array
      */
     protected $createKeys = [
@@ -60,7 +65,6 @@ abstract class AbstractModel extends Engine
     ];
 
     /**
-     * Fields to persist details about the update
      * @var array
      */
     protected $updateKeys = [
@@ -69,8 +73,7 @@ abstract class AbstractModel extends Engine
     ];
 
     /**
-     * Fields to persist details about the destroy
-     * @var array
+     * @var mixed
      */
     protected $destroyKeys = [
         'at' => '_destroyed_at',
@@ -78,27 +81,21 @@ abstract class AbstractModel extends Engine
     ];
 
     /**
-     * AbstractModel constructor to configure a new instance
-     * @param string $connection (null)
+     * AbstractModel constructor.
+     * @param null $connection
      */
     public function __construct($connection = null)
     {
         parent::__construct($this->connection($connection));
 
-        $this->addField($this->hashKey, 'string')->validator('unique');
-        /*
-        foreach (array_merge($this->createKeys, $this->updateKeys, $this->destroyKeys) as $type => $name) {
-            $this->addField($name, $type === 'at' ? Field::TYPE_DATETIME : Field::TYPE_STRING);
-        }
-        */
+        $this->addField($this->hashKey, 'string', ['validator' => 'unique']);
     }
 
     /**
-     * Parse the connection name and choose a source to it
      * @param $connection
-     * @return string
+     * @return mixed
      */
-    private function connection($connection): string
+    protected function connection($connection)
     {
         if (!is_null($connection)) {
             $this->connection = $connection;
@@ -109,14 +106,12 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * Method with the responsibility of create a record of model
      * @param mixed $record
      * @return Record
      */
     abstract public function create($record = null);
 
     /**
-     * Read records with the filters informed
      * @param mixed $record
      * @return Collection
      */
@@ -141,89 +136,62 @@ abstract class AbstractModel extends Engine
     abstract public function fill($record);
 
     /**
-     * @param string $action
+     * @param $action
      * @param Record $record
      * @param Record $previous
      * @return bool
      */
-    public function before(string $action, Record $record, Record $previous = null): bool
+    public function before($action, Record $record, Record $previous = null)
     {
         return true;
     }
 
     /**
-     * @param string $action
+     * @param $action
      * @param Record $record
      * @return bool
      */
-    public function after(string $action, Record $record): bool
+    public function after($action, Record $record)
     {
         return true;
-    }
-
-    /**
-     * @param string $collection
-     * @return AbstractModel
-     */
-    public function collection(string $collection): AbstractModel
-    {
-        if ($this->collection) {
-            $this->parents[] = $this->collection;
-        }
-        $this->collection = $collection;
-        return $this;
-    }
-
-    /**
-     * @param string $primaryKey
-     * @return AbstractModel
-     */
-    public function primaryKey(string $primaryKey): AbstractModel
-    {
-        $this->primaryKey = $primaryKey;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCollection(): string
-    {
-        return $this->collection;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPrimaryKey(): string
-    {
-        return $this->primaryKey;
     }
 
     /**
      * @param $name
      * @param $type
      * @param $options
-     * @return Field
+     * @return $this
      */
-    public function addField($name, $type, $options = []): Field
+    public function addField($name, $type, $options = [])
     {
-        if ($this->primaryKey === $name) {
-            $options['primaryKey'] = true;
-        } else if (off($options, 'primaryKey')) {
+        $primaryKey = off($options,'pk');
+        if($primaryKey) 
+            $this->primaryKey = $name;
+        
+        $default = [
+            'label' => '', 'validator' => '', 'create' => true, 'read' => true, 'update' => true
+        ];
+        $options = array_merge($default, $options);
+        if (off($options, 'pk')) {
             $this->primaryKey = $name;
         }
-        $field = new Field($name, $type, $options);
-        $this->fields[$name] = $field;
-
-        return $field;
+        $this->fields[$name] = [
+            'name' => $name,
+            'type' => $type,
+            'options' => $options
+        ];
+        $relation = off($options, 'relation');
+        if ($relation) {
+            $this->addRelation($name, off($relation, 'type'), off($relation, 'class'), off($relation, 'source'));
+        }
+        return $this;
     }
 
     /**
      * @param $name
-     * @return Field
+     * @return mixed
      */
-    public function getField($name): Field
+    public function getField($name)
     {
         return off($this->fields, $name);
     }
@@ -232,17 +200,89 @@ abstract class AbstractModel extends Engine
      * @param $name
      * @return bool
      */
-    public function hasField($name): bool
+    public function hasField($name)
     {
         return isset($this->fields[$name]);
     }
 
     /**
-     * @param string $action
+     * @param $target
+     * @param $type
+     * @param $class
+     * @param $source
+     * @return $this
+     * @throws ErrorException
+     */
+    public function addRelation($target, $type, $class, $source)
+    {
+        if (!class_exists($class)) {
+            $current = get_class($this);
+            throw new ErrorException("Cant resolve the relationship between '{$class}' in '{$current}'");
+        }
+        $this->$type[] = new Relation($target, $class, $source);
+        return $this;
+    }
+
+    /**
+     * @param $class
+     * @param $source
+     * @param null $target
+     * @return mixed
+     */
+    public function belongsTo($class, $source, $target = null)
+    {
+        $type = 'belongsTo';
+        if ($target) {
+            return $this->addRelation($target, $type, $class, $source);
+        }
+        return $this->relation($type, $class, $source);
+    }
+
+    /**
+     * @param $class
+     * @param $source
+     * @param null $target
+     * @return mixed
+     */
+    public function hasMany($class, $source, $target = null)
+    {
+        $type = 'hasMany';
+        if ($target) {
+            return $this->addRelation($target, $type, $class, $source);
+        }
+        return $this->relation($type, $class, $source);
+    }
+
+    /**
+     * @param $type
+     * @param $class
+     * @param $field
+     * @return array
+     */
+    public function relation($type, $class, $field)
+    {
+        return ['type' => $type, 'class' => $class, 'source' => $field];
+    }
+
+    /**
+     * @param $rule
+     * @param $parameters
+     * @return array
+     */
+    public function validator($rule, ...$parameters)
+    {
+        if (count($parameters)) {
+            return [$rule => $parameters];
+        }
+        return $rule;
+    }
+
+    /**
+     * @param $action
      * @param Record $record
      * @return array
      */
-    public function getValidators($action, Record $record): array
+    public function getValidators($action, Record $record)
     {
         $validation = new Validation();
         foreach ($this->fields as $key => $field) {
@@ -255,24 +295,28 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @param Field $field
-     * @param $action
-     * @return array|null
+     * @param $field
+     * @return array
      */
-    private function getValidator(Field $field, $action)
+    private function getValidator($field, $action)
     {
         $rules = null;
-        $validators = $field->getValidators();
-        if ($validators) {
+        $validator = off(off($field, 'options'), 'validator');
+        if ($validator) {
             $rules = [];
-            foreach ($validators as $validator => $options) {
+            $validators = $validator;
+            if (!is_array($validators)) {
+                $validators = [$validator];
+            }
+            foreach ($validators as $validator) {
+                $options = null;
                 switch ($validator) {
                     case 'unique':
                         // TODO: fix this to support unique on update
                         if ($action === Action::CREATE) {
                             $options = [
                                 'class' => get_class($this),
-                                'field' => $field->getName()
+                                'field' => $field['name']
                             ];
                         }
                         break;
@@ -289,7 +333,7 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @param string $action
+     * @param $action
      * @param Record $record
      * @return array
      */
@@ -302,7 +346,7 @@ abstract class AbstractModel extends Engine
      * @param $action
      * @return array
      */
-    public function getFields($action): array
+    public function getFields($action)
     {
         return $this->fields;
     }
@@ -310,15 +354,15 @@ abstract class AbstractModel extends Engine
     /**
      * @return string
      */
-    public function hashKey(): string
+    public function hashKey()
     {
         return uniqid();
     }
 
     /**
-     * @return string
+     * @return mixed
      */
-    public function getHashKey(): string
+    public function getHashKey()
     {
         return $this->hashKey;
     }

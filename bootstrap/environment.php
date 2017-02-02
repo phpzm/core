@@ -22,6 +22,9 @@ define('TYPE_UNKNOWN_TYPE', 'unknown type');
 // custom types
 define('TYPE_DATE', 'date');
 
+
+//
+define('TEMPLATE_DIR', 'vendor/phpzm/core/resources/templates/');
 if (!function_exists('error_handler')) {
     /**
      * @param $code

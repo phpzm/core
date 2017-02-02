@@ -96,7 +96,7 @@ abstract class ApiController extends Controller
         }
         $collection = $this->repository->get(new Record($data), $start, $end);
 
-        return $this->answerOK($collection->getRecords());
+        return $this->answerOK($collection->getRecords(), (isset($page)) ? ['page' => $page, 'size' => $collection->size() ] : null);
     }
 
     /**

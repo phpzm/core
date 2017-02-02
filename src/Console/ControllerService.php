@@ -1,15 +1,18 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Ézio
+ * Date: 30/01/2017
+ * Time: 21:05
+ */
 
 namespace Simples\Core\Console;
 
 use Simples\Core\Kernel\App;
 
-/**
- * Class ModelService
- * @package Simples\Core\Console
- */
-abstract class ModelService extends Service
+abstract class  ControllerService extends Service
 {
+
     /**
      * @param App $app
      */
@@ -34,35 +37,36 @@ abstract class ModelService extends Service
                             ]
                     ];
 
-                    $fileManager = new FileManager($commands['name'],$replacements);
+                    $fileManager = new FileManager($commands['name'], $replacements);
 
 
-                    $fileManager->execute('model');
+                    $fileManager->execute('controller');
 
-                    print "Do you want to create Controller layer?";
+                    print "Do you want to create Model layer?";
                     $option = trim(fgets(STDIN));
-                    if(!in_array($option, ['no', 'nao', 'nop', 'n'])){
-                        $fileManager->execute('controller');
+                    if (!in_array($option, ['no', 'nao', 'nop', 'n'])) {
+                        $fileManager->execute('model');
                     }
                     print "Do you want to create Repository layer?";
                     $option = trim(fgets(STDIN));
-                    if(!in_array($option, ['no', 'nao', 'nop', 'n'])){
+                    if (!in_array($option, ['no', 'nao', 'nop', 'n'])) {
                         $fileManager->execute('repository');
                     }
 
                     break;
                 }
             }
-            echo " # MODEL\n";
+            echo " # CONTROLLER\n";
             echo " Choose one option:\n";
             echo "    - create\n";
-            echo "    - refactor\n";
-            echo "    - remove\n";
+            //echo "    - refactor\n";
+            //echo "    - remove\n";
 
-            echo "[ model ]$ ";
+            echo "[ controller ]$ ";
             $option = trim(fgets(STDIN));
         } while (!in_array($option, Service::KILLERS));
     }
+
 
     /**
      * @return array|null
@@ -93,7 +97,7 @@ abstract class ModelService extends Service
                     break;
                 }
             }
-            echo "[ model.create ]{$message}$ ";
+            echo "[ controller.create ]{$message}$ ";
             $option = trim(fgets(STDIN));
         } while (!in_array($option, Service::KILLERS));
 

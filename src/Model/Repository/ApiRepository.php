@@ -18,7 +18,7 @@ class ApiRepository
     /**
      * @var AbstractModel
      */
-    protected $model;
+    private $model;
 
     /**
      * @var Validator

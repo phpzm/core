@@ -2,8 +2,10 @@
 
 namespace Simples\Core\Kernel;
 
+use Simples\Core\Console\ControllerService;
 use Simples\Core\Console\HelpService;
 use Simples\Core\Console\ModelService;
+use Simples\Core\Console\RepositoryService;
 use Simples\Core\Console\RouteService;
 use Simples\Core\Console\Service;
 use Simples\Core\Http\Request;
@@ -153,6 +155,14 @@ class App
                     $service = '';
                     break;
                 }
+                case 'controller':
+                    ControllerService::execute($this);
+                    $service = '';
+                    break;
+                case 'repository':
+                    RepositoryService::execute($this);
+                    $service = '';
+                    break;
             };
             if (!$service || $service === 'help') {
                 HelpService::execute($this);

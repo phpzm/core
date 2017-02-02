@@ -1,18 +1,22 @@
 <?php
 
-namespace ${NAMESPACE};
+/**
+ * Created by Simples Creator Engine - SCE.
+ */
+
+namespace ${NAMESPACE}\Model;
 
 use Simples\Core\Data\Record;
 use Simples\Core\Model\DataMapper;
 
 /**
  * Class ${NAME}
- * @package ${NAMESPACE}
+ * @package ${NAMESPACE}\Model
  */
 class ${NAME} extends DataMapper
 {
     /**
-     * Conta constructor.
+     * ${NAME} constructor.
      */
     public function __construct()
     {
@@ -26,14 +30,14 @@ class ${NAME} extends DataMapper
     }
 
     /**
-     * @param $action
-     * @param Record $record
-     * @param Record $previous (null)
-     * @return bool
-     */
+    * @param $action
+    * @param Record $record
+    * @param Record|null $previous
+    * @return bool
+    */
     public function before($action, Record $record, Record $previous = null)
     {
-        return parent::before($action, $record);
+        return parent::before($action, $record, $previous);
     }
 
     /**
