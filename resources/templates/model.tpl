@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Created by Simples Creator Engine - SCE.
- */
-
 namespace ${NAMESPACE}\Model;
 
 use Simples\Core\Data\Record;
@@ -22,30 +18,30 @@ class ${NAME} extends DataMapper
     {
         parent::__construct();
 
-        $this->collection = 'table';
-        $this->primaryKey = 'field'; // optional $primaryKey is overwritten by ['pk' => true]
+        $this->collection('${table}');
+        $this->primaryKey('${primaryKey}');
 
-        $this->addField('field', 'int', ['pk' => true]);
-        $this->addField('field', 'string', ['validator' => 'required']);
+        $this->addField('${primaryKey}', 'int');
+        $this->addField('${description}', 'string')->validator('required');
     }
 
     /**
-    * @param $action
+    * @param string $action
     * @param Record $record
     * @param Record|null $previous
     * @return bool
     */
-    public function before($action, Record $record, Record $previous = null)
+    public function before(string $action, Record $record, Record $previous = null): bool
     {
         return parent::before($action, $record, $previous);
     }
 
     /**
-     * @param $action
+     * @param string $action
      * @param Record $record
      * @return bool
      */
-    public function after($action, Record $record)
+    public function after(string $action, Record $record): bool
     {
         return parent::after($action, $record);
     }

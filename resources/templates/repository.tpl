@@ -1,10 +1,6 @@
 <?php
-/**
- * Created by Simples Creator Engine - SCE.
- */
 
 namespace ${NAMESPACE}\Repository;
-
 
 use ${NAMESPACE}\Model\${NAME};
 use Simples\Core\Model\Repository\ApiRepository;
@@ -16,12 +12,16 @@ use Simples\Core\Model\Repository\ApiRepository;
 class ${NAME}Repository extends ApiRepository
 {
     /**
-     * ${NAME}Repository constructor.
-     * @param ${NAME} $object
+     * @var ${NAME}
      */
-    public function __construct(${NAME} $object)
-    {
-        parent::__construct($object);
-    }
+    protected $model;
 
+    /**
+     * ${NAME}Repository constructor.
+     * @param ${NAME} $model
+     */
+    public function __construct(${NAME} $model)
+    {
+        parent::__construct($model);
+    }
 }

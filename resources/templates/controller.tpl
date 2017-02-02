@@ -1,17 +1,16 @@
 <?php
-/**
- * Created by Simples Creator Engine - SCE.
- */
 
 namespace ${NAMESPACE}\Controller;
-
 
 use ${NAMESPACE}\Repository\${NAME}Repository;
 use Simples\Core\Http\Specialty\ApiController;
 
+/**
+ * Class ${NAME}
+ * @package ${NAMESPACE}\Controller
+ */
 class ${NAME}Controller extends ApiController
 {
-
     /**
      * @var ${NAME}Repository
      */
@@ -24,5 +23,5 @@ class ${NAME}Controller extends ApiController
     public function __construct(${NAME}Repository $repository)
     {
         $this->repository = $repository;
-}
+    }
 }
