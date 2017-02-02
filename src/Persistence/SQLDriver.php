@@ -127,7 +127,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getInsert($clausules)
     {
-        $collection = off($clausules, 'collection', '<collection>');
+        $table = off($clausules, 'table', '<table>');
         $fields = off($clausules, 'fields', '<fields>');
 
         $inserts = [];
@@ -137,7 +137,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
 
         $command = [];
         $command[] = 'INSERT INTO';
-        $command[] = $collection;
+        $command[] = $table;
         $command[] = '(' . (is_array($fields) ? implode(', ', $fields) : $fields) . ')';
         $command[] = 'VALUES';
         $command[] = '(' . implode(', ', $inserts) . ')';
@@ -151,7 +151,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getSelect($clausules)
     {
-        $collection = off($clausules, 'collection', '<collection>');
+        $table = off($clausules, 'table', '<table>');
         $fields = off($clausules, 'fields', '<fields>');
         $join = off($clausules, 'join');
 
@@ -159,9 +159,9 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $command[] = 'SELECT';
         $command[] = (is_array($fields) ? implode(', ', $fields) : $fields);
         $command[] = 'FROM';
-        $command[] = $collection;
+        $command[] = $table;
         if ($join) {
-            $command[] = $join;
+            $command[] = is_array($join) ? implode(' ', $join) : $join;
         }
 
         $modifiers = [
@@ -197,7 +197,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getUpdate($clausules)
     {
-        $collection = off($clausules, 'collection', '<collection>');
+        $table = off($clausules, 'table', '<table>');
         $join = off($clausules, 'join');
         $fields = off($clausules, 'fields', '<fields>');
 
@@ -210,7 +210,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
 
         $command = [];
         $command[] = 'UPDATE';
-        $command[] = $collection;
+        $command[] = $table;
         if ($join) {
             $command[] = $join;
         }

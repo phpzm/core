@@ -4,7 +4,6 @@ namespace Simples\Core\Data;
 
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
-use Simples\Core\Route\Wrapper;
 use Stringy\Stringy;
 
 /**
@@ -703,6 +702,7 @@ class Validator
     public function parse(array $validators): Record
     {
         $errors = [];
+        // Wrapper::info($validators);
         foreach ($validators as $field => $settings) {
             $error = $this->applyRules(off($settings, 'rules'), off($settings, 'value'));
             if (count($error)) {
