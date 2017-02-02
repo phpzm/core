@@ -2,9 +2,11 @@
 
 namespace Simples\Core\Model;
 
+use Exception;
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Helper\Date;
+use Simples\Core\Kernel\Container;
 use Simples\Core\Security\Auth;
 
 /**
@@ -48,17 +50,23 @@ class DataMapper extends AbstractModel
             }
 
             $created = $this
-                ->collection($this->collection)
+                ->table($this->getCollection())
                 ->fields($fields)
                 ->add($values);
 
             if ($created) {
-                $primaryKey = is_array($this->primaryKey) ? $this->primaryKey[0] : $this->primaryKey;
 
-                $record->set($primaryKey, $created);
+                $primaryKey = $this->getPrimaryKey();
+                if ($primaryKey) {
+                    $record->set($primaryKey, $created);
+                }
 
+                $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    return $record;
+                    if ($snapshot !== $record) {
+                        $this->update($snapshot);
+                    }
+                    return $snapshot;
                 }
             }
         }
@@ -87,14 +95,20 @@ class DataMapper extends AbstractModel
                 $filters = $this->parseReadFilterValues($record->all());
             }
             if ($this->destroyKeys) {
-                $where[] = "(({$this->destroyKeys['at']} IS NULL) OR (NOT {$this->destroyKeys['at']}))";
+                $where[] = $this->getDestroyFilter();
             }
 
+            $join = $this->parseReadRelations();
+
             $collection = $this
-                ->collection($this->collection)
+                ->table($this->getCollection())
+                ->join($join)
                 ->fields($this->parseReadFields())
                 ->where($where)
                 ->get($filters);
+
+            $this->join(null);
+
             $after = new Record(['collection' => $collection]);
             if ($this->after($action, $after)) {
                 return new Collection($after->get('collection'));
@@ -119,26 +133,16 @@ class DataMapper extends AbstractModel
 
         $action = Action::UPDATE;
 
-        $filter = [];
-        if ($record->get($this->primaryKey)) {
-            $filter = [$this->primaryKey => $record->get($this->primaryKey)];
-        } elseif ($record->get($this->hashKey)) {
-            $filter = [$this->hashKey => $record->get($this->hashKey)];
-        }
-
-        $previous = $this->read($filter)->current();
+        $previous = $this->previous($record);
         if ($previous->isEmpty()) {
             return null;
         }
-
-        $record->set($this->primaryKey, $previous->get($this->primaryKey));
-        $record->set($this->hashKey, $previous->get($this->hashKey));
 
         if ($this->before($action, $record, $previous)) {
             $fields = [];
             $values = [];
 
-            foreach ($record->all([$this->hashKey, $this->primaryKey]) as $field => $value) {
+            foreach ($record->all([$this->hashKey, $this->getPrimaryKey()]) as $field => $value) {
                 if (!is_null($value)) {
                     $fields[] = $field;
                     $values[] = $value;
@@ -150,18 +154,22 @@ class DataMapper extends AbstractModel
             }
 
             $updated = $this
-                ->collection($this->collection)
+                ->table($this->getCollection())
                 ->fields($fields)
-                ->where(["{$this->primaryKey} = ?"])
-                ->set($values, [$record->get($this->primaryKey)]);
+                ->where(["{$this->getPrimaryKey()} = ?"])
+                ->set($values, [$record->get($this->getPrimaryKey())]);
 
             if ($updated) {
                 foreach ($record->all() as $name => $value) {
                     $previous->set($name, $value);
                 }
                 $record = $previous;
+                $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    return $record;
+                    if ($snapshot !== $record) {
+                        $this->update($snapshot);
+                    }
+                    return $snapshot;
                 }
             }
         }
@@ -184,23 +192,13 @@ class DataMapper extends AbstractModel
 
         $action = Action::DESTROY;
 
-        $filter = [];
-        if ($record->get($this->primaryKey)) {
-            $filter = [$this->primaryKey => $record->get($this->primaryKey)];
-        } elseif ($record->get($this->hashKey)) {
-            $filter = [$this->hashKey => $record->get($this->hashKey)];
-        }
-
-        $previous = $this->read($filter)->current();
+        $previous = $this->previous($record);
         if ($previous->isEmpty()) {
             return null;
         }
 
-        $record->set($this->primaryKey, $previous->get($this->primaryKey));
-        $record->set($this->hashKey, $previous->get($this->hashKey));
-
         if ($this->before($action, $record, $previous)) {
-            $where = ["{$this->primaryKey} = ?"];
+            $where = ["{$this->getPrimaryKey()} = ?"];
 
             if ($this->destroyKeys) {
                 $fields = [];
@@ -211,15 +209,15 @@ class DataMapper extends AbstractModel
                 }
 
                 $removed = $this
-                    ->collection($this->collection)
+                    ->table($this->getCollection())
                     ->fields($fields)
                     ->where($where)
-                    ->set($values, [$record->get($this->primaryKey)]);
+                    ->set($values, [$record->get($this->getPrimaryKey())]);
             } else {
                 $removed = $this
-                    ->collection($this->collection)
+                    ->table($this->getCollection())
                     ->where($where)
-                    ->remove([$record->get($this->primaryKey)]);
+                    ->remove([$record->get($this->getPrimaryKey())]);
             }
 
             if ($removed) {
@@ -227,7 +225,11 @@ class DataMapper extends AbstractModel
                     $previous->set($name, $value);
                 }
                 $record = $previous;
+                $snapshot = clone $record;
                 if ($this->after($action, $record)) {
+                    if ($snapshot !== $record) {
+                        throw new Exception('Changes made after destroy are lost');
+                    }
                     return $record;
                 }
             }
@@ -250,12 +252,20 @@ class DataMapper extends AbstractModel
      */
     protected function parseReadFields()
     {
+        $fields = array_keys($this->getFields(Action::READ));
         if (off($this->getClausules(), 'fields')) {
             $fields = off($this->getClausules(), 'fields');
             $this->fields(null);
-            return $fields;
         }
-        return array_keys($this->getFields(Action::READ));
+        $read = [];
+        foreach ($fields as $field) {
+            $value = "{$field}";
+            if (strpos($field, '_') === 0) {
+                $value = "{$this->getCollection()}.{$field}";
+            }
+            $read[] = $value;
+        }
+        return $read;
     }
 
     /**
@@ -295,5 +305,57 @@ class DataMapper extends AbstractModel
                 break;
         }
         return null;
+    }
+
+    /**
+     * @return array
+     */
+    private function parseReadRelations(): array
+    {
+        $join = [];
+        foreach ($this->fields as $field) {
+            /** @var Field $field */
+            $references = $field->getReferences();
+            if (count($references)) {
+                foreach ($references as $reference => $class) {
+                    /** @var DataMapper $instance */
+                    $instance = Container::getInstance()->make($class);
+                    $table = $instance->getCollection();
+                    $join[] = "LEFT JOIN {$table} ON ({$field->getName()} = {$reference})";
+                }
+            }
+        }
+        return $join;
+    }
+
+    /**
+     * @param Record $record
+     * @return Record
+     */
+    private function previous(Record $record): Record
+    {
+        $filter = [];
+        if ($record->get($this->getPrimaryKey())) {
+            $filter = [$this->getPrimaryKey() => $record->get($this->getPrimaryKey())];
+        } elseif ($record->get($this->hashKey)) {
+            $filter = [$this->hashKey => $record->get($this->hashKey)];
+        }
+
+        $previous = $this->read($filter)->current();
+        if (!$previous->isEmpty()) {
+            $record->set($this->getPrimaryKey(), $previous->get($this->getPrimaryKey()));
+            $record->set($this->hashKey, $previous->get($this->hashKey));
+        }
+
+        return $previous;
+    }
+
+    /**
+     * @return string
+     */
+    private function getDestroyFilter()
+    {
+        $field = "{$this->getCollection()}.{$this->destroyKeys['at']}";
+        return "(({$field} IS NULL) OR (NOT {$field}))";
     }
 }

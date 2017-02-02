@@ -10,8 +10,8 @@ use Simples\Core\Kernel\App;
  * Class Engine
  * @package Simples\Core\Persistence
  *
- * @method $this collection (string $table)
- * @method $this join (string $join)
+ * @method $this table (string $table)
+ * @method $this join (array $join)
  * @method $this fields (array $fields)
  * @method $this where (array $where)
  * @method $this order (array $order)

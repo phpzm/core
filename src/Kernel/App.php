@@ -190,7 +190,7 @@ class App
 
     /**
      * Interface to get config values
-     * 
+     *
      * @param string $path The path of config ex.: "app.name", equivalent to Name of App
      * @return mixed Instance of stdClass with the all properties or the value available in path
      */

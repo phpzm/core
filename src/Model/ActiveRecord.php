@@ -4,6 +4,7 @@ namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
+use Exception;
 
 /**
  * Class ActiveRecord
@@ -22,6 +23,8 @@ class ActiveRecord extends AbstractModel
     public function __construct()
     {
         parent::__construct($this->connection);
+
+        throw new Exception('Needs review');
     }
 
     /**
@@ -61,24 +64,6 @@ class ActiveRecord extends AbstractModel
      */
     final public function create($record = null)
     {
-        $action = __FUNCTION__;
-
-        $record = new Record($this->getValues());
-
-        if ($this->before($action, $record)) {
-            $created = $this
-                ->collection($this->collection)
-                ->fields(array_keys($record->all()))
-                ->add(array_values($record->all()));
-
-            $primaryKey = is_array($this->primaryKey) ? $this->primaryKey[0] : $this->primaryKey;
-
-            $record->set($primaryKey, $created);
-
-            if ($this->after($action, $record)) {
-                return $record;
-            }
-        }
         return null;
     }
 
@@ -88,12 +73,7 @@ class ActiveRecord extends AbstractModel
      */
     public function read($record = null)
     {
-        $array = $this
-            ->collection($this->collection)
-            ->fields('*')
-            ->get();
-
-        return new Collection($array);
+        return new Collection([]);
     }
 
     /**
@@ -102,7 +82,6 @@ class ActiveRecord extends AbstractModel
      */
     public function update($record = null)
     {
-        // set
         return new Record([]);
     }
 
@@ -112,7 +91,6 @@ class ActiveRecord extends AbstractModel
      */
     public function destroy($record = null)
     {
-        // remove
         return new Record([]);
     }
 
@@ -126,6 +104,7 @@ class ActiveRecord extends AbstractModel
             return false;
         }
         foreach ($record as $field => $value) {
+            /** @noinspection PhpVariableVariableInspection */
             $this->$field = $value;
         }
         return true;
