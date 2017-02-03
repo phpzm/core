@@ -94,6 +94,7 @@ class DataMapper extends AbstractModel
                 $where = $this->parseReadFilterFields($record->all());
                 $filters = $this->parseReadFilterValues($record->all());
             }
+
             if ($this->destroyKeys) {
                 $where[] = $this->getDestroyFilter();
             }
@@ -357,5 +358,35 @@ class DataMapper extends AbstractModel
     {
         $field = "{$this->getCollection()}.{$this->destroyKeys['at']}";
         return "(({$field} IS NULL) OR (NOT {$field}))";
+    }
+
+
+    /**
+     * @param null $record
+     * @return integer
+     */
+    public function count(Record $record = null) : int
+    {
+
+        if ($record && !$record->isEmpty()) {
+            $where = $this->parseReadFilterFields($record->all());
+            $filters = $this->parseReadFilterValues($record->all());
+        } else {
+            $where = [];
+            $filters = [];
+        }
+
+        if ($this->destroyKeys) {
+            $where[] = $this->getDestroyFilter();
+        }
+
+        $data = $this
+            ->table($this->getCollection())
+            ->fields(['count(*) as count'])
+            ->where($where)
+            ->get($filters);
+
+
+        return $data[0]['count'];
     }
 }

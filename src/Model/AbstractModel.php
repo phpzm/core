@@ -141,6 +141,12 @@ abstract class AbstractModel extends Engine
     abstract public function fill($record);
 
     /**
+     * @param Record|null $record
+     * @return int
+     */
+    abstract public function count(Record $record = null) : int;
+
+    /**
      * @param string $action
      * @param Record $record
      * @param Record $previous

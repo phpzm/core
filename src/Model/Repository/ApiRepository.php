@@ -223,4 +223,12 @@ class ApiRepository
     {
         return $this->model->getHashKey();
     }
+
+    public function count(array $record) : int
+    {
+
+        $record = new Record($record);
+
+        return $this->model->count($record);
+    }
 }
