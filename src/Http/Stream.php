@@ -35,13 +35,7 @@ class Stream implements StreamInterface
         if (is_resource($stream)) {
             $this->resource = $stream;
         } elseif (is_string($stream)) {
-            try {
-                $this->resource = fopen($this->stream, $mode);
-            } catch (Exception $e) {
-                throw new InvalidArgumentException(
-                    $e->getMessage()
-                );
-            }
+            $this->resource = fopen($this->stream, $mode);
         } else {
             throw new InvalidArgumentException(
                 'Invalid stream provided; must be a string stream identifier or resource'
@@ -68,12 +62,8 @@ class Stream implements StreamInterface
         if (!$this->isReadable()) {
             return '';
         }
-        try {
-            $this->rewind();
-            return $this->getContents();
-        } catch (RuntimeException $e) {
-            return '';
-        }
+        $this->rewind();
+        return $this->getContents();
     }
 
     /**

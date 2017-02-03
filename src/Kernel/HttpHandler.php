@@ -216,8 +216,8 @@ class HttpHandler extends Response
         // TODO: multi catch in line since 7.1
         try {
             $result = call_user_func_array($callback, $parameters);
-        } catch (Throwable $error) {
-            $result = $error;
+        } catch (Throwable $throw) {
+            $result = $throw;
         }
 
         $contents = ob_get_contents();

@@ -1,9 +1,10 @@
 <?php
 
-namespace Simples\Core\Persistence;
+namespace Simples\Core\Persistence\SQL;
 
-use \PDO;
-use \PDOStatement;
+use PDO;
+use PDOStatement;
+use Simples\Core\Persistence\Connection;
 
 /**
  * Class Connection

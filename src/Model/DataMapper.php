@@ -7,6 +7,8 @@ use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
+use Simples\Core\Persistence\Filter;
+use Simples\Core\Persistence\Fusion;
 use Simples\Core\Security\Auth;
 
 /**
@@ -50,7 +52,7 @@ class DataMapper extends AbstractModel
             }
 
             $created = $this
-                ->table($this->getCollection())
+                ->source($this->getCollection())
                 ->fields($fields)
                 ->add($values);
 
@@ -92,23 +94,23 @@ class DataMapper extends AbstractModel
             $filters = [];
             if (!$record->isEmpty()) {
                 $where = $this->parseReadFilterFields($record->all());
-                $filters = $this->parseReadFilterValues($record->all());
+                $filters = $this->parseReadFilterValues($where);
             }
 
             if ($this->destroyKeys) {
                 $where[] = $this->getDestroyFilter();
             }
 
-            $join = $this->parseReadRelations();
+            $relations = $this->parseReadRelations();
 
             $collection = $this
-                ->table($this->getCollection())
-                ->join($join)
+                ->source($this->getCollection())
+                ->relation($relations)
                 ->fields($this->parseReadFields())
-                ->where($where)
+                ->filter($where)
                 ->get($filters);
 
-            $this->join(null);
+            $this->relation(null);
 
             $after = new Record(['collection' => $collection]);
             if ($this->after($action, $after)) {
@@ -154,17 +156,20 @@ class DataMapper extends AbstractModel
                 $values[] = $this->getTimestampValue($type);
             }
 
+            $filter = new Filter($this->getField($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
+
             $updated = $this
-                ->table($this->getCollection())
+                ->source($this->getCollection())
                 ->fields($fields)
-                ->where(["{$this->getPrimaryKey()} = ?"])
-                ->set($values, [$record->get($this->getPrimaryKey())]);
+                ->filter([$filter])
+                ->set($values, [$filter->getValue()]);
 
             if ($updated) {
                 foreach ($record->all() as $name => $value) {
                     $previous->set($name, $value);
                 }
                 $record = $previous;
+
                 $snapshot = clone $record;
                 if ($this->after($action, $record)) {
                     if ($snapshot !== $record) {
@@ -199,7 +204,8 @@ class DataMapper extends AbstractModel
         }
 
         if ($this->before($action, $record, $previous)) {
-            $where = ["{$this->getPrimaryKey()} = ?"];
+            $filter = new Filter($this->getField($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
+            $filters = [$filter];
 
             if ($this->destroyKeys) {
                 $fields = [];
@@ -210,14 +216,14 @@ class DataMapper extends AbstractModel
                 }
 
                 $removed = $this
-                    ->table($this->getCollection())
+                    ->source($this->getCollection())
                     ->fields($fields)
-                    ->where($where)
-                    ->set($values, [$record->get($this->getPrimaryKey())]);
+                    ->filter($filters)
+                    ->set($values, [$filter->getValue()]);
             } else {
                 $removed = $this
-                    ->table($this->getCollection())
-                    ->where($where)
+                    ->source($this->getCollection())
+                    ->filter($filters)
                     ->remove([$record->get($this->getPrimaryKey())]);
             }
 
@@ -226,6 +232,7 @@ class DataMapper extends AbstractModel
                     $previous->set($name, $value);
                 }
                 $record = $previous;
+
                 $snapshot = clone $record;
                 if ($this->after($action, $record)) {
                     if ($snapshot !== $record) {
@@ -237,15 +244,6 @@ class DataMapper extends AbstractModel
         }
 
         return null;
-    }
-
-    /**
-     * @param $record
-     * @return mixed
-     */
-    public function fill($record)
-    {
-        return false;
     }
 
     /**
@@ -270,32 +268,47 @@ class DataMapper extends AbstractModel
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return array
+     * @throws Exception
      */
-    protected function parseReadFilterFields($data)
+    protected function parseReadFilterFields(array $data): array
     {
-        $fields = [];
-        foreach ($data as $key => $value) {
-            $fields[] = "{$key} = ?";
+        $filters = [];
+        foreach ($data as $name => $value) {
+            $field = $this->getField($name);
+            if (is_null($field)) {
+                throw new Exception("Invalid field name '{$name}'");
+            }
+            $filters[] = new Filter($field, $value);
         }
-        return $fields;
+        return $filters;
     }
 
     /**
-     * @param $data
+     * @param array $filters
      * @return array
      */
-    protected function parseReadFilterValues($data)
+    protected function parseReadFilterValues(array $filters): array
     {
-        return array_values($data);
+        $values = [];
+        /** @var Filter $filter */
+        foreach ($filters as $filter) {
+            $value = $filter->getParsedValue();
+            if (!is_array($value)) {
+                $values[] = $value;
+                continue;
+            }
+            $values = array_merge($values, $value);
+        }
+        return $values;
     }
 
     /**
-     * @param $type
+     * @param string $type
      * @return null|string
      */
-    protected function getTimestampValue($type)
+    protected function getTimestampValue(string $type)
     {
         switch ($type) {
             case 'at':
@@ -322,7 +335,7 @@ class DataMapper extends AbstractModel
                     /** @var DataMapper $instance */
                     $instance = Container::getInstance()->make($class);
                     $table = $instance->getCollection();
-                    $join[] = "LEFT JOIN {$table} ON ({$field->getName()} = {$reference})";
+                    $join[] = new Fusion($field->getName(), $table, $reference);
                 }
             }
         }
@@ -335,45 +348,43 @@ class DataMapper extends AbstractModel
      */
     private function previous(Record $record): Record
     {
-        $filter = [];
-        if ($record->get($this->getPrimaryKey())) {
-            $filter = [$this->getPrimaryKey() => $record->get($this->getPrimaryKey())];
-        } elseif ($record->get($this->hashKey)) {
-            $filter = [$this->hashKey => $record->get($this->hashKey)];
+        $hashKey = $this->hashKey;
+        $primaryKey = $this->getPrimaryKey();
+
+        $filter = [$hashKey => $record->get($hashKey)];
+        if ($record->get($primaryKey)) {
+            $filter = [$primaryKey => $record->get($primaryKey)];
         }
 
         $previous = $this->read($filter)->current();
         if (!$previous->isEmpty()) {
-            $record->set($this->getPrimaryKey(), $previous->get($this->getPrimaryKey()));
-            $record->set($this->hashKey, $previous->get($this->hashKey));
+            $record->set($primaryKey, $previous->get($primaryKey));
+            $record->set($hashKey, $previous->get($hashKey));
         }
 
         return $previous;
     }
 
     /**
-     * @return string
+     * @return Filter
      */
-    private function getDestroyFilter()
+    private function getDestroyFilter(): Filter
     {
-        $field = "{$this->getCollection()}.{$this->destroyKeys['at']}";
-        return "(({$field} IS NULL) OR (NOT {$field}))";
+        $field = new Field($this->getCollection(), $this->destroyKeys['at'], Field::TYPE_DATETIME);
+        return new Filter($field, Filter::rule(null, Filter::RULE_BLANK));
     }
 
-
     /**
-     * @param null $record
-     * @return integer
+     * @param Record|null $record
+     * @return int
      */
-    public function count(Record $record = null) : int
+    public function count(Record $record = null): int
     {
-
+        $where = [];
+        $filters = [];
         if ($record && !$record->isEmpty()) {
             $where = $this->parseReadFilterFields($record->all());
-            $filters = $this->parseReadFilterValues($record->all());
-        } else {
-            $where = [];
-            $filters = [];
+            $filters = $this->parseReadFilterValues($where);
         }
 
         if ($this->destroyKeys) {
@@ -381,12 +392,14 @@ class DataMapper extends AbstractModel
         }
 
         $data = $this
-            ->table($this->getCollection())
-            ->fields(['count(*) as count'])
-            ->where($where)
+            ->source($this->getCollection())
+            ->fields(["COUNT({$this->getPrimaryKey()}) AS count"])
+            ->filter($where)
             ->get($filters);
 
-
-        return $data[0]['count'];
+        if (count($data)) {
+            return $data[0]['count'];
+        }
+        return 0;
     }
 }

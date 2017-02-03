@@ -74,12 +74,11 @@ abstract class ApiController extends Controller
     {
         $this->repository->setLog($this->request()->get('log'));
 
-        $data = [];
         $start = null;
         $end = null;
-        if ($id) {
-            $data = [$this->repository->getHashKey() => $id];
-        } else {
+        $data = [$this->repository->getHashKey() => $id];
+        if (!$id) {
+            $data = [];
             $page = (int)$this->request()->get('page');
             $size = (int)$this->request()->get('size');
             $start = ($page - 1) * $size;
@@ -99,7 +98,7 @@ abstract class ApiController extends Controller
 
         $count = $this->repository->count($data);
 
-        return $this->answerOK($collection->getRecords(), (isset($page)) ? ['total' => $count] : null);
+        return $this->answerOK($collection->getRecords(), (isset($page)) ? ['total' => $count] : []);
     }
 
     /**

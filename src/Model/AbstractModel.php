@@ -135,12 +135,6 @@ abstract class AbstractModel extends Engine
     abstract public function destroy($record = null);
 
     /**
-     * @param $record
-     * @return mixed
-     */
-    abstract public function fill($record);
-
-    /**
      * @param Record|null $record
      * @return int
      */

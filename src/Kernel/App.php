@@ -13,6 +13,7 @@ use Simples\Core\Http\Response;
 use Simples\Core\Persistence\Transaction;
 use Simples\Core\Route\Router;
 use Throwable;
+use ErrorException;
 
 /**
  * Class App

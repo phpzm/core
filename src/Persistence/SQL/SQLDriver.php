@@ -1,9 +1,12 @@
 <?php
 
-namespace Simples\Core\Persistence;
+namespace Simples\Core\Persistence\SQL;
 
-use \PDO;
-use Simples\Core\Route\Wrapper;
+use PDO;
+use Simples\Core\Persistence\Driver;
+use Simples\Core\Persistence\Filter;
+use Simples\Core\Persistence\Fusion;
+use Exception;
 
 /**
  * Class SQLDriver
@@ -127,7 +130,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getInsert($clausules)
     {
-        $table = off($clausules, 'table', '<table>');
+        $source = off($clausules, 'source', '<source>');
         $fields = off($clausules, 'fields', '<fields>');
 
         $inserts = [];
@@ -137,7 +140,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
 
         $command = [];
         $command[] = 'INSERT INTO';
-        $command[] = $table;
+        $command[] = $source;
         $command[] = '(' . (is_array($fields) ? implode(', ', $fields) : $fields) . ')';
         $command[] = 'VALUES';
         $command[] = '(' . implode(', ', $inserts) . ')';
@@ -151,21 +154,21 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getSelect($clausules)
     {
-        $table = off($clausules, 'table', '<table>');
-        $fields = off($clausules, 'fields', '<fields>');
-        $join = off($clausules, 'join');
+        $table = off($clausules, 'source', '<source>');
+        $columns = off($clausules, 'fields', '<fields>');
+        $join = off($clausules, 'relation');
 
         $command = [];
         $command[] = 'SELECT';
-        $command[] = (is_array($fields) ? implode(', ', $fields) : $fields);
+        $command[] = (is_array($columns) ? implode(', ', $columns) : $columns);
         $command[] = 'FROM';
         $command[] = $table;
         if ($join) {
-            $command[] = is_array($join) ? implode(' ', $join) : $join;
+            $command[] = $this->parseJoin($join);
         }
 
         $modifiers = [
-            'where' => [
+            'filter' => [
                 'instruction' => 'WHERE',
                 'separator' => ' AND ',
             ],
@@ -197,28 +200,28 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getUpdate($clausules)
     {
-        $table = off($clausules, 'table', '<table>');
-        $join = off($clausules, 'join');
-        $fields = off($clausules, 'fields', '<fields>');
+        $table = off($clausules, 'source', '<source>');
+        $join = off($clausules, 'relation');
+        $columns = off($clausules, 'fields', '<fields>');
 
-        $sets = $fields;
-        if (is_array($fields)) {
+        $sets = $columns;
+        if (is_array($columns)) {
             $sets = implode(', ', array_map(function ($field) {
                 return $field . ' = ?';
-            }, $fields));
+            }, $columns));
         }
 
         $command = [];
         $command[] = 'UPDATE';
         $command[] = $table;
         if ($join) {
-            $command[] = $join;
+            $command[] = $this->parseJoin($join);
         }
         $command[] = 'SET';
         $command[] = $sets;
 
         $modifiers = [
-            'where' => [
+            'filter' => [
                 'instruction' => 'WHERE',
                 'separator' => ' AND ',
             ]
@@ -234,18 +237,18 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getDelete($clausules)
     {
-        $table = off($clausules, 'collection', '<collection>');
-        $join = off($clausules, 'join');
+        $source = off($clausules, 'source', '<source>');
+        $join = off($clausules, 'relation');
 
         $command = [];
         $command[] = 'DELETE FROM';
-        $command[] = $table;
+        $command[] = $source;
         if ($join) {
-            $command[] = $join;
+            $command[] = $this->parseJoin($join);
         }
 
         $modifiers = [
-            'where' => [
+            'filter' => [
                 'instruction' => 'WHERE',
                 'separator' => ' AND ',
             ]
@@ -259,6 +262,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param $clausules
      * @param $modifiers
      * @return array
+     * @throws Exception
      */
     private function modifiers($clausules, $modifiers)
     {
@@ -266,12 +270,88 @@ abstract class SQLDriver extends SQLConnection implements Driver
         foreach ($modifiers as $key => $modifier) {
             $value = off($clausules, $key);
             if ($value) {
-                if (is_array($value)) {
-                    $value = implode($modifier['separator'], $value);
+                if (!method_exists($this, $key)) {
+                    throw new Exception("Invalid modifier {$key}");
                 }
+                $value = $this->$key($value, $modifier['separator']);
                 $command[] = $modifier['instruction'] . ' ' . $value;
             }
         }
         return $command;
+    }
+
+    /**
+     * @param array $filters
+     * @param string $separator
+     * @return string
+     */
+    protected function filter(array $filters, string $separator): string
+    {
+        $solver = new SQLFilterSolver();
+        $parsed = [];
+        foreach ($filters as $filter) {
+            /** @var Filter $filter */
+            $parsed[] = $solver->render($filter);
+        }
+        return implode($separator, $parsed);
+    }
+
+    /**
+     * @param array $groups
+     * @param string $separator
+     * @return string
+     */
+    protected function group(array $groups, string $separator): string
+    {
+        return implode($separator, $groups);
+    }
+
+    /**
+     * @param array $orders
+     * @param string $separator
+     * @return string
+     */
+    protected function order(array $orders, string $separator): string
+    {
+        return implode($separator, $orders);
+    }
+
+    /**
+     * @param array $having
+     * @param string $separator
+     * @return string
+     */
+    protected function having(array $having, string $separator): string
+    {
+        return implode($separator, $having);
+    }
+
+    /**
+     * @param $limits
+     * @param $separator
+     * @return string
+     */
+    protected function limit($limits, $separator): string
+    {
+        return implode($separator, $limits);
+    }
+
+    /**
+     * @param array $resources
+     * @return string
+     */
+    private function parseJoin(array $resources): string
+    {
+        $join = [];
+        /** @var Fusion $resource */
+        foreach ($resources as $resource) {
+            $type = $resource->isExclusive() ? 'INNER' : 'LEFT';
+            $table = $resource->getCollection();
+            $left = $resource->getReferenced();
+            $right = $resource->getReferences();
+            $join[] = "{$type} JOIN {$table} ON ({$left} = {$right})";
+        }
+
+        return implode(' ', $join);
     }
 }

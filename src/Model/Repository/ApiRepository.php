@@ -190,7 +190,7 @@ class ApiRepository
      * @param array $binds
      * @return Record
      */
-    public function transform(Record $record, array $binds)
+    public function transform(Record $record, array $binds): Record
     {
         $transformed = [];
         foreach ($binds as $key => $value) {
@@ -203,7 +203,7 @@ class ApiRepository
      * @param $action
      * @return array
      */
-    public function getFields($action)
+    public function getFields($action): array
     {
         return $this->model->getFields($action);
     }
@@ -219,16 +219,17 @@ class ApiRepository
     /**
      * @return string
      */
-    public function getHashKey()
+    public function getHashKey(): string
     {
         return $this->model->getHashKey();
     }
 
+    /**
+     * @param array $record
+     * @return int
+     */
     public function count(array $record) : int
     {
-
-        $record = new Record($record);
-
-        return $this->model->count($record);
+        return $this->model->count(new Record($record));
     }
 }
