@@ -85,6 +85,7 @@ abstract class ApiController extends Controller
             $start = ($page - 1) * $size;
             $end = $size;
             $fields = $this->repository->getFields(Action::READ);
+
             /** @var Field $field */
             foreach ($fields as $name => $field) {
                 $value = $this->input($name, $field->getType());
@@ -93,9 +94,12 @@ abstract class ApiController extends Controller
                 }
             }
         }
+
         $collection = $this->repository->get(new Record($data), $start, $end);
 
-        return $this->answerOK($collection->getRecords(), (isset($page)) ? ['page' => $page, 'size' => $collection->size() ] : null);
+        $count = $this->repository->count($data);
+
+        return $this->answerOK($collection->getRecords(), (isset($page)) ? ['total' => $count] : null);
     }
 
     /**
