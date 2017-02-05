@@ -30,7 +30,7 @@ class ${NAME} extends DataMapper
     * @param Record|null $previous
     * @return bool
     */
-    public function before(string $action, Record $record, Record $previous = null): bool
+    protected function before(string $action, Record $record, Record $previous = null): bool
     {
         return parent::before($action, $record, $previous);
     }
@@ -40,7 +40,7 @@ class ${NAME} extends DataMapper
      * @param Record $record
      * @return bool
      */
-    public function after(string $action, Record $record): bool
+    protected function after(string $action, Record $record): bool
     {
         return parent::after($action, $record);
     }

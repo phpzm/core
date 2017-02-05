@@ -38,7 +38,7 @@ abstract class Connection
     /**
      * @return mixed
      */
-    abstract protected function connect();
+    abstract protected function connection();
 
     /**
      * @return array
@@ -57,12 +57,12 @@ abstract class Connection
     }
 
     /**
-     * @param $command
-     * @param $parameters
-     * @param $logging
+     * @param string $command
+     * @param array $parameters
+     * @param bool $logging (false)
      * @return Connection
      */
-    public function addLog($command, $parameters, $logging): Connection
+    public function addLog(string $command, array $parameters, bool $logging = false): Connection
     {
         $log = ['command' => $command, 'parameters' => $parameters];
         $this->logs[] = $log;

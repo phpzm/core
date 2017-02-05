@@ -11,42 +11,13 @@ class Field
     /**
      * @var string
      */
-    const TYPE_STRING = 'string';
+    const TYPE_STRING = 'string', TYPE_DATETIME = 'datetime', TYPE_BOOLEAN = 'boolean',
+        TYPE_DATE = 'date', TYPE_INTEGER = 'int', TYPE_FLOAT = 'float', TYPE_TEXT = 'text', TYPE_FILE = 'file';
 
     /**
      * @var string
      */
-    const TYPE_DATETIME = 'datetime';
-
-    /**
-     * @var string
-     */
-    const TYPE_BOOLEAN = 'boolean';
-
-    /**
-     * @var string
-     */
-    const TYPE_DATE = 'date';
-
-    /**
-     * @var string
-     */
-    const TYPE_INTEGER = 'int';
-
-    /**
-     * @var string
-     */
-    const TYPE_FLOAT = 'float';
-
-    /**
-     * @var string
-     */
-    const TYPE_TEXT = 'text';
-
-    /**
-     * @var string
-     */
-    const TYPE_FILE = 'file';
+    const AGGREGATOR_COUNT = 'count';
 
     /**
      * @var boolean
@@ -70,6 +41,12 @@ class Field
      * @var string
      */
     private $type;
+
+    /**
+     * Options used to configure the field
+     * @var array
+     */
+    private $options;
 
     /**
      * @var array
@@ -118,6 +95,7 @@ class Field
         $this->collection = $collection;
         $this->name = $name;
         $this->type = $type;
+        $this->options = $options;
 
         $default = [
             'label' => '', 'validators' => [], 'create' => true, 'read' => true, 'update' => true
@@ -212,6 +190,14 @@ class Field
     /**
      * @return array
      */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @return array
+     */
     public function getValidators(): array
     {
         return $this->validators;
@@ -292,6 +278,16 @@ class Field
     public function setType(string $type): Field
     {
         $this->type = $type;
+        return $this;
+    }
+
+    /**
+     * @param array $options
+     * @return Field
+     */
+    public function setOptions(array $options): Field
+    {
+        $this->options = $options;
         return $this;
     }
 

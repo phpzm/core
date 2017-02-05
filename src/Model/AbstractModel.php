@@ -5,9 +5,14 @@ namespace Simples\Core\Model;
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Validation;
+use Simples\Core\Error\RunTimeError;
 use Simples\Core\Persistence\Engine;
 
 /**
+ * @method  string __getCollection()
+ * @method  string __getPrimaryKey()
+ * @method  string __hashKey()
+ *
  * Class AbstractModel
  * @package Simples\Core\Model
  */
@@ -84,13 +89,33 @@ abstract class AbstractModel extends Engine
     public function __construct($connection = null)
     {
         parent::__construct($this->connection($connection));
-
-        $this->addField($this->hashKey, 'string')->validator('unique');
         /*
         foreach (array_merge($this->createKeys, $this->updateKeys, $this->destroyKeys) as $type => $name) {
             $this->addField($name, $type === 'at' ? Field::TYPE_DATETIME : Field::TYPE_STRING);
         }
         */
+    }
+
+    /**
+     * is triggered when invoking inaccessible methods in a static context.
+     *
+     * @param $name string
+     * @param $arguments array
+     * @return mixed
+     * @throws RunTimeError
+     * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.methods
+     */
+    public static function __callStatic($name, $arguments)
+    {
+        if (substr($name, 0, 2) === '__') {
+            //TODO: use Container ?
+            $name = substr($name, 2);
+            $instance = new static();
+            if (method_exists($instance, $name)) {
+                return call_user_func_array([$instance, $name], $arguments);
+            }
+        }
+        throw new RunTimeError("Method not found '{$name}'");
     }
 
     /**
@@ -146,7 +171,7 @@ abstract class AbstractModel extends Engine
      * @param Record $previous
      * @return bool
      */
-    public function before(string $action, Record $record, Record $previous = null): bool
+    protected function before(string $action, Record $record, Record $previous = null): bool
     {
         return true;
     }
@@ -156,7 +181,7 @@ abstract class AbstractModel extends Engine
      * @param Record $record
      * @return bool
      */
-    public function after(string $action, Record $record): bool
+    protected function after(string $action, Record $record): bool
     {
         return true;
     }
@@ -164,16 +189,39 @@ abstract class AbstractModel extends Engine
     /**
      * @param string $collection
      * @param string $primaryKey
+     * @param string $hashKey
      * @return AbstractModel
      */
-    public function collection(string $collection, string $primaryKey): AbstractModel
+    protected function init(string $collection, string $primaryKey, string $hashKey = ''): AbstractModel
     {
 		if ($this->collection) {
             $this->parents[$this->collection] = $this->primaryKey;
         }
         $this->collection = $collection;
         $this->primaryKey = $primaryKey;
+        $this->hashKey = $hashKey ? $hashKey : $this->hashKey;
+
+        $this->addField($this->hashKey, 'string')->validator('unique');
         return $this;
+    }
+
+    /**
+     * @param string $name
+     * @param string $type
+     * @param array $options
+     * @return Field
+     */
+    protected function addField(string $name, string $type, array $options = []): Field
+    {
+        if ($this->primaryKey === $name) {
+            $options['primaryKey'] = true;
+        } else if (off($options, 'primaryKey')) {
+            $this->primaryKey = $name;
+        }
+        $field = new Field($this->collection, $name, $type, $options);
+        $this->fields[$name] = $field;
+
+        return $field;
     }
 
     /**
@@ -193,22 +241,11 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @param string $name
-     * @param string $type
-     * @param array $options
-     * @return Field
+     * @return string
      */
-    public function addField(string $name, string $type, array $options = []): Field
+    public function getHashKey(): string
     {
-        if ($this->primaryKey === $name) {
-            $options['primaryKey'] = true;
-        } else if (off($options, 'primaryKey')) {
-            $this->primaryKey = $name;
-        }
-        $field = new Field($this->collection, $name, $type, $options);
-        $this->fields[$name] = $field;
-
-        return $field;
+        return $this->hashKey;
     }
 
     /**
@@ -305,13 +342,5 @@ abstract class AbstractModel extends Engine
     public function hashKey(): string
     {
         return uniqid();
-    }
-
-    /**
-     * @return string
-     */
-    public function getHashKey(): string
-    {
-        return $this->hashKey;
     }
 }

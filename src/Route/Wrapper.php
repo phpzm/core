@@ -81,6 +81,6 @@ abstract class Wrapper
             $stack[] = $trace;
         }
 
-        return array_slice($stack, 4);
+        return array_slice($stack, 3);
     }
 }

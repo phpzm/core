@@ -15,7 +15,7 @@ abstract class SQLConnection extends Connection
     /**
      * @return PDO
      */
-    protected function connect()
+    protected function connection()
     {
         if (!$this->resource) {
             $this->resource = new PDO(
@@ -43,7 +43,7 @@ abstract class SQLConnection extends Connection
      */
     final protected function statement($sql)
     {
-        return $this->connect()->prepare($sql);
+        return $this->connection()->prepare($sql);
     }
 
     /**

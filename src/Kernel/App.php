@@ -67,6 +67,7 @@ class App
             'headers' => [],
             'type' => Response::CONTENT_TYPE_HTML,
             'separator' => '@',
+            'filter' => '~>',
             'strict' => false
         ];
         self::$options = array_merge($default, $options);

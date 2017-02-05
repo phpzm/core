@@ -2,11 +2,14 @@
 
 namespace Simples\Core\Helper;
 
+use DateTime;
+use DateInterval;
+
 /**
  * Class Date
  * @package Simples\Core\Helper
  */
-class Date extends \DateTime
+class Date extends DateTime
 {
     /**
      * @var string
@@ -15,31 +18,24 @@ class Date extends \DateTime
 
     /**
      * Date constructor.
-     * @param string $format
+     * @param string $time
+     * @param string $format (null)
      */
-    public function __construct($format = null)
+    public function __construct(string $time = 'today', string $format = null)
     {
-        parent::__construct();
+        parent::__construct($time);
 
         $this->format = of($format, $this->format);
     }
 
     /**
-     * @param string $format
-     * @return static
+     * @param string $time
+     * @param string $format (null)
+     * @return Date
      */
-    public static function create($format = null)
+    public static function create(string $time = 'today', string $format = null): Date
     {
-        return new static($format);
-    }
-
-    /**
-     * @param string $format
-     * @return string
-     */
-    public function current($format = null)
-    {
-        return date(of($format, $this->format));
+        return new static($time, $format);
     }
 
     /**
@@ -56,49 +52,40 @@ class Date extends \DateTime
      */
     public function isDate($date)
     {
-        $d = self::createFromFormat($this->format, $date);
-        return $d && $d->format($this->format) === $date;
+        $temp = self::createFromFormat($this->format, $date);
+        return $temp && $temp->format($this->format) === $date;
     }
 
     /**
-     * @param $date
-     * @param $holidays
-     * @param $days
-     * @return mixed
+     * @param array $holidays Array with dates formatted with `d/m`
+     * @param int $forward Minimum of days to add
+     * @param array $weekend Days of week what will be like holidays
+     * @return string
      */
-    public function next($date, $holidays = [], $days = null)
+    public function next(array $holidays = [], int $forward = 0, $weekend = ['0', '6'])
     {
-        $valid = false;
+        $search = true;
         $dated = 0;
 
-        if (self::isDate($date)) {
-            do {
-                $peaces = explode('-', $date);
-                $day = $peaces[2] . '-' . $peaces[1];
-                $is_weekend = in_array(date('w', strtotime($date)), ['0', '6']);
-                $is_holiday = in_array($day, $holidays);
-                $is_dated = $days === null ? true : ($dated >= (int)$days);
+        do {
+            $week = $this->format('w');
+            $day = $this->format('d/m');
 
-                if (!$is_weekend && !$is_holiday && $is_dated) {
-                    $valid = true;
-                } else {
-                    /*
-                    echo "$date, $dated, $days";
-                    echo "<br>";
-                    echo " W: " . ($is_weekend ? 'yes' : 'no');
-                    echo " H: " . ($is_holiday ? 'yes' : 'no');
-                    echo " D: " . ($is_dated ? 'yes' : 'no');
-                    */
-                    $date = self::add($date, 1);
-                    if (!$is_weekend && !$is_holiday) {
-                        $dated++;
-                    }
-                }
-                //echo "<hr>";
-            } while (!$valid);
-        }
+            $is_weekend = in_array($week, $weekend);
+            $is_holiday = in_array($day, $holidays);
+            $is_dated = $dated >= $forward;
 
-        return $date;
+            if (!$is_weekend && !$is_holiday && $is_dated) {
+                return $this->toString();
+            }
+
+            $this->addDays(1);
+            if (!$is_weekend && !$is_holiday) {
+                $dated++;
+            }
+        } while ($search);
+
+        return $this->toString();
     }
 
     /**
@@ -116,8 +103,37 @@ class Date extends \DateTime
      */
     public function addDays($days)
     {
-        $this->add(new \DateInterval("P{$days}D"));
+        $this->add(new DateInterval("P{$days}D"));
 
+        return $this->toString();
+    }
+
+    /**
+     * @param string $compare
+     * @param bool $absolute
+     * @return int
+     */
+    public function diffDays($compare = 'today', $absolute = false)
+    {
+        if (!($compare instanceOf DateTime)) {
+            $compare = new DateTime($compare);
+        }
+        return (int)parent::diff($compare, $absolute)->format('%d');
+    }
+
+    /**
+     * @return string
+     */
+    public function toString()
+    {
         return $this->format($this->format);
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->toString();
     }
 }

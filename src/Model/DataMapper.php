@@ -58,14 +58,11 @@ class DataMapper extends AbstractModel
 
             if ($created) {
 
-                $primaryKey = $this->getPrimaryKey();
-                if ($primaryKey) {
-                    $record->set($primaryKey, $created);
-                }
+                $record->set($this->getPrimaryKey(), $created);
 
                 $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    if ($snapshot !== $record) {
+                    if (array_diff_assoc($snapshot->all(), $record->all())) {
                         $this->update($snapshot);
                     }
                     return $snapshot;
@@ -172,7 +169,7 @@ class DataMapper extends AbstractModel
 
                 $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    if ($snapshot !== $record) {
+                    if (array_diff_assoc($snapshot->all(), $record->all())) {
                         $this->update($snapshot);
                     }
                     return $snapshot;
@@ -235,10 +232,10 @@ class DataMapper extends AbstractModel
 
                 $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    if ($snapshot !== $record) {
+                    if (array_diff_assoc($snapshot->all(), $record->all())) {
                         throw new Exception('Changes made after destroy are lost');
                     }
-                    return $record;
+                    return $snapshot;
                 }
             }
         }
@@ -251,20 +248,15 @@ class DataMapper extends AbstractModel
      */
     protected function parseReadFields()
     {
-        $fields = array_keys($this->getFields(Action::READ));
+        $fields = $this->getFields(Action::READ);
         if (off($this->getClausules(), 'fields')) {
             $fields = off($this->getClausules(), 'fields');
+            if (!is_array($fields)) {
+                $fields = [$fields];
+            }
             $this->fields(null);
         }
-        $read = [];
-        foreach ($fields as $field) {
-            $value = "{$field}";
-            if (strpos($field, '_') === 0) {
-                $value = "{$this->getCollection()}.{$field}";
-            }
-            $read[] = $value;
-        }
-        return $read;
+        return $fields;
     }
 
     /**
@@ -356,7 +348,7 @@ class DataMapper extends AbstractModel
             $filter = [$primaryKey => $record->get($primaryKey)];
         }
 
-        $previous = $this->read($filter)->current();
+        $previous = $this->fields(null)->read($filter)->current();
         if (!$previous->isEmpty()) {
             $record->set($primaryKey, $previous->get($primaryKey));
             $record->set($hashKey, $previous->get($hashKey));
@@ -380,25 +372,14 @@ class DataMapper extends AbstractModel
      */
     public function count(Record $record = null): int
     {
-        $where = [];
-        $filters = [];
-        if ($record && !$record->isEmpty()) {
-            $where = $this->parseReadFilterFields($record->all());
-            $filters = $this->parseReadFilterValues($where);
-        }
-
-        if ($this->destroyKeys) {
-            $where[] = $this->getDestroyFilter();
-        }
-
         $data = $this
-            ->source($this->getCollection())
-            ->fields(["COUNT({$this->getPrimaryKey()}) AS count"])
-            ->filter($where)
-            ->get($filters);
+            ->fields([
+                new Field($this->getCollection(), $this->getPrimaryKey(), Field::AGGREGATOR_COUNT, ['alias' => 'count'])
+            ])
+            ->read($record);
 
-        if (count($data)) {
-            return $data[0]['count'];
+        if (!$data->current()->isEmpty()) {
+            return $data->current()->get('count');
         }
         return 0;
     }

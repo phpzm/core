@@ -4,6 +4,7 @@ namespace Simples\Core\Persistence\SQL;
 
 use Simples\Core\Persistence\Filter;
 use ErrorException;
+use Simples\Core\Route\Wrapper;
 
 /**
  * Class SQLFilterSolver
@@ -32,7 +33,7 @@ class SQLFilterSolver
      * @param string $name
      * @return string
      */
-    protected function equal(string $name)
+    protected function equal(string $name): string
     {
         return "{$name} = ?";
     }
@@ -41,7 +42,7 @@ class SQLFilterSolver
      * @param string $name
      * @return string
      */
-    protected function between($name)
+    protected function between($name): string
     {
         return "{$name} BETWEEN ? AND ?";
     }
@@ -50,9 +51,45 @@ class SQLFilterSolver
      * @param string $name
      * @return string
      */
-    protected function month($name)
+    protected function near($name): string
+    {
+        return "{$name} LIKE ?";
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function day($name): string
+    {
+        return "DAY({$name}) = ?";
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function month($name): string
     {
         return "MONTH({$name}) = ?";
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function year($name): string
+    {
+        return "YEAR({$name}) = ?";
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function competence($name): string
+    {
+        return "MONTH({$name}) = ? AND YEAR({$name}) = ?";
     }
 
     /**

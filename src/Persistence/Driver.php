@@ -24,31 +24,31 @@ interface Driver
     public function rollback();
 
     /**
-     * @param $clausules
+     * @param array $clausules
      * @param array $values
-     * @return null|string
+     * @return string
      */
-    public function create($clausules, array $values);
+    public function create(array $clausules, array $values);
 
     /**
-     * @param $clausules
+     * @param array $clausules
      * @param array $values
-     * @return array|null
+     * @return array
      */
-    public function read($clausules, array $values = []);
+    public function read(array $clausules, array $values = []);
 
     /**
-     * @param $clausules
-     * @param $values
-     * @param $filters
+     * @param array $clausules
+     * @param array $values
+     * @param array $filters
      * @return int
      */
-    public function update($clausules, $values, $filters);
+    public function update(array $clausules, array $values, array $filters);
 
     /**
-     * @param $clausules
+     * @param array $clausules
      * @param array $values
-     * @return int|null
+     * @return int
      */
-    public function destroy($clausules, array $values);
+    public function destroy(array $clausules, array $values);
 }
