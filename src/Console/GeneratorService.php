@@ -55,8 +55,7 @@ abstract class GeneratorService extends Service
             // echo "    - refactor\n";
             // echo "    - remove\n";
 
-            echo "[ model ]$ ";
-            $option = trim(fgets(STDIN));
+            $option = read('[ model ]$ ');
         } while (!in_array($option, Service::KILLERS));
     }
 
@@ -90,33 +89,10 @@ abstract class GeneratorService extends Service
                     break;
                 }
             }
-            echo "[ model.create ]{$message}";
-            $option = trim(fgets(STDIN));
+            $option = read("[ model.create ]{$message}");
         } while (!in_array($option, Service::KILLERS));
 
         return null;
-    }
-
-    /**
-     * Ask a question to user
-     * @param string $question
-     * @param string $options
-     */
-    protected static function ask(string $question, string $options = '[y/n]')
-    {
-        print "{$question} ";
-        if ($options) {
-            print "{$options} ";
-        }
-        print "$ ";
-    }
-
-    /**
-     * @return string
-     */
-    protected static function read()
-    {
-        return trim(fgets(STDIN));
     }
 
     /**

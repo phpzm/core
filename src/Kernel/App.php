@@ -164,8 +164,7 @@ class App
                 HelpService::execute($this);
             }
 
-            echo "$ ";
-            $service = trim(fgets(STDIN));
+            $service = read();
         } while (!in_array($service, Service::KILLERS));
     }
 

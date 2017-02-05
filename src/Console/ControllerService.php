@@ -19,12 +19,10 @@ abstract class ControllerService extends GeneratorService
      */
     protected static function others(FileManager $fileManager)
     {
-        self::ask('Do you want to create Model layer?', '[y/n]');
-        if (in_array(self::read(), self::POSITIVES)) {
+        if (in_array(read('Do you want to create Model layer?', '[y/n]'), self::POSITIVES)) {
             $fileManager->execute('model');
         }
-        self::ask('Do you want to create Repository layer?', '[y/n]');
-        if (in_array(self::read(), self::POSITIVES)) {
+        if (in_array(read('Do you want to create Repository layer?', '[y/n]'), self::POSITIVES)) {
             $fileManager->execute('repository');
         }
     }

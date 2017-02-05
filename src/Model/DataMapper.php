@@ -78,10 +78,11 @@ class DataMapper extends AbstractModel
      */
     final public function read($record = null)
     {
-        if ($record) {
-            if (is_array($record)) {
-                $record = new Record($record);
-            }
+        if (!$record) {
+            $record = [];
+        }
+        if (is_array($record)) {
+            $record = new Record($record);
         }
 
         $action = Action::READ;
@@ -244,6 +245,26 @@ class DataMapper extends AbstractModel
     }
 
     /**
+     * @param Record|null $record
+     * @return int
+     */
+    public function count(Record $record = null): int
+    {
+        $alias = 'count';
+        $data = $this
+            ->fields([
+                new Field($this->getCollection(), $this->getPrimaryKey(), Field::AGGREGATOR_COUNT, ['alias' => $alias])
+            ])
+            ->group([$this->getPrimaryKey()])
+            ->read($record);
+
+        if (!$data->current()->isEmpty()) {
+            return (int)$data->current()->get($alias);
+        }
+        return 0;
+    }
+
+    /**
      * @return array
      */
     protected function parseReadFields()
@@ -364,23 +385,5 @@ class DataMapper extends AbstractModel
     {
         $field = new Field($this->getCollection(), $this->destroyKeys['at'], Field::TYPE_DATETIME);
         return new Filter($field, Filter::rule(null, Filter::RULE_BLANK));
-    }
-
-    /**
-     * @param Record|null $record
-     * @return int
-     */
-    public function count(Record $record = null): int
-    {
-        $data = $this
-            ->fields([
-                new Field($this->getCollection(), $this->getPrimaryKey(), Field::AGGREGATOR_COUNT, ['alias' => 'count'])
-            ])
-            ->read($record);
-
-        if (!$data->current()->isEmpty()) {
-            return $data->current()->get('count');
-        }
-        return 0;
     }
 }

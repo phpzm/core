@@ -273,6 +273,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
         foreach ($modifiers as $key => $modifier) {
             $value = off($clausules, $key);
             if ($value) {
+                $key = ucfirst($key);
+                $key = "parse{$key}";
                 if (!method_exists($this, $key)) {
                     throw new Exception("Invalid modifier {$key}");
                 }
@@ -288,9 +290,9 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param string $separator
      * @return string
      */
-    protected function filter(array $filters, string $separator): string
+    protected function parseFilter(array $filters, string $separator): string
     {
-        $solver = new SQLFilterSolver();
+        $solver = new SQLSolverFilter();
         $parsed = [];
         foreach ($filters as $filter) {
             /** @var Filter $filter */
@@ -304,7 +306,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param string $separator
      * @return string
      */
-    protected function group(array $groups, string $separator): string
+    protected function parseGroup(array $groups, string $separator): string
     {
         return implode($separator, $groups);
     }
@@ -314,7 +316,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param string $separator
      * @return string
      */
-    protected function order(array $orders, string $separator): string
+    protected function parseOrder(array $orders, string $separator): string
     {
         return implode($separator, $orders);
     }
@@ -324,7 +326,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param string $separator
      * @return string
      */
-    protected function having(array $having, string $separator): string
+    protected function parseHaving(array $having, string $separator): string
     {
         return implode($separator, $having);
     }
@@ -334,7 +336,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param $separator
      * @return string
      */
-    protected function limit($limits, $separator): string
+    protected function parseLimit($limits, $separator): string
     {
         return implode($separator, $limits);
     }
@@ -370,49 +372,13 @@ abstract class SQLDriver extends SQLConnection implements Driver
             return $columns;
         }
         if ($type === TYPE_ARRAY) {
+            $solver = new SQLSolverColumn();
             $fields = [];
             foreach ($columns as $column) {
-                $fields[] = $this->parseColumn($column);
+                $fields[] = $solver->render($column);
             }
             return implode(', ', $fields);
         }
         throw new RunTimeError("Columns must be an 'array' or 'string', {$type} given");
-    }
-
-    /**
-     * @param Field $column
-     * @return string
-     */
-    private function parseColumnField(Field $column): string
-    {
-        switch ($column->getType()) {
-            case Field::AGGREGATOR_COUNT: {
-                $field = "COUNT(`{$column->getCollection()}`.`{$column->getName()}`)";
-                /** @noinspection PhpAssignmentInConditionInspection */
-                if ($alias = off($column->getOptions(), 'alias')) {
-                    $field = "{$field} AS {$alias}";
-                }
-                break;
-            }
-            default:
-                $field = "`{$column->getCollection()}`.`{$column->getName()}`";
-        }
-        return $field;
-    }
-
-    /**
-     * @param $column
-     * @return string
-     */
-    private function parseColumn($column): string
-    {
-        $field = '';
-        if (gettype($column) === TYPE_STRING) {
-            $field = "`{$column}`";
-        }
-        if ($column instanceof Field) {
-            $field = $this->parseColumnField($column);
-        }
-        return $field;
     }
 }

@@ -192,7 +192,7 @@ abstract class AbstractModel extends Engine
      * @param string $hashKey
      * @return AbstractModel
      */
-    protected function init(string $collection, string $primaryKey, string $hashKey = ''): AbstractModel
+    protected function instance(string $collection, string $primaryKey, string $hashKey = ''): AbstractModel
     {
 		if ($this->collection) {
             $this->parents[$this->collection] = $this->primaryKey;

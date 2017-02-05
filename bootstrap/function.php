@@ -233,3 +233,26 @@ if (!function_exists('search')) {
         return $context;
     }
 }
+
+if (!function_exists('read')) {
+    /**
+     * @param string $prompt
+     * @param string $options
+     * @return string
+     */
+    function read(string $prompt = '$ ', string $options = ''): string
+    {
+        if ($options) {
+            $prompt = "{$prompt} {$options}\$ ";
+        }
+        if (PHP_OS === 'WINNT') {
+            echo $prompt;
+            $line = stream_get_line(STDIN, 1024, PHP_EOL);
+        } else {
+            $line = readline("{$prompt}");
+        }
+        readline_add_history($line);
+
+        return trim($line);
+    }
+}
