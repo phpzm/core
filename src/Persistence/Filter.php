@@ -185,7 +185,7 @@ class Filter
             $this->rule = static::RULE_EQUAL;
             $peaces = explode(App::options('filter'), $this->value);
             $filter = (string)$peaces[0];
-            if ($filter{0} === '!') {
+            if (substr($filter, 0, 1) === '!') {
                 $filter = substr($filter, 1);
                 $this->not = true;
             }

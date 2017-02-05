@@ -255,7 +255,7 @@ class DataMapper extends AbstractModel
             ->fields([
                 new Field($this->getCollection(), $this->getPrimaryKey(), Field::AGGREGATOR_COUNT, ['alias' => $alias])
             ])
-            ->group([$this->getPrimaryKey()])
+            ->limit(null)
             ->read($record);
 
         if (!$data->current()->isEmpty()) {
