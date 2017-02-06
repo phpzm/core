@@ -166,6 +166,7 @@ abstract class AbstractModel extends Engine
     abstract public function count(Record $record = null) : int;
 
     /**
+     * This method is called before the operation be executed, the changes made in Record will be save
      * @param string $action
      * @param Record $record
      * @param Record $previous
@@ -177,6 +178,7 @@ abstract class AbstractModel extends Engine
     }
 
     /**
+     * Triggered after operation be executed, the changes made in Record has no effect in storage
      * @param string $action
      * @param Record $record
      * @return bool
@@ -187,6 +189,7 @@ abstract class AbstractModel extends Engine
     }
 
     /**
+     * Configure the instance with reference properties
      * @param string $collection
      * @param string $primaryKey
      * @param string $hashKey
@@ -333,7 +336,27 @@ abstract class AbstractModel extends Engine
      */
     public function getFields(string $action): array
     {
-        return $this->fields;
+        $method = '';
+        switch ($action) {
+            case Action::CREATE: {
+                $method = 'isCreate';
+                break;
+            }
+            case Action::READ: {
+                $method = 'isRead';
+                break;
+            }
+            case Action::UPDATE: {
+                $method = 'isUpdate';
+                break;
+            }
+        }
+        return array_filter($this->fields, function ($field) use ($method) {
+            if ($method && $field->$method()) {
+                return $field;
+            }
+            return null;
+        });
     }
 
     /**

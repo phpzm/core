@@ -59,13 +59,8 @@ class DataMapper extends AbstractModel
             if ($created) {
 
                 $record->set($this->getPrimaryKey(), $created);
-
-                $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    if (array_diff_assoc($snapshot->all(), $record->all())) {
-                        $this->update($snapshot);
-                    }
-                    return $snapshot;
+                    return $record;
                 }
             }
         }
@@ -168,12 +163,8 @@ class DataMapper extends AbstractModel
                 }
                 $record = $previous;
 
-                $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    if (array_diff_assoc($snapshot->all(), $record->all())) {
-                        $this->update($snapshot);
-                    }
-                    return $snapshot;
+                    return $record;
                 }
             }
         }
@@ -231,12 +222,8 @@ class DataMapper extends AbstractModel
                 }
                 $record = $previous;
 
-                $snapshot = clone $record;
                 if ($this->after($action, $record)) {
-                    if (array_diff_assoc($snapshot->all(), $record->all())) {
-                        throw new Exception('Changes made after destroy are lost');
-                    }
-                    return $snapshot;
+                    return $record;
                 }
             }
         }
@@ -269,13 +256,15 @@ class DataMapper extends AbstractModel
      */
     protected function parseReadFields()
     {
-        $fields = $this->getFields(Action::READ);
         if (off($this->getClausules(), 'fields')) {
             $fields = off($this->getClausules(), 'fields');
             if (!is_array($fields)) {
                 $fields = [$fields];
             }
             $this->fields(null);
+        }
+        if (!isset($fields)) {
+            $fields = $this->getFields(Action::READ);
         }
         return $fields;
     }
