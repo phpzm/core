@@ -2,8 +2,8 @@
 
 if (!function_exists('env')) {
     /**
-     * @param $property
-     * @param null $default
+     * @param string $property
+     * @param mixed $default (null)
      * @return string
      */
     function env($property, $default = null)
@@ -22,7 +22,7 @@ if (!function_exists('env')) {
 if (!function_exists('path')) {
 
     /**
-     * @param $root
+     * @param string $root
      * @return string
      */
     function path($root)
@@ -41,12 +41,34 @@ if (!function_exists('path')) {
     }
 }
 
+if (!function_exists('storage')) {
+    /**
+     * @param string $path
+     * @return string
+     */
+    function storage($path)
+    {
+        return path(true, 'storage', $path);
+    }
+}
+
+if (!function_exists('resources')) {
+    /**
+     * @param string $path
+     * @return string
+     */
+    function resources($path)
+    {
+        return path(true, 'app/resources', $path);
+    }
+}
+
 if (!function_exists('out')) {
     /**
      *
-     * @param $value
-     * @param bool $print
-     * @param string $type
+     * @param mixed $value
+     * @param bool $print (true)
+     * @param string $type (null)
      * @return string
      */
     function out($value, $print = true, $type = null)
@@ -81,8 +103,8 @@ if (!function_exists('out')) {
 
 if (!function_exists('of')) {
     /**
-     * @param $value
-     * @param $default
+     * @param mixed $value
+     * @param mixed $default (false)
      * @return mixed
      */
     function of($value, $default = false)
@@ -93,9 +115,9 @@ if (!function_exists('of')) {
 
 if (!function_exists('off')) {
     /**
-     * @param $value
-     * @param $property
-     * @param $default
+     * @param mixed $value
+     * @param mixed $property (null)
+     * @param mixed $default (null)
      *
      * @return mixed
      */
@@ -116,7 +138,7 @@ if (!function_exists('off')) {
 
 if (!function_exists('stop')) {
     /**
-     *
+     * @die
      */
     function stop()
     {
@@ -129,11 +151,10 @@ if (!function_exists('stop')) {
     }
 }
 
-
 if (!function_exists('config')) {
     /**
-     * @param $name
-     * @return object
+     * @param string $name
+     * @return mixed
      */
     function config($name)
     {
@@ -143,8 +164,8 @@ if (!function_exists('config')) {
 
 if (!function_exists('headerify')) {
     /**
-     * @param $name
-     * @return mixed
+     * @param string $name
+     * @return string
      */
     function headerify($name)
     {
@@ -154,10 +175,10 @@ if (!function_exists('headerify')) {
 
 if (!function_exists('str_replace_first')) {
     /**
-     * @param $from
-     * @param $to
-     * @param $subject
-     * @param $quote
+     * @param string $from
+     * @param string $to
+     * @param string $subject
+     * @param bool $quote (false)
      * @return mixed
      */
     function str_replace_first($from, $to, $subject, $quote = false)
@@ -193,7 +214,7 @@ if (!function_exists('guid')) {
 
 if (!function_exists('is_iterator')) {
     /**
-     * @param $var
+     * @param mixed $var
      * @return bool
      */
     function is_iterator($var)
@@ -215,8 +236,8 @@ if (!function_exists('throw_format')) {
 
 if (!function_exists('search')) {
     /**
-     * @param $context
-     * @param $path
+     * @param mixed $context
+     * @param array|string $path
      * @return mixed|null
      */
     function search($context, $path)

@@ -46,16 +46,10 @@ abstract class Lang
     public static function lang($scope, $path, array $parameters = [])
     {
         $i18n = "Lang '{$scope}.{$path}' not found";
-
         $languages = App::options('lang');
+        $filename = static::filename($scope, $languages['default'], $languages['fallback']);
 
-        $filename = path(true, "app/resources/locales/{$languages['default']}/{$scope}.php");
-        if (!File::exists($filename)) {
-            $filename = path(true, "app/resources/locales/{$languages['fallback']}/{$scope}.php");
-        }
-
-        if (File::exists($filename)) {
-
+        if ($filename) {
             /** @noinspection PhpIncludeInspection */
             $phrases = include $filename;
 
@@ -78,5 +72,23 @@ abstract class Lang
             $i18n = str_replace('{' . $key . '}', out($value, false), $i18n);
         }
         return $i18n;
+    }
+
+    /**
+     * @param string $scope
+     * @param string $default
+     * @param string $fallback
+     * @return string
+     */
+    private static function filename(string $scope, string $default, string $fallback): string
+    {
+        $filename = resources("locales/{$default}/{$scope}.php");
+        if (!File::exists($filename)) {
+            $filename = resources("locales/{$fallback}/{$scope}.php");
+        }
+        if (File::exists($filename)) {
+            return $filename;
+        }
+        return '';
     }
 }

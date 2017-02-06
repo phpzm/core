@@ -3,6 +3,7 @@
 namespace Simples\Core\Helper;
 
 use FilesystemIterator;
+use DirectoryIterator;
 
 /**
  * Class Directory
@@ -11,28 +12,28 @@ use FilesystemIterator;
 abstract class Directory
 {
     /**
-     * @param $dir
+     * @param string $dir
      * @return int
      */
-    public static function count($dir)
+    public static function count(string $dir): int
     {
-        return iterator_count(new FilesystemIterator($dir, FilesystemIterator::SKIP_DOTS));
+        return (int)iterator_count(new FilesystemIterator($dir, FilesystemIterator::SKIP_DOTS));
     }
 
     /**
-     * @param $dir
+     * @param string $dir
      * @return bool
      */
-    public static function exists($dir)
+    public static function exists(string $dir): bool
     {
         return is_dir($dir);
     }
 
     /**
-     * @param $dir
+     * @param string $dir
      * @return bool
      */
-    public static function make($dir)
+    public static function make(string $dir): bool
     {
         $make = is_dir($dir);
         if (!$make) {
@@ -42,10 +43,10 @@ abstract class Directory
     }
 
     /**
-     * @param $dir
+     * @param string $dir
      * @return bool
      */
-    public static function remove($dir)
+    public static function remove(string $dir): bool
     {
         $files = array_diff(scandir($dir), ['.', '..']);
         foreach ($files as $file) {
@@ -55,25 +56,25 @@ abstract class Directory
     }
 
     /**
-     * @param $source
-     * @param $target
+     * @param string $source
+     * @param string $target
      * @return bool
      */
-    public static function rename($source, $target)
+    public static function rename(string $source, string $target): bool
     {
         return rename($source, $target);
     }
 
     /**
-     * @param $dir
+     * @param string $dir
      * @return array
      */
-    public static function getFiles($dir)
+    public static function getFiles(string $dir): array
     {
         $files = [];
 
         if (self::exists($dir)) {
-            foreach (new \DirectoryIterator($dir) as $fileInfo) {
+            foreach (new DirectoryIterator($dir) as $fileInfo) {
                 if ($fileInfo->isDot()) {
                     continue;
                 }

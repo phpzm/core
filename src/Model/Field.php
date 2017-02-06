@@ -76,6 +76,11 @@ class Field
     /**
      * @var array
      */
+    private $enum = [];
+
+    /**
+     * @var array
+     */
     private $referenced = [];
 
     /**
@@ -98,7 +103,8 @@ class Field
         $this->options = $options;
 
         $default = [
-            'label' => '', 'validators' => [], 'create' => true, 'read' => true, 'update' => true
+            'label' => '', 'validators' => [], 'create' => true, 'read' => true, 'update' => true,
+            'enum' => [], 'referenced' => [], 'references' => [],
         ];
         $options = array_merge($default, $options);
 
@@ -338,6 +344,16 @@ class Field
     public function update(bool $update): Field
     {
         $this->update = $update;
+        return $this;
+    }
+
+    /**
+     * @param $items
+     * @return Field
+     */
+    public function enum($items): Field
+    {
+        $this->enum = $items;
         return $this;
     }
 }

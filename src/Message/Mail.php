@@ -81,17 +81,7 @@ class Mail
     /**
      * @var string
      */
-    const STATUS_WAITING = 'waiting';
-
-    /**
-     * @var string
-     */
-    const STATUS_SENT = 'sent';
-
-    /**
-     * @var string
-     */
-    const STATUS_ERROR = 'error';
+    const STATUS_WAITING = 'waiting', STATUS_SENT = 'sent', STATUS_ERROR = 'error';
 
     /**
      * EMail constructor.
@@ -103,7 +93,7 @@ class Mail
      * @param string $fromAddress
      * @param string $fromName
      */
-    public function __construct($subject, $message, $toAddress, $toName = '', $alt = '', $fromAddress = '', $fromName = '')
+    public function __construct($subject = '', $message = '', $toAddress = '', $toName = '', $alt = '', $fromAddress = '', $fromName = '')
     {
         $this->subject = $subject;
         $this->message = $message;
@@ -126,7 +116,7 @@ class Mail
         if ($this->toAddress) {
             $file = $this->id . '.' . 'mail';
 
-            $root = path(true, 'storage/files/mail');
+            $root = storage('files/mail');
 
             $waiting = path($root, self::STATUS_WAITING, $file);
             if (File::exists($waiting)) {
@@ -192,39 +182,35 @@ class Mail
     }
 
     /**
-     * @return int|null
+     * @return bool
      */
-    public function schedule()
+    public function schedule(): bool
     {
-        $filename = path(true, 'storage/files/mail', self::STATUS_WAITING, $this->id . '.' . 'mail');
+        $filename = storage('files/mail/' . self::STATUS_WAITING . '/' . $this->id . '.' . 'mail');
         if (!File::exists($filename)) {
             if (File::write($filename, $this->json())) {
-                return $this->id;
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     /**
-     * @param $id
-     * @param string $status
-     * @return mixed
+     * @param $filename
+     * @return Mail
      */
-    public function load($id, $status = null)
+    public static function load($filename): Mail
     {
-        $status = of($status, self::STATUS_WAITING);
-
-        $filename = path(true, 'storage', 'files', 'mail', $status, $id . '.' . 'mail');
-
+        $instance = new static();
         if (File::exists($filename)) {
             $properties = Json::decode(File::read($filename));
             foreach ($properties as $key => $value) {
                 /** @noinspection PhpVariableVariableInspection */
-                $this->$key = $value;
+                $instance->$key = $value;
             }
         }
 
-        return $this;
+        return $instance;
     }
 
     /**
