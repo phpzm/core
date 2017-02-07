@@ -50,7 +50,6 @@ class DataMapper extends AbstractModel
                 $fields[] = $timestampsKey;
                 $values[] = $this->getTimestampValue($type);
             }
-
             $created = $this
                 ->source($this->getCollection())
                 ->fields($fields)
@@ -317,7 +316,7 @@ class DataMapper extends AbstractModel
                 return Date::create()->now();
                 break;
             case 'by':
-                return Auth::getEmbedValue();
+                return Auth::getUser();
                 break;
         }
         return null;

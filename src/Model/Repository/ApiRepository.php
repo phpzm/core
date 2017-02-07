@@ -2,12 +2,11 @@
 
 namespace Simples\Core\Model\Repository;
 
-use Simples\Core\Data\Record;
 use Simples\Core\Data\Collection;
+use Simples\Core\Data\Record;
 use Simples\Core\Data\Validator;
 use Simples\Core\Model\AbstractModel;
 use Simples\Core\Model\Action;
-use Simples\Core\Persistence\Transaction;
 
 /**
  * Class ApiRepository
@@ -206,14 +205,6 @@ class ApiRepository
     public function getFields($action): array
     {
         return $this->model->getFields($action);
-    }
-
-    /**
-     * @param $logging
-     */
-    public function setLog($logging)
-    {
-        Transaction::log($logging && env('TEST_MODE'));
     }
 
     /**

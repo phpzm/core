@@ -32,7 +32,11 @@ if (!function_exists('path')) {
         if (is_bool($root)) {
             array_shift($args);
             if ($root) {
-                $peaces = [\Simples\Core\Kernel\App::$ROOT];
+                $dir = \Simples\Core\Kernel\App::$ROOT;
+                if (!$dir) {
+                    $dir = dirname(__DIR__, 4);
+                }
+                $peaces = [$dir];
             }
         }
         $path = array_merge($peaces, $args);

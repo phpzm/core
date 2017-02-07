@@ -9,13 +9,13 @@ namespace Simples\Core\Helper;
 abstract class Text
 {
     /**
-     * @param $string
-     * @param $search
-     * @param $replace
-     * @param null $count
-     * @return mixed
+     * @param string $string
+     * @param string|array $search
+     * @param string|array $replace
+     * @param int $count (null)
+     * @return string
      */
-    public static function replace($string, $search, $replace, &$count = null)
+    public static function replace(string $string, $search, $replace, &$count = null): string
     {
         if ($count) {
             str_replace($search, $replace, $string, $count);
@@ -24,14 +24,14 @@ abstract class Text
     }
 
     /**
-     * @param $input
-     * @param $pad_length
-     * @param null $pad_string
-     * @param null $pad_type
+     * @param string $input
+     * @param string $length
+     * @param string $char (null)
+     * @param int $type (null)
      * @return string
      */
-    public static function pad($input, $pad_length, $pad_string = null, $pad_type = null)
+    public static function pad($input, $length, $char = null, $type = null): string
     {
-        return str_pad($input, $pad_length, $pad_string, $pad_type);
+        return str_pad($input, $length, $char, $type);
     }
 }

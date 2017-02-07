@@ -11,36 +11,31 @@ class Encryption
     /**
      * @var string
      */
-    private static $ENCRYPT_MODE = "AES-256-CBC";
+    const ENCRYPT_MODE = "AES-256-CBC";
 
     /**
-     * @var string
-     */
-    private static $SECRET_IV = '0df1e73b-812f-9bcf-b07c-e8250e73e748';
-
-    /**
-     * @param $string
-     * @param null $secretKey
+     * @param string $string
+     * @param string $secretKey
      * @return string
      */
-    public static function encode($string, $secretKey = null)
+    public static function encode($string, $secretKey): string
     {
-        $key = hash('sha256', env('SECURITY', $secretKey));
-        $iv = substr(hash('sha256', self::$SECRET_IV), 0, 16);
+        $key = hash('sha256', $secretKey);
+        $iv = substr(hash('sha256', md5($secretKey)), 0, 16);
 
-        return base64_encode(openssl_encrypt($string, self::$ENCRYPT_MODE, $key, 0, $iv));
+        return base64_encode(openssl_encrypt($string, self::ENCRYPT_MODE, $key, 0, $iv));
     }
 
     /**
-     * @param $string
-     * @param null $secretKey
+     * @param string $string
+     * @param string $secretKey
      * @return string
      */
-    public static function decode($string, $secretKey = null)
+    public static function decode(string $string, string $secretKey): string
     {
-        $key = hash('sha256', env('SECURITY', $secretKey));
-        $iv = substr(hash('sha256', self::$SECRET_IV), 0, 16);
+        $key = hash('sha256', $secretKey);
+        $iv = substr(hash('sha256', md5($secretKey)), 0, 16);
 
-        return openssl_decrypt(base64_decode($string), self::$ENCRYPT_MODE, $key, 0, $iv);
+        return openssl_decrypt(base64_decode($string), self::ENCRYPT_MODE, $key, 0, $iv);
     }
 }

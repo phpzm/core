@@ -49,8 +49,7 @@ class Transaction
         foreach (self::$connections as $connection) {
             /** @var Driver $connection */
             if (!$connection->commit()) {
-                self::rollback();
-                return false;
+                return self::rollback();
             }
         }
         return true;

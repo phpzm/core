@@ -39,7 +39,7 @@ abstract class ApiController extends Controller
      */
     public function post()
     {
-        $this->repository->setLog($this->request()->get('log'));
+        $this->setLog($this->request()->get('log'));
 
         $fields = $this->repository->getFields(Action::CREATE);
 
@@ -72,7 +72,7 @@ abstract class ApiController extends Controller
      */
     public function get($id = null)
     {
-        $this->repository->setLog($this->request()->get('log'));
+        $this->setLog($this->request()->get('log'));
 
         $start = null;
         $end = null;
@@ -107,7 +107,7 @@ abstract class ApiController extends Controller
      */
     public function put($id)
     {
-        $this->repository->setLog($this->request()->get('log'));
+        $this->setLog($this->request()->get('log'));
 
         $fields = $this->repository->getFields(Action::UPDATE);
 
@@ -143,7 +143,7 @@ abstract class ApiController extends Controller
      */
     public function delete($id)
     {
-        $this->repository->setLog($this->request()->get('log'));
+        $this->setLog($this->request()->get('log'));
 
         $data = [
             $this->repository->getHashKey() => $id

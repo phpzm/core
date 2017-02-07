@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Http;
 
+use Simples\Core\Persistence\Transaction;
 use Simples\Core\Route\Match;
 use Simples\Core\Route\Wrapper;
 
@@ -146,6 +147,14 @@ abstract class Controller
             return $input;
         }
         return $input->filter($type);
+    }
+
+    /**
+     * @param $logging
+     */
+    public function setLog($logging)
+    {
+        Transaction::log($logging && env('TEST_MODE'));
     }
 
     /**
