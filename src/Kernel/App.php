@@ -195,23 +195,23 @@ class App
         $name = $peaces[0];
         array_shift($peaces);
 
+        $config = null;
         if (isset(self::$CONFIGS[$name])) {
-            return self::$CONFIGS[$name];
+            $config = self::$CONFIGS[$name];
+        }
+        if (!$config) {
+            $filename = path(true, "config/{$name}.php");
+            if (file_exists($filename)) {
+                /** @noinspection PhpIncludeInspection */
+                $config = (object) require $filename;
+                self::$CONFIGS[$name] = $config;
+            }
+        }
+        if (count($peaces) === 0) {
+            return $config;
         }
 
-        $config = [];
-        $filename = path(true, "config/{$name}.php");
-        if (file_exists($filename)) {
-            /** @noinspection PhpIncludeInspection */
-            $config = require $filename;
-        }
-        self::$CONFIGS[$path] = (object)$config;
-
-        if (!count($peaces)) {
-            return self::$CONFIGS[$path];
-        }
-
-        return search($config, $peaces);
+        return search((array)$config, $peaces);
     }
 
     /**

@@ -130,6 +130,9 @@ if (!function_exists('off')) {
         if (is_null($property)) {
             return $default;
         }
+        if (!$value) {
+            return $default;
+        }
 
         if (is_array($value)) {
             return isset($value[$property]) ? $value[$property] : $default;
