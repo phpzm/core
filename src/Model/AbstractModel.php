@@ -217,7 +217,7 @@ abstract class AbstractModel extends Engine
      * @param array $options
      * @return Field
      */
-    protected function addField(string $name, string $type, array $options = []): Field
+    protected function addField(string $name, string $type = '', array $options = []): Field
     {
         if ($this->primaryKey === $name) {
             $options['primaryKey'] = true;

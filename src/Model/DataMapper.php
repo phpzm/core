@@ -36,9 +36,12 @@ class DataMapper extends AbstractModel
         $action = Action::CREATE;
 
         if ($this->before($action, $record)) {
+            if (!$record->get($this->hashKey)) {
+                $record->set($this->hashKey, $this->hashKey());
+            }
+
             $fields = [];
             $values = [];
-
             foreach ($this->getActionFields($action) as $field) {
                 /** @var Field $field */
                 if ($field->isCalculated()) {
@@ -53,13 +56,11 @@ class DataMapper extends AbstractModel
                     $values[] = $value;
                 }
             }
-            if (!$record->get($this->hashKey)) {
-                $record->set($this->hashKey, $this->hashKey());
-            }
             foreach ($this->createKeys as $type => $timestampsKey) {
                 $fields[] = $timestampsKey;
                 $values[] = $this->getTimestampValue($type);
             }
+
             $created = $this
                 ->source($this->getCollection())
                 ->fields($fields)

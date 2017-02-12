@@ -1,12 +1,22 @@
 <?php
 
 namespace Simples\Core\Model;
+use Simples\Core\Error\RunTimeError;
 
 /**
+ * @method Field string($size = 255)
+ * @method Field text()
+ * @method Field datetime($format = 'Y-m-d H:i:s')
+ * @method Field date($format = 'Y-m-d')
+ * @method Field integer($size = 10)
+ * @method Field float($size = 10, $decimal = 4)
+ * @method Field file()
+ * @method Field array()
+ * @method Field boolean()
  * Class Field
  * @package Simples\Core\Model
  */
-class Field
+class Field extends FieldContract
 {
     /**
      * @var string
@@ -21,78 +31,9 @@ class Field
     const AGGREGATOR_COUNT = 'count';
 
     /**
-     * @var boolean
-     */
-    private $primaryKey;
-
-    /**
-     * Collection to which this field belongs
-     * @var string
-     */
-    private $collection;
-
-    /**
-     * The name of field, used to create schemas and instructions
-     * @var string
-     */
-    private $name;
-
-    /**
-     * The type is useful to create schemas e apply validation rules e sanitizes
-     * @var string
-     */
-    private $type;
-
-    /**
-     * Options used to configure the field
      * @var array
      */
-    private $options;
-
-    /**
-     * @var array
-     */
-    private $validators;
-
-    /**
-     * @var string
-     */
-    private $label;
-
-    /**
-     * @var boolean
-     */
-    private $create;
-
-    /**
-     * @var boolean
-     */
-    private $read;
-
-    /**
-     * @var boolean
-     */
-    private $update;
-
-    /**
-     * @var array
-     */
-    private $enum = [];
-
-    /**
-     * @var array
-     */
-    private $referenced = [];
-
-    /**
-     * @var array
-     */
-    private $references = [];
-
-    /**
-     * @var callable
-     */
-    private $calculated;
+    private $supported = ['string', 'text', 'datetime', 'date', 'integer', 'float', 'file', 'array', 'boolean'];
 
     /**
      * Field constructor.
@@ -101,15 +42,15 @@ class Field
      * @param string $type
      * @param array $options
      */
-    public function __construct(string $collection, string $name, string $type, array $options = [])
+    public function __construct(string $collection, string $name, string $type = '', array $options = [])
     {
         $this->collection = $collection;
         $this->name = $name;
-        $this->type = $type;
+        $this->type = $type ? $type : Field::TYPE_STRING;
         $this->options = $options;
 
         $default = [
-            'label' => '', 'validators' => [], 'create' => true, 'read' => true, 'update' => true,
+            'primaryKey' => false, 'label' => '', 'validators' => [], 'create' => true, 'read' => true, 'update' => true,
             'enum' => [], 'referenced' => [], 'references' => [],
         ];
         $options = array_merge($default, $options);
@@ -117,6 +58,10 @@ class Field
         foreach ($options as $key => $value) {
             /** @noinspection PhpVariableVariableInspection */
             $this->$key = $value;
+        }
+        if (off($options, 'primaryKey')) {
+            $this->create(false);
+            $this->update(false);
         }
         if (!is_array($this->validators)) {
             $this->validators = [];
@@ -177,205 +122,12 @@ class Field
     }
 
     /**
-     * @return string
-     */
-    public function getCollection(): string
-    {
-        return $this->collection;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return array
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
-     * @return array
-     */
-    public function getValidators(): array
-    {
-        return $this->validators;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLabel(): string
-    {
-        return $this->label;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isCreate(): bool
-    {
-        return $this->create;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRead(): bool
-    {
-        return $this->read;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isUpdate(): bool
-    {
-        return $this->update;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isCalculated(): bool
-    {
-        return is_callable($this->calculated);
-    }
-
-    /**
-     * @return array
-     */
-    public function getReferenced(): array
-    {
-        return $this->referenced;
-    }
-
-    /**
-     * @return array
-     */
-    public function getReferences(): array
-    {
-        return $this->references;
-    }
-
-    /**
-     * @return array
-     */
-    public function getEnum(): array
-    {
-        return $this->enum;
-    }
-
-    /**
-     * @param string $collection
-     * @return Field
-     */
-    public function setCollection(string $collection): Field
-    {
-        $this->collection = $collection;
-        return $this;
-    }
-
-    /**
-     * @param string $name
-     * @return Field
-     */
-    public function setName(string $name): Field
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    /**
-     * @param string $type
-     * @return Field
-     */
-    public function setType(string $type): Field
-    {
-        $this->type = $type;
-        return $this;
-    }
-
-    /**
-     * @param array $options
-     * @return Field
-     */
-    public function setOptions(array $options): Field
-    {
-        $this->options = $options;
-        return $this;
-    }
-
-    /**
-     * @param array $validators
-     * @return Field
-     */
-    public function setValidators(array $validators): Field
-    {
-        $this->validators = $validators;
-        return $this;
-    }
-
-    /**
-     * @param string $label
-     * @return Field
-     */
-    public function setLabel(string $label): Field
-    {
-        $this->label = $label;
-        return $this;
-    }
-
-    /**
-     * @param bool $create
-     * @return Field
-     */
-    public function create(bool $create): Field
-    {
-        $this->create = $create;
-        return $this;
-    }
-
-    /**
-     * @param bool $read
-     * @return Field
-     */
-    public function read(bool $read): Field
-    {
-        $this->read = $read;
-        return $this;
-    }
-
-    /**
-     * @param bool $update
-     * @return Field
-     */
-    public function update(bool $update): Field
-    {
-        $this->update = $update;
-        return $this;
-    }
-
-    /**
      * @param array $items
      * @return Field
      */
     public function enum(array $items): Field
     {
+        $this->string();
         $this->enum = $items;
         return $this;
     }
@@ -414,5 +166,20 @@ class Field
     {
         $callable = $this->calculated;
         return $callable($record);
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     * @return Field
+     * @throws RunTimeError
+     */
+    public function __call($name, $arguments): Field
+    {
+        if (in_array($name, $this->supported)) {
+            $this->type = $name;
+            return $this;
+        }
+        throw new RunTimeError("Type '{$name}' not supported");
     }
 }
