@@ -349,14 +349,12 @@ abstract class SQLDriver extends SQLConnection implements Driver
     protected function parseJoin(string $table, array $resources): string
     {
         $join = [];
-        $counter = 0;
         /** @var Fusion $resource */
         foreach ($resources as $resource) {
-            $counter++;
-            $alias = 'T' . $counter;
             $type = $resource->isExclusive() ? 'INNER' : 'LEFT';
             $collection = $resource->getCollection();
             $left = "`{$table}`.`{$resource->getReferenced()}`";
+            $alias = '__' . strtoupper($resource->getReferences()) . '__';
             $right = "`{$alias}`.`{$resource->getReferences()}`";
             $join[] = "{$type} JOIN `{$collection}` AS {$alias} ON ({$left} = {$right})";
         }
