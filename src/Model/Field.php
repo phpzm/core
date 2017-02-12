@@ -271,6 +271,14 @@ class Field
     }
 
     /**
+     * @return array
+     */
+    public function getEnum(): array
+    {
+        return $this->enum;
+    }
+
+    /**
      * @param string $collection
      * @return Field
      */
@@ -394,5 +402,15 @@ class Field
     {
         $this->validator([$this->type => ['optional' => true]]);
         return $this;
+    }
+
+    /**
+     * @param $record
+     * @return mixed
+     */
+    public function calculate($record)
+    {
+        $callable = $this->calculated;
+        return $callable($record);
     }
 }

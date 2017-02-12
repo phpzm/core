@@ -5,7 +5,6 @@ namespace Simples\Core\Data;
 use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
-use Simples\Core\Route\Wrapper;
 use Stringy\Stringy;
 
 /**
@@ -17,187 +16,36 @@ class Validator
     /**
      * @var string
      */
-    const ACCEPTED = 'accepted';
+    const ACCEPTED = 'accepted',  ACTIVE = 'active', AFTER = 'after', ALPHA = 'alpha', ALPHA_DASH = 'alpha-dash',
+        ALPHA_NUMERIC = 'alpha-numeric', ARRAY = 'array', BEFORE = 'before', BETWEEN = 'between', BOOLEAN = 'boolean',
+        CONFIRMED = 'confirmed', DATE = 'date', DATE_FORMAT = 'date-format', DIFFERENT = 'different', DIGITS = 'digits',
+        DIGITS_BETWEEN = 'digits-between', DIMENSIONS = 'dimensions', DISTINCT = 'distinct', EMAIL = 'email',
+        EXISTING = 'existing', FILE = 'file', FILLED = 'filled', IMAGE = 'image', IN = 'in', IN_ARRAY = 'in-array',
+        FIELD = 'field', INTEGER = 'integer', IP = 'ip', JSON = 'json', MAX = 'max', MIMETYPES = 'mimetypes',
+        MIMES = 'mimes', MIN = 'min', NULLABLE = 'nullable', NOT = 'not', NUMERIC = 'numeric', PRESENT = 'present',
+        REGEX = 'regex', REQUIRED = 'required', REQUIRED_IF = 'required-if', SAME = 'same', SIZE = 'size',
+        STRING = 'string', TIMEZONE = 'timezone', UNIQUE = 'unique', URL = 'url';
+
     /**
-     * @var string
+     * @param $criteria
+     * @param $value
+     * @return array
      */
-    const ACTIVE = 'active';
-    /**
-     * @var string
-     */
-    const AFTER = 'after';
-    /**
-     * @var string
-     */
-    const ALPHA = 'alpha';
-    /**
-     * @var string
-     */
-    const ALPHA_DASH = 'alpha-dash';
-    /**
-     * @var string
-     */
-    const ALPHA_NUMERIC = 'alpha-numeric';
-    /**
-     * @var string
-     */
-    const ARRAY = 'array';
-    /**
-     * @var string
-     */
-    const BEFORE = 'before';
-    /**
-     * @var string
-     */
-    const BETWEEN = 'between';
-    /**
-     * @var string
-     */
-    const BOOLEAN = 'boolean';
-    /**
-     * @var string
-     */
-    const CONFIRMED = 'confirmed';
-    /**
-     * @var string
-     */
-    const DATE = 'date';
-    /**
-     * @var string
-     */
-    const DATE_FORMAT = 'date-format';
-    /**
-     * @var string
-     */
-    const DIFFERENT = 'different';
-    /**
-     * @var string
-     */
-    const DIGITS = 'digits';
-    /**
-     * @var string
-     */
-    const DIGITS_BETWEEN = 'digits-between';
-    /**
-     * @var string
-     */
-    const DIMENSIONS = 'dimensions';
-    /**
-     * @var string
-     */
-    const DISTINCT = 'distinct';
-    /**
-     * @var string
-     */
-    const EMAIL = 'email';
-    /**
-     * @var string
-     */
-    const EXISTING = 'existing';
-    /**
-     * @var string
-     */
-    const FILE = 'file';
-    /**
-     * @var string
-     */
-    const FILLED = 'filled';
-    /**
-     * @var string
-     */
-    const IMAGE = 'image';
-    /**
-     * @var string
-     */
-    const IN = 'in';
-    /**
-     * @var string
-     */
-    const IN_ARRAY = 'in-array';
-    /**
-     * @var string
-     */
-    const FIELD = 'field';
-    /**
-     * @var string
-     */
-    const INTEGER = 'integer';
-    /**
-     * @var string
-     */
-    const IP = 'ip';
-    /**
-     * @var string
-     */
-    const JSON = 'json';
-    /**
-     * @var string
-     */
-    const MAX = 'max';
-    /**
-     * @var string
-     */
-    const MIMETYPES = 'mimetypes';
-    /**
-     * @var string
-     */
-    const MIMES = 'mimes';
-    /**
-     * @var string
-     */
-    const MIN = 'min';
-    /**
-     * @var string
-     */
-    const NULLABLE = 'nullable';
-    /**
-     * @var string
-     */
-    const NOT = 'not';
-    /**
-     * @var string
-     */
-    const NUMERIC = 'numeric';
-    /**
-     * @var string
-     */
-    const PRESENT = 'present';
-    /**
-     * @var string
-     */
-    const REGEX = 'regex';
-    /**
-     * @var string
-     */
-    const REQUIRED = 'required';
-    /**
-     * @var string
-     */
-    const REQUIRED_IF = 'required-if';
-    /**
-     * @var string
-     */
-    const SAME = 'same';
-    /**
-     * @var string
-     */
-    const SIZE = 'size';
-    /**
-     * @var string
-     */
-    const STRING = 'string';
-    /**
-     * @var string
-     */
-    const TIMEZONE = 'timezone';
-    /**
-     * @var string
-     */
-    const UNIQUE = 'unique';
-    /**
-     * @var string
-     */
-    const URL = 'url';
+    public static function rule($criteria, $value): array
+    {
+        if (!is_array($criteria)) {
+            $criteria = explode(',', $criteria);
+        }
+        $rules = [];
+        foreach ($criteria as $key => $options) {
+            if (is_numeric($key)) {
+                $key = $options;
+                $options = '';
+            }
+            $rules[$key] = $options;
+        }
+        return ['rules' => $rules, 'value' => $value];
+    }
 
     /**
      * @param $value
@@ -419,6 +267,15 @@ class Validator
 
     /**
      * @param $value
+     * @return bool
+     */
+    public function isFloat($value): bool
+    {
+        return is_numeric($value);
+    }
+
+    /**
+     * @param $value
      * @return mixed
      */
     public function isImage($value)
@@ -578,11 +435,14 @@ class Validator
 
     /**
      * @param $value
-     * @return mixed
+     * @param array $options
+     * @return bool
      */
-    public function isRequired($value)
+    public function isRequired($value, $options = []): bool
     {
-        Wrapper::info([!empty((string)$value), $value]);
+        if (off($options, 'enum')) {
+            return in_array($value, off($options, 'enum'));
+        }
         return !empty((string)$value);
     }
 
@@ -618,12 +478,20 @@ class Validator
 
     /**
      * @param $value
-     * @return mixed
+     * @return bool
      */
-    public function isString($value)
+    public function isString($value): bool
     {
-        //
-        return $value;
+        return !!strlen($value);
+    }
+
+    /**
+     * @param $value
+     * @return bool
+     */
+    public function isText($value)
+    {
+        return $this->isString($value);
     }
 
     /**

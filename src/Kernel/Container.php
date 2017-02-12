@@ -1,6 +1,7 @@
 <?php
 
 namespace Simples\Core\Kernel;
+use Simples\Core\Error\RunTimeError;
 
 /**
  * Class Container
@@ -75,10 +76,11 @@ class Container
     /**
      * Resolves and created a new instance of a desired class.
      *
-     * @param $alias
+     * @param string $alias
      * @return mixed
+     * @throws RunTimeError
      */
-    public function make($alias)
+    public function make(string $alias)
     {
         if (array_key_exists($alias, $this->bindings)) {
             $classOrObject = $this->bindings[$alias];
@@ -93,8 +95,7 @@ class Container
         if (class_exists($alias)) {
             return self::register($alias, $this->makeInstance($alias))->make($alias);
         }
-
-        return null;
+        throw new RunTimeError("Class '{$alias}' not found");
     }
 
     /**

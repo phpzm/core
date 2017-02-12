@@ -41,7 +41,15 @@ class Date extends DateTime
     /**
      * @return string
      */
-    public function now()
+    public static function today(): string
+    {
+        return date('Y-m-d');
+    }
+
+    /**
+     * @return string
+     */
+    public static function now()
     {
         return date('Y-m-d H:i:s');
     }

@@ -40,11 +40,17 @@ class DataMapper extends AbstractModel
                 $record->set($this->hashKey, $this->hashKey());
             }
 
+            foreach ($this->getFields($action) as $key => $field) {
+                /** @var Field $field */
+                if ($field->isCalculated()) {
+                    $record->set($key, $field->calculate($record));
+                }
+            }
             $fields = [];
             $values = [];
-            foreach ($record->all() as $field => $value) {
+            foreach ($record->all() as $name => $value) {
                 if (!is_null($value)) {
-                    $fields[] = $field;
+                    $fields[] = $name;
                     $values[] = $value;
                 }
             }
@@ -138,9 +144,15 @@ class DataMapper extends AbstractModel
         }
 
         if ($this->before($action, $record, $previous)) {
+            foreach ($this->getFields($action) as $key => $field) {
+                /** @var Field $field */
+                if ($field->isCalculated()) {
+                    $record->set($key, $field->calculate($record));
+                }
+            }
+
             $fields = [];
             $values = [];
-
             foreach ($record->all([$this->hashKey, $this->getPrimaryKey()]) as $field => $value) {
                 if (!is_null($value)) {
                     $fields[] = $field;
@@ -319,7 +331,7 @@ class DataMapper extends AbstractModel
     {
         switch ($type) {
             case 'at':
-                return Date::create()->now();
+                return Date::now();
                 break;
             case 'by':
                 return Auth::getUser();

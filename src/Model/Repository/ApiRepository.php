@@ -95,13 +95,15 @@ class ApiRepository
      */
     public function post(Record $record): Record
     {
-        $defaults = $this->model->getDefaults(Action::CREATE);
+        $defaults = $this->model->getDefaults(Action::CREATE, $record);
         foreach ($defaults as $field => $default) {
-            $record->set($field, $default);
+            if (!$record->has($field)) {
+                $record->set($field, $default);
+            }
         }
 
         $validators = $this->model->getValidators(Action::CREATE, $record);
-        $errors = $this->getValidator()->parse($validators);
+        $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
             $this->setErrors($errors);
             return new Record([]);
@@ -129,13 +131,15 @@ class ApiRepository
      */
     public function put($record): Record
     {
-        $defaults = $this->model->getDefaults(Action::UPDATE);
+        $defaults = $this->model->getDefaults(Action::UPDATE, $record);
         foreach ($defaults as $field => $default) {
-            $record->set($field, $default);
+            if (!$record->has($field)) {
+                $record->set($field, $default);
+            }
         }
 
         $validators = $this->model->getValidators(Action::UPDATE, $record);
-        $errors = $this->getValidator()->parse($validators);
+        $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
             $this->setErrors($errors);
             return new Record([]);
@@ -209,5 +213,14 @@ class ApiRepository
     public function count(array $record) : int
     {
         return $this->model->count(new Record($record));
+    }
+
+    /**
+     * @param $validators
+     * @return Record
+     */
+    private function parseValidation($validators)
+    {
+        return $this->getValidator()->parse($validators);
     }
 }

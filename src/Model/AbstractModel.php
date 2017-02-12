@@ -311,6 +311,13 @@ abstract class AbstractModel extends Engine
                             ];
                         }
                         break;
+                    case 'required':
+                        if (count($field->getEnum())) {
+                            $options = [
+                                'enum' => $field->getEnum()
+                            ];
+                        }
+                        break;
                 }
                 if (!is_null($options)) {
                     $rules[$validator] = $options;

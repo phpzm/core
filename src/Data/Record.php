@@ -89,6 +89,15 @@ class Record extends Origin implements \IteratorAggregate
 
     /**
      * @param $name
+     * @return mixed
+     */
+    public function has($name)
+    {
+        return isset($this->public[$name]);
+    }
+
+    /**
+     * @param $name
      * @param $value
      * @return $this
      */
