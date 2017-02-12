@@ -14,7 +14,7 @@ class Date extends DateTime
     /**
      * @var string
      */
-    private $format = 'Y-m-d';
+    private static $format = 'Y-m-d';
 
     /**
      * Date constructor.
@@ -25,7 +25,7 @@ class Date extends DateTime
     {
         parent::__construct($time);
 
-        $this->format = of($format, $this->format);
+        static::$format = of($format, static::$format);
     }
 
     /**
@@ -50,10 +50,10 @@ class Date extends DateTime
      * @param $date
      * @return bool
      */
-    public function isDate($date)
+    public static function isDate($date)
     {
-        $temp = self::createFromFormat($this->format, $date);
-        return $temp && $temp->format($this->format) === $date;
+        $temp = self::createFromFormat(static::$format, $date);
+        return $temp && $temp->format(static::$format) === $date;
     }
 
     /**
@@ -126,7 +126,7 @@ class Date extends DateTime
      */
     public function toString()
     {
-        return $this->format($this->format);
+        return $this->format(static::$format);
     }
 
     /**

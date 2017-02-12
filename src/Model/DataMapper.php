@@ -5,6 +5,7 @@ namespace Simples\Core\Model;
 use Exception;
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
+use Simples\Core\Error\RunTimeError;
 use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Filter;
@@ -18,14 +19,15 @@ use Simples\Core\Security\Auth;
 class DataMapper extends AbstractModel
 {
     /**
-     * @param Record|array $record
-     * @return null|Record
-     * @throws \Exception
+     * Method with the responsibility of create a record of model
+     * @param array|Record $record (null)
+     * @return Record
+     * @throws RunTimeError
      */
-    final public function create($record = null)
+    final public function create($record = null): Record
     {
         if (!$record) {
-            throw new \Exception('Create in DataMapper require parameters');
+            throw new RunTimeError('Create in DataMapper require parameters');
         }
         if (is_array($record)) {
             $record = new Record($record);
@@ -67,10 +69,11 @@ class DataMapper extends AbstractModel
     }
 
     /**
-     * @param mixed $record
+     * Read records with the filters informed
+     * @param array|Record $record (null)
      * @return Collection
      */
-    final public function read($record = null)
+    final public function read($record = null): Collection
     {
         if (!$record) {
             $record = [];
@@ -109,18 +112,19 @@ class DataMapper extends AbstractModel
                 return new Collection($after->get('collection'));
             }
         }
-        return null;
+        return new Collection([]);
     }
 
     /**
-     * @param Record|array $record
-     * @return null|Record
-     * @throws \Exception
+     * Update the record given
+     * @param array|Record $record (null)
+     * @return Record
+     * @throws RunTimeError
      */
-    final public function update($record = null)
+    final public function update($record = null): Record
     {
         if (!$record) {
-            throw new \Exception('Update in DataMapper require parameters');
+            throw new RunTimeError('Update in DataMapper require parameters');
         }
         if (is_array($record)) {
             $record = new Record($record);
@@ -167,18 +171,19 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-        return null;
+        return new Record([]);
     }
 
     /**
-     * @param null $record
-     * @return null|Record
-     * @throws \Exception
+     * Remove the given record of database
+     * @param array|Record $record (null)
+     * @return Record
+     * @throws RunTimeError
      */
-    final public function destroy($record = null)
+    final public function destroy($record = null): Record
     {
         if (!$record) {
-            throw new \Exception('Destroy in DataMapper require parameters');
+            throw new RunTimeError('Destroy in DataMapper require parameters');
         }
         if (is_array($record)) {
             $record = new Record($record);
@@ -226,16 +231,17 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-
-        return null;
+        return new Record([]);
     }
 
     /**
-     * @param Record|null $record
+     * Get total of records based on filters
+     * @param array|Record $record (null)
      * @return int
      */
-    public function count(Record $record = null): int
+    public function count($record = null): int
     {
+        // Record
         $alias = 'count';
         $data = $this
             ->fields([

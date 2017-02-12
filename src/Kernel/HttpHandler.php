@@ -2,6 +2,8 @@
 
 namespace Simples\Core\Kernel;
 
+use Simples\Core\Error\RunTimeError;
+use Simples\Core\Http\Controller;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Route\Match;
@@ -179,6 +181,9 @@ class HttpHandler extends Response
 
             /** @var \Simples\Core\Http\Controller $controller */
             $controller = $this->container()->make($class);
+            if (!($controller instanceof Controller)) {
+                throw new RunTimeError("The class must be a instance of Controller, '{$class}' given");
+            }
             if (is_callable($controller)) {
                 $controller($this->request(), $this, $this->match());
             }

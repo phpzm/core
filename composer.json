@@ -13,12 +13,8 @@
   "version": "0.1.0",
   "type": "package",
   "authors": [
-    {
-      "name": "William",
-      "email": "wilcorrea@gmail.com",
-      "homepage": "https://simples.cloud",
-      "role": "Developer"
-    }
+    {"name": "William", "email": "wilcorrea@gmail.com"},
+    {"name": "Ezio", "email": "ezioadsr@gmail.com"}
   ],
   "require": {
     "php": ">=7.0",

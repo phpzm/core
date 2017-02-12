@@ -59,39 +59,53 @@ class ActiveRecord extends AbstractModel
     }
 
     /**
-     * @param mixed $record
+     * Method with the responsibility of create a record of model
+     * @param array|Record $record (null)
      * @return Record
      */
-    final public function create($record = null)
+    final public function create($record = null): Record
     {
         return null;
     }
 
     /**
-     * @param mixed $record
+     * Read records with the filters informed
+     * @param array|Record $record (null)
      * @return Collection
      */
-    public function read($record = null)
+    public function read($record = null): Collection
     {
         return new Collection([]);
     }
 
     /**
-     * @param mixed $record
+     * Update the record given
+     * @param array|Record $record (null)
      * @return Record
      */
-    public function update($record = null)
+    public function update($record = null): Record
     {
         return new Record([]);
     }
 
     /**
-     * @param mixed $record
+     * Remove the given record of database
+     * @param array|Record $record (null)
      * @return Record
      */
-    public function destroy($record = null)
+    public function destroy($record = null): Record
     {
         return new Record([]);
+    }
+
+    /**
+     * Get total of records based on filters
+     * @param array|Record $record (null)
+     * @return int
+     */
+    public function count($record = null): int
+    {
+        return 0;
     }
 
     /**

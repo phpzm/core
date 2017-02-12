@@ -135,35 +135,38 @@ abstract class AbstractModel extends Engine
 
     /**
      * Method with the responsibility of create a record of model
-     * @param mixed $record
+     * @param array|Record $record (null)
      * @return Record
      */
-    abstract public function create($record = null);
+    abstract public function create($record = null): Record;
 
     /**
      * Read records with the filters informed
-     * @param mixed $record
+     * @param array|Record $record (null)
      * @return Collection
      */
-    abstract public function read($record = null);
+    abstract public function read($record = null): Collection;
 
     /**
-     * @param mixed $record
+     * Update the record given
+     * @param array|Record $record (null)
      * @return Record
      */
-    abstract public function update($record = null);
+    abstract public function update($record = null): Record;
 
     /**
-     * @param mixed $record
+     * Remove the given record of database
+     * @param array|Record $record (null)
      * @return Record
      */
     abstract public function destroy($record = null);
 
     /**
-     * @param Record|null $record
+     * Get total of records based on filters
+     * @param array|Record $record (null)
      * @return int
      */
-    abstract public function count(Record $record = null) : int;
+    abstract public function count($record = null) : int;
 
     /**
      * This method is called before the operation be executed, the changes made in Record will be save
@@ -307,9 +310,6 @@ abstract class AbstractModel extends Engine
                                 'field' => $field->getName()
                             ];
                         }
-                        break;
-                    default:
-                        $options = [];
                         break;
                 }
                 if (!is_null($options)) {

@@ -284,3 +284,19 @@ if (!function_exists('read')) {
         return trim($line);
     }
 }
+
+if (!function_exists('clearpath')) {
+    /**
+     * @param string $path
+     * @return string
+     */
+    function clearpath(string $path): string
+    {
+        return implode('/', array_filter(explode('/', $path), function ($value) {
+            if (!in_array($value, ['..', '.'])) {
+                return $value;
+            }
+            return null;
+        }));
+    }
+}

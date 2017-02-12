@@ -2,8 +2,10 @@
 
 namespace Simples\Core\Data;
 
+use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
+use Simples\Core\Route\Wrapper;
 use Stringy\Stringy;
 
 /**
@@ -313,8 +315,7 @@ class Validator
      */
     public function isDate($value)
     {
-        //
-        return $value;
+        return Date::isDate($value);
     }
 
     /**
@@ -458,12 +459,11 @@ class Validator
 
     /**
      * @param $value
-     * @return mixed
+     * @return bool
      */
     public function isInteger($value)
     {
-        //
-        return $value;
+        return is_numeric((int)$value);
     }
 
     /**
@@ -582,7 +582,8 @@ class Validator
      */
     public function isRequired($value)
     {
-        return !empty($value);
+        Wrapper::info([!empty((string)$value), $value]);
+        return !empty((string)$value);
     }
 
     /**
@@ -647,7 +648,7 @@ class Validator
         if (class_exists($class)) {
             $instance = Container::getInstance()->make($class);
             /** @var AbstractModel $instance */
-            return $instance->fields($field)->read([$field => $value])->size() === 0;
+            return $instance->count([$field => $value]) === 0;
         }
         return false;
     }
@@ -686,8 +687,11 @@ class Validator
     {
         $error = [];
         foreach ($rules as $rule => $options) {
-            $problem = $this->apply($rule, $value, $options);
-            if (!$problem) {
+            if (!$value && off($options, 'optional')) {
+                continue;
+            }
+            $isValid = $this->apply($rule, $value, $options);
+            if (!$isValid) {
                 $error[] = $rule;
             }
         }

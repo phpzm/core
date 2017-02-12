@@ -106,12 +106,7 @@ class ApiRepository
             $this->setErrors($errors);
             return new Record([]);
         }
-
-        $posting = $this->model->create($record);
-        if ($posting) {
-            return $posting;
-        }
-        return new Record([]);
+        return $this->model->create($record);
     }
 
     /**
@@ -125,11 +120,7 @@ class ApiRepository
         if (!is_null($start) && !is_null($end)) {
             $this->model->limit([$start, $end]);
         }
-        $getting = $this->model->read($record);
-        if ($getting) {
-            return $getting;
-        }
-        return new Collection([]);
+        return $this->model->read($record);
     }
 
     /**
@@ -150,11 +141,7 @@ class ApiRepository
             return new Record([]);
         }
 
-        $putting = $this->model->update($record);
-        if ($putting) {
-            return $putting;
-        }
-        return new Record([]);
+        return $this->model->update($record);
     }
 
     /**

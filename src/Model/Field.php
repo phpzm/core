@@ -12,7 +12,7 @@ class Field
      * @var string
      */
     const TYPE_STRING = 'string', TYPE_DATETIME = 'datetime', TYPE_BOOLEAN = 'boolean',
-        TYPE_DATE = 'date', TYPE_INTEGER = 'int', TYPE_FLOAT = 'float', TYPE_TEXT = 'text', TYPE_FILE = 'file';
+        TYPE_DATE = 'date', TYPE_INTEGER = 'integer', TYPE_FLOAT = 'float', TYPE_TEXT = 'text', TYPE_FILE = 'file';
 
     /**
      * @var string
@@ -89,6 +89,11 @@ class Field
     private $references = [];
 
     /**
+     * @var callable
+     */
+    private $calculated;
+
+    /**
      * Field constructor.
      * @param string $collection
      * @param string $name
@@ -144,7 +149,7 @@ class Field
      * @param string $target
      * @return Field
      */
-    public function isReferenced(string $class, string $target): Field
+    public function referencedBy(string $class, string $target): Field
     {
         $this->referenced[$target] = $class;
         return $this;
@@ -155,7 +160,7 @@ class Field
      * @param string $target
      * @return Field
      */
-    public function makesReference(string $class, string $target): Field
+    public function referencesTo(string $class, string $target): Field
     {
         $this->references[$target] = $class;
         return $this;
@@ -239,6 +244,14 @@ class Field
     public function isUpdate(): bool
     {
         return $this->update;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCalculated(): bool
+    {
+        return is_callable($this->calculated);
     }
 
     /**
@@ -348,12 +361,38 @@ class Field
     }
 
     /**
-     * @param $items
+     * @param array $items
      * @return Field
      */
-    public function enum($items): Field
+    public function enum(array $items): Field
     {
         $this->enum = $items;
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     */
+    public function calculated(callable $callable)
+    {
+        $this->calculated = $callable;
+    }
+
+    /**
+     * @return Field
+     */
+    public function required(): Field
+    {
+        $this->validator(['required', $this->type]);
+        return $this;
+    }
+
+    /**
+     * @return Field
+     */
+    public function optional(): Field
+    {
+        $this->validator([$this->type => ['optional' => true]]);
         return $this;
     }
 }
