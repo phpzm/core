@@ -119,6 +119,7 @@ class Field
         }
         if (!is_array($this->validators)) {
             $this->validators = [];
+            $this->optional();
         }
     }
 
