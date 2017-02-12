@@ -167,7 +167,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $command[] = 'FROM';
         $command[] = $table;
         if ($join) {
-            $command[] = $this->parseJoin($join);
+            $command[] = $this->parseJoin($table, $join);
         }
 
         $modifiers = [
@@ -218,7 +218,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $command[] = 'UPDATE';
         $command[] = $table;
         if ($join) {
-            $command[] = $this->parseJoin($join);
+            $command[] = $this->parseJoin($table, $join);
         }
         $command[] = 'SET';
         $command[] = $sets;
@@ -240,14 +240,14 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getDelete(array $clausules): string
     {
-        $source = off($clausules, 'source', '<source>');
+        $table = off($clausules, 'source', '<source>');
         $join = off($clausules, 'relation');
 
         $command = [];
         $command[] = 'DELETE FROM';
-        $command[] = $source;
+        $command[] = $table;
         if ($join) {
-            $command[] = $this->parseJoin($join);
+            $command[] = $this->parseJoin($table, $join);
         }
 
         $modifiers = [
@@ -342,19 +342,23 @@ abstract class SQLDriver extends SQLConnection implements Driver
     }
 
     /**
+     * @param string $table
      * @param array $resources
      * @return string
      */
-    private function parseJoin(array $resources): string
+    protected function parseJoin(string $table, array $resources): string
     {
         $join = [];
+        $counter = 0;
         /** @var Fusion $resource */
         foreach ($resources as $resource) {
+            $counter++;
+            $alias = 'T' . $counter;
             $type = $resource->isExclusive() ? 'INNER' : 'LEFT';
-            $table = $resource->getCollection();
-            $left = $resource->getReferenced();
-            $right = $resource->getReferences();
-            $join[] = "{$type} JOIN {$table} ON ({$left} = {$right})";
+            $collection = $resource->getCollection();
+            $left = "`{$table}`.`{$resource->getReferenced()}`";
+            $right = "`{$alias}`.`{$resource->getReferences()}`";
+            $join[] = "{$type} JOIN `{$collection}` AS {$alias} ON ({$left} = {$right})";
         }
 
         return implode(' ', $join);

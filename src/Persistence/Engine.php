@@ -144,4 +144,12 @@ class Engine
     {
         return $this->settings;
     }
+
+    /**
+     * Clear the clausules changes
+     */
+    public function reset()
+    {
+        $this->clausules = [];
+    }
 }

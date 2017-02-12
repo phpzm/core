@@ -36,23 +36,25 @@ class DataMapper extends AbstractModel
         $action = Action::CREATE;
 
         if ($this->before($action, $record)) {
-            if (!$record->get($this->hashKey)) {
-                $record->set($this->hashKey, $this->hashKey());
-            }
-
-            foreach ($this->getFields($action) as $key => $field) {
-                /** @var Field $field */
-                if ($field->isCalculated()) {
-                    $record->set($key, $field->calculate($record));
-                }
-            }
             $fields = [];
             $values = [];
-            foreach ($record->all() as $name => $value) {
-                if (!is_null($value)) {
+
+            foreach ($this->getActionFields($action) as $field) {
+                /** @var Field $field */
+                if ($field->isCalculated()) {
+                    $value = $field->calculate($record);
+                }
+                $name = $field->getName();
+                if ($record->has($name)) {
+                    $value = $record->get($name);
+                }
+                if (isset($value)) {
                     $fields[] = $name;
                     $values[] = $value;
                 }
+            }
+            if (!$record->get($this->hashKey)) {
+                $record->set($this->hashKey, $this->hashKey());
             }
             foreach ($this->createKeys as $type => $timestampsKey) {
                 $fields[] = $timestampsKey;
@@ -62,6 +64,8 @@ class DataMapper extends AbstractModel
                 ->source($this->getCollection())
                 ->fields($fields)
                 ->add($values);
+
+            $this->reset();
 
             if ($created) {
 
@@ -107,11 +111,11 @@ class DataMapper extends AbstractModel
             $collection = $this
                 ->source($this->getCollection())
                 ->relation($relations)
-                ->fields($this->parseReadFields())
+                ->fields($this->getActionFields($action))
                 ->filter($where)
                 ->get($filters);
 
-            $this->relation(null);
+            $this->reset();
 
             $after = new Record(['collection' => $collection]);
             if ($this->after($action, $after)) {
@@ -140,22 +144,23 @@ class DataMapper extends AbstractModel
 
         $previous = $this->previous($record);
         if ($previous->isEmpty()) {
-            return null;
+            return $previous;
         }
 
         if ($this->before($action, $record, $previous)) {
-            foreach ($this->getFields($action) as $key => $field) {
-                /** @var Field $field */
-                if ($field->isCalculated()) {
-                    $record->set($key, $field->calculate($record));
-                }
-            }
-
             $fields = [];
             $values = [];
-            foreach ($record->all([$this->hashKey, $this->getPrimaryKey()]) as $field => $value) {
-                if (!is_null($value)) {
-                    $fields[] = $field;
+            foreach ($this->getActionFields($action) as $key => $field) {
+                /** @var Field $field */
+                if ($field->isCalculated()) {
+                    $value = $field->calculate($record);
+                }
+                $name = $field->getName();
+                if ($record->has($name)) {
+                    $value = $record->get($name);
+                }
+                if (isset($value)) {
+                    $fields[] = $name;
                     $values[] = $value;
                 }
             }
@@ -171,6 +176,8 @@ class DataMapper extends AbstractModel
                 ->fields($fields)
                 ->filter([$filter])
                 ->set($values, [$filter->getValue()]);
+
+            $this->reset();
 
             if ($updated) {
                 foreach ($record->all() as $name => $value) {
@@ -205,7 +212,7 @@ class DataMapper extends AbstractModel
 
         $previous = $this->previous($record);
         if ($previous->isEmpty()) {
-            return null;
+            return $previous;
         }
 
         if ($this->before($action, $record, $previous)) {
@@ -231,6 +238,8 @@ class DataMapper extends AbstractModel
                     ->filter($filters)
                     ->remove([$record->get($this->getPrimaryKey())]);
             }
+
+            $this->reset();
 
             if ($removed) {
                 foreach ($record->all() as $name => $value) {
@@ -262,6 +271,8 @@ class DataMapper extends AbstractModel
             ->limit(null)
             ->read($record);
 
+        $this->reset();
+
         if (!$data->current()->isEmpty()) {
             return (int)$data->current()->get($alias);
         }
@@ -269,9 +280,10 @@ class DataMapper extends AbstractModel
     }
 
     /**
-     * @return array
+     * @param string $action
+     * @return array|mixed
      */
-    protected function parseReadFields()
+    protected function getActionFields(string $action)
     {
         if (off($this->getClausules(), 'fields')) {
             $fields = off($this->getClausules(), 'fields');
@@ -281,7 +293,7 @@ class DataMapper extends AbstractModel
             $this->fields(null);
         }
         if (!isset($fields)) {
-            $fields = $this->getFields(Action::READ);
+            $fields = $this->getFields($action);
         }
         return $fields;
     }
@@ -297,7 +309,7 @@ class DataMapper extends AbstractModel
         foreach ($data as $name => $value) {
             $field = $this->getField($name);
             if (is_null($field)) {
-                throw new Exception("Invalid field name '{$name}'");
+                throw new RunTimeError("Invalid field name '{$name}'");
             }
             $filters[] = new Filter($field, $value);
         }

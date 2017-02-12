@@ -41,7 +41,7 @@ abstract class ApiController extends Controller
     {
         $this->setLog($this->request()->get('log'));
 
-        $fields = $this->repository->getFields(Action::CREATE);
+        $fields = $this->repository->getFields();
 
         $data = [];
         foreach ($fields as $name => $field) {
@@ -83,7 +83,7 @@ abstract class ApiController extends Controller
             $size = (int)$this->request()->get('size');
             $start = ($page - 1) * $size;
             $end = $size;
-            $fields = $this->repository->getFields(Action::READ);
+            $fields = $this->repository->getFields();
 
             /** @var Field $field */
             foreach ($fields as $name => $field) {
@@ -109,7 +109,7 @@ abstract class ApiController extends Controller
     {
         $this->setLog($this->request()->get('log'));
 
-        $fields = $this->repository->getFields(Action::UPDATE);
+        $fields = $this->repository->getFields();
 
         $data = [
             $this->repository->getHashKey() => $id

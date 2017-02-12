@@ -190,12 +190,11 @@ class ApiRepository
     }
 
     /**
-     * @param $action
      * @return array
      */
-    public function getFields($action): array
+    public function getFields(): array
     {
-        return $this->model->getFields($action);
+        return $this->model->getFields(Action::RECOVER);
     }
 
     /**

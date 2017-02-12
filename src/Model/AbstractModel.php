@@ -221,7 +221,7 @@ abstract class AbstractModel extends Engine
     {
         if ($this->primaryKey === $name) {
             $options['primaryKey'] = true;
-        } else if (off($options, 'primaryKey')) {
+        } elseif (off($options, 'primaryKey')) {
             $this->primaryKey = $name;
         }
         $field = new Field($this->collection, $name, $type, $options);
@@ -338,7 +338,7 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @param $action
+     * @param string $action
      * @return array
      */
     public function getFields(string $action): array
@@ -359,6 +359,9 @@ abstract class AbstractModel extends Engine
             }
         }
         return array_filter($this->fields, function ($field) use ($method) {
+            if (!$method) {
+                return $field;
+            }
             if ($method && $field->$method()) {
                 return $field;
             }
