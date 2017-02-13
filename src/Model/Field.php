@@ -169,6 +169,18 @@ class Field extends FieldContract
     }
 
     /**
+     * @param string $reference
+     * @return Field
+     */
+    public function from(string $reference): Field
+    {
+        $this->collection = '';
+        $this->from = $reference;
+        $this->create(false)->read(true)->update(false);
+        return $this;
+    }
+
+    /**
      * @param $name
      * @param $arguments
      * @return Field
@@ -178,6 +190,9 @@ class Field extends FieldContract
     {
         if (in_array($name, $this->supported)) {
             $this->type = $name;
+            if (!$this->validators) {
+                $this->optional();
+            }
             return $this;
         }
         throw new RunTimeError("Type '{$name}' not supported");

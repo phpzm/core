@@ -354,7 +354,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
             $type = $resource->isExclusive() ? 'INNER' : 'LEFT';
             $collection = $resource->getCollection();
             $left = "`{$table}`.`{$resource->getReferenced()}`";
-            $alias = '__' . strtoupper($resource->getReferences()) . '__';
+            $alias = '__' . strtoupper($resource->getReferenced()) . '__';
             $right = "`{$alias}`.`{$resource->getReferences()}`";
             $join[] = "{$type} JOIN `{$collection}` AS {$alias} ON ({$left} = {$right})";
         }

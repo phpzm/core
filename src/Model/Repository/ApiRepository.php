@@ -222,4 +222,14 @@ class ApiRepository
     {
         return $this->getValidator()->parse($validators);
     }
+
+    /**
+     * @param bool $logging
+     * @return ApiRepository
+     */
+    public function log($logging = true): ApiRepository
+    {
+        $this->model->log($logging);
+        return $this;
+    }
 }

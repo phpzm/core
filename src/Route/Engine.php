@@ -297,7 +297,7 @@ class Engine
             if (is_dir($resource->getFilename())) {
                 continue;
             } else {
-                $pattern = '/' . preg_quote(App::$ROOT, '/') . '/';
+                $pattern = '/' . preg_quote(App::options('root'), '/') . '/';
                 $file = preg_replace($pattern, '', $resource->getPathname(), 1);
                 if ($file) {
                     $files[] = $file;

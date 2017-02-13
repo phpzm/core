@@ -32,7 +32,7 @@ if (!function_exists('path')) {
         if (is_bool($root)) {
             array_shift($args);
             if ($root) {
-                $dir = \Simples\Core\Kernel\App::$ROOT;
+                $dir = \Simples\Core\Kernel\App::options('root');
                 if (!$dir) {
                     $dir = dirname(__DIR__, 4);
                 }

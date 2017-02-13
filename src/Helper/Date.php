@@ -65,6 +65,16 @@ class Date extends DateTime
     }
 
     /**
+     * @param string $date
+     * @param int $months
+     * @return string
+     */
+    public static function nextMonth(string $date, int $months): string
+    {
+        return date('Y-m-d', strtotime($date . " +" . $months . " month"));
+    }
+
+    /**
      * @param array $holidays Array with dates formatted with `d/m`
      * @param int $forward Minimum of days to add
      * @param array $weekend Days of week what will be like holidays

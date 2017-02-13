@@ -73,7 +73,7 @@ trait LogicalValidator
      */
     public function isArray($value)
     {
-        return $value;
+        return is_array($value);
     }
 
     /**
@@ -192,7 +192,7 @@ trait LogicalValidator
         if (off($options, 'enum')) {
             return in_array($value, off($options, 'enum'));
         }
-        return !empty((string)$value);
+        return !empty($value);
     }
 
     /**

@@ -32,14 +32,9 @@ class App
     private static $CONFIGS = [];
 
     /**
-     * @var string
-     */
-    public static $ROOT;
-
-    /**
      * @var array
      */
-    private static $options;
+    private static $OPTIONS;
 
     /**
      * App constructor
@@ -58,21 +53,31 @@ class App
      */
     public function __construct($options)
     {
-        $default = [
-            'root' => __DIR__,
-            'lang' => [
-                'default' => 'en', 'fallback' => 'en'
-            ],
-            'labels' => true,
-            'headers' => [],
-            'type' => Response::CONTENT_TYPE_HTML,
-            'separator' => '@',
-            'filter' => '~>',
-            'strict' => false
-        ];
-        self::$options = array_merge($default, $options);
+        static::start($options);
+    }
 
-        self::$ROOT = off(self::$options, 'root');
+    /**
+     * @param array $options
+     * @return array
+     */
+    private static function start(array $options = [])
+    {
+        if (!self::$OPTIONS) {
+            $default = [
+                'root' => dirname(__DIR__, 5),
+                'lang' => [
+                    'default' => 'en', 'fallback' => 'en'
+                ],
+                'labels' => true,
+                'headers' => [],
+                'type' => Response::CONTENT_TYPE_HTML,
+                'separator' => '@',
+                'filter' => '~>',
+                'strict' => false
+            ];
+            self::$OPTIONS = array_merge($default, $options);
+        }
+        return self::$OPTIONS;
     }
 
     /**
@@ -84,13 +89,14 @@ class App
      */
     public static function options($key = null, $value = null)
     {
+        self::start();
         if ($key) {
             if (!$value) {
-                return self::$options[$key] ?? null;
+                return self::$OPTIONS[$key] ?? null;
             }
-            self::$options[$key] = $value;
+            self::$OPTIONS[$key] = $value;
         }
-        return self::$options;
+        return self::$OPTIONS;
     }
 
     /**
@@ -177,7 +183,7 @@ class App
     {
         if (!self::$REQUEST) {
             // TODO: container
-            $request = new Request(self::$options['strict']);
+            $request = new Request(self::$OPTIONS['strict']);
             self::$REQUEST = $request->fromServer();
         }
         return self::$REQUEST;

@@ -54,6 +54,7 @@ class DataMapper extends AbstractModel
                 if (isset($value)) {
                     $fields[] = $name;
                     $values[] = $value;
+                    unset($value);
                 }
             }
             foreach ($this->createKeys as $type => $timestampsKey) {
@@ -356,7 +357,7 @@ class DataMapper extends AbstractModel
     /**
      * @return array
      */
-    private function parseReadRelations(): array
+    protected function parseReadRelations(): array
     {
         $join = [];
         foreach ($this->fields as $field) {
@@ -378,7 +379,7 @@ class DataMapper extends AbstractModel
      * @param Record $record
      * @return Record
      */
-    private function previous(Record $record): Record
+    protected function previous(Record $record): Record
     {
         $hashKey = $this->hashKey;
         $primaryKey = $this->getPrimaryKey();
@@ -400,7 +401,7 @@ class DataMapper extends AbstractModel
     /**
      * @return Filter
      */
-    private function getDestroyFilter(): Filter
+    protected function getDestroyFilter(): Filter
     {
         $field = new Field($this->getCollection(), $this->destroyKeys['at'], Field::TYPE_DATETIME);
         return new Filter($field, Filter::rule(null, Filter::RULE_BLANK));

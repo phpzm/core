@@ -74,6 +74,11 @@ class FieldContract
     protected $references = [];
 
     /**
+     * @var string
+     */
+    protected $from = '';
+
+    /**
      * @var callable
      */
     protected $calculated;
@@ -183,12 +188,21 @@ class FieldContract
     }
 
     /**
+     * @return string
+     */
+    public function getFrom(): string
+    {
+        return $this->from;
+    }
+
+    /**
      * @param string $collection
      * @return FieldContract
      */
     public function setCollection(string $collection): FieldContract
     {
         $this->collection = $collection;
+        $this->from = '';
         return $this;
     }
 
