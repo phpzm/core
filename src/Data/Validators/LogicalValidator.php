@@ -184,19 +184,6 @@ trait LogicalValidator
 
     /**
      * @param $value
-     * @param array $options
-     * @return bool
-     */
-    public function isRequired($value, $options = []): bool
-    {
-        if (off($options, 'enum')) {
-            return in_array($value, off($options, 'enum'));
-        }
-        return !empty($value);
-    }
-
-    /**
-     * @param $value
      * @return mixed
      */
     public function isRequiredIf($value)

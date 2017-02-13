@@ -39,7 +39,7 @@ class ApiRepository
         $this->model = $model;
 
         $this->validator = $validator ?? new Validator();
-        $this->errors = new Record([]);
+        $this->errors = Record::create([]);
     }
 
     /**
@@ -106,7 +106,7 @@ class ApiRepository
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
             $this->setErrors($errors);
-            return new Record([]);
+            return Record::create([]);
         }
         return $this->model->create($record);
     }
@@ -142,7 +142,7 @@ class ApiRepository
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
             $this->setErrors($errors);
-            return new Record([]);
+            return Record::create([]);
         }
 
         return $this->model->update($record);
@@ -158,7 +158,7 @@ class ApiRepository
         if ($deleting) {
             return $deleting;
         }
-        return new Record([]);
+        return Record::create([]);
     }
 
     /**
@@ -168,7 +168,7 @@ class ApiRepository
      */
     public function find(array $filters, array $fields): Collection
     {
-        $getting = $this->model->fields($fields)->read(new Record($filters));
+        $getting = $this->model->fields($fields)->read(Record::create($filters));
         if ($getting) {
             return $getting;
         }
@@ -186,7 +186,7 @@ class ApiRepository
         foreach ($binds as $key => $value) {
             $transformed[$value] = $record->get($key);
         }
-        return new Record($transformed);
+        return Record::create($transformed);
     }
 
     /**
@@ -211,7 +211,7 @@ class ApiRepository
      */
     public function count(array $record) : int
     {
-        return $this->model->count(new Record($record));
+        return $this->model->count(Record::create($record));
     }
 
     /**

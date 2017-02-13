@@ -30,7 +30,7 @@ class DataMapper extends AbstractModel
             throw new RunTimeError('Create in DataMapper require parameters');
         }
         if (is_array($record)) {
-            $record = new Record($record);
+            $record = Record::create($record);
         }
 
         $action = Action::CREATE;
@@ -44,10 +44,11 @@ class DataMapper extends AbstractModel
             $values = [];
             foreach ($this->getActionFields($action) as $field) {
                 /** @var Field $field */
+                $name = $field->getName();
                 if ($field->isCalculated()) {
                     $value = $field->calculate($record);
+                    $record->set($name, $value);
                 }
-                $name = $field->getName();
                 if ($record->has($name)) {
                     $value = $record->get($name);
                 }
@@ -76,7 +77,7 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-        return null;
+        return Record::create([]);
     }
 
     /**
@@ -90,7 +91,7 @@ class DataMapper extends AbstractModel
             $record = [];
         }
         if (is_array($record)) {
-            $record = new Record($record);
+            $record = Record::create($record);
         }
 
         $action = Action::READ;
@@ -118,7 +119,7 @@ class DataMapper extends AbstractModel
 
             $this->reset();
 
-            $after = new Record(['collection' => $collection]);
+            $after = Record::create(['collection' => $collection]);
             if ($this->after($action, $after)) {
                 return new Collection($after->get('collection'));
             }
@@ -138,7 +139,7 @@ class DataMapper extends AbstractModel
             throw new RunTimeError('Update in DataMapper require parameters');
         }
         if (is_array($record)) {
-            $record = new Record($record);
+            $record = Record::create($record);
         }
 
         $action = Action::UPDATE;
@@ -153,10 +154,11 @@ class DataMapper extends AbstractModel
             $values = [];
             foreach ($this->getActionFields($action) as $key => $field) {
                 /** @var Field $field */
+                $name = $field->getName();
                 if ($field->isCalculated()) {
                     $value = $field->calculate($record);
+                    $record->set($name, $value);
                 }
-                $name = $field->getName();
                 if ($record->has($name)) {
                     $value = $record->get($name);
                 }
@@ -191,7 +193,7 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-        return new Record([]);
+        return Record::create([]);
     }
 
     /**
@@ -206,7 +208,7 @@ class DataMapper extends AbstractModel
             throw new RunTimeError('Destroy in DataMapper require parameters');
         }
         if (is_array($record)) {
-            $record = new Record($record);
+            $record = Record::create($record);
         }
 
         $action = Action::DESTROY;
@@ -253,7 +255,7 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-        return new Record([]);
+        return Record::create([]);
     }
 
     /**

@@ -8,6 +8,7 @@ use Simples\Core\Data\Validators\FileValidator;
 use Simples\Core\Data\Validators\LogicalValidator;
 use Simples\Core\Data\Validators\NumberValidator;
 use Simples\Core\Data\Validators\StringValidator;
+use Simples\Core\Helper\Json;
 use Stringy\Stringy;
 
 /**
@@ -32,6 +33,19 @@ class Validator
         MIMES = 'mimes', MIN = 'min', NULLABLE = 'nullable', NOT = 'not', NUMERIC = 'numeric', PRESENT = 'present',
         REGEX = 'regex', REQUIRED = 'required', REQUIRED_IF = 'required-if', SAME = 'same', SIZE = 'size',
         STRING = 'string', TIMEZONE = 'timezone', UNIQUE = 'unique', URL = 'url';
+
+    /**
+     * @param $value
+     * @param array $options
+     * @return bool
+     */
+    public function isRequired($value): bool
+    {
+        if (is_scalar($value)) {
+            return strlen((string)$value) > 0;
+        }
+        return !empty(Json::encode($value));
+    }
 
     /**
      * @param $criteria
@@ -85,6 +99,11 @@ class Validator
             if (!$isValid) {
                 $error[] = $rule;
             }
+            if ($isValid && off($options, 'enum')) {
+                if (!in_array($value, off($options, 'enum'))) {
+                    $error[] = 'enum';
+                }
+            }
         }
         return $error;
     }
@@ -96,13 +115,13 @@ class Validator
     public function parse(array $validators): Record
     {
         $errors = [];
-        // Wrapper::info($validators);
+        //stop($validators);
         foreach ($validators as $field => $settings) {
             $error = $this->applyRules(off($settings, 'rules'), off($settings, 'value'));
             if (count($error)) {
                 $errors[$field] = $error;
             }
         }
-        return new Record($errors);
+        return Record::create($errors);
     }
 }

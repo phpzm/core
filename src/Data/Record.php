@@ -4,13 +4,16 @@ namespace Simples\Core\Data;
 
 use Simples\Core\Helper\Json;
 use Simples\Core\Unit\Origin;
+use IteratorAggregate;
+use JsonSerializable;
+use stdClass;
 
 /**
  * Class Record
  * @property string json
  * @package Simples\Core\Domain
  */
-class Record extends Origin implements \IteratorAggregate
+class Record extends Origin implements IteratorAggregate, JsonSerializable
 {
     /**
      * @var array
@@ -28,23 +31,26 @@ class Record extends Origin implements \IteratorAggregate
     private $injectable;
 
     /**
-     * @var array
-     */
-    private $items;
-
-    /**
      * Record constructor.
-     * @param array $data
+     * @param array|stdClass $data
      * @param bool $injectable
-     * @param array $items
      */
-    public function __construct($data, $injectable = true, $items = [])
+    public function __construct($data, bool $injectable = true)
     {
         $this->public = (array)$data;
-        $this->private = [];
-
         $this->injectable = $injectable;
-        $this->items = $items;
+        $this->private = [];
+    }
+
+    /**
+     * Factory constructor
+     * @param array|stdClass $data
+     * @param bool $injectable
+     * @return Record
+     */
+    public static function create($data, bool $injectable = true): Record
+    {
+        return new static($data, $injectable);
     }
 
     /**
@@ -237,5 +243,17 @@ class Record extends Origin implements \IteratorAggregate
     public function __toString()
     {
         return $this->json;
+    }
+
+    /**
+     * Specify data which should be serialized to JSON
+     * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
+     * @return mixed data which can be serialized by <b>json_encode</b>,
+     * which is a value of any type other than a resource.
+     * @since 5.4.0
+     */
+    function jsonSerialize()
+    {
+        return $this->public;
     }
 }

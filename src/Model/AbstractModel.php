@@ -6,12 +6,23 @@ use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Validation;
 use Simples\Core\Error\RunTimeError;
+use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Engine;
 
 /**
+ * @method  Record __create($record = null)
+ * @method  Collection __read($record = null)
+ * @method  Record __update($record = null)
+ * @method  Record __destroy($record = null)
  * @method  string __getCollection()
  * @method  string __getPrimaryKey()
+ * @method  string __getHashKey()
+ * @method  Field __getField(string $name)
+ * @method  bool __hasField(string $name)
+ * @method  array __getDefaults(string $action, Record $record = null)
+ * @method  array __getFields(string $action)
  * @method  string __hashKey()
+ * @method  array __getValidators(string $action, Record $record)
  *
  * Class AbstractModel
  * @package Simples\Core\Model
@@ -108,9 +119,8 @@ abstract class AbstractModel extends Engine
     public static function __callStatic($name, $arguments)
     {
         if (substr($name, 0, 2) === '__') {
-            //TODO: use Container ?
             $name = substr($name, 2);
-            $instance = new static();
+            $instance = Container::getInstance()->make(static::class);
             if (method_exists($instance, $name)) {
                 return call_user_func_array([$instance, $name], $arguments);
             }
@@ -159,14 +169,14 @@ abstract class AbstractModel extends Engine
      * @param array|Record $record (null)
      * @return Record
      */
-    abstract public function destroy($record = null);
+    abstract public function destroy($record = null): Record;
 
     /**
      * Get total of records based on filters
      * @param array|Record $record (null)
      * @return int
      */
-    abstract public function count($record = null) : int;
+    abstract public function count($record = null): int;
 
     /**
      * This method is called before the operation be executed, the changes made in Record will be save
@@ -277,61 +287,6 @@ abstract class AbstractModel extends Engine
      * @param Record $record
      * @return array
      */
-    public function getValidators(string $action, Record $record): array
-    {
-        $validation = new Validation();
-        foreach ($this->fields as $key => $field) {
-            $validator = $this->getValidator($field, $action);
-            if ($validator) {
-                $validation->add($key, $record->get($key), $validator);
-            }
-        }
-        return $validation->rules();
-    }
-
-    /**
-     * @param Field $field
-     * @param string $action
-     * @return array|null
-     */
-    private function getValidator(Field $field, string $action)
-    {
-        $rules = null;
-        $validators = $field->getValidators();
-        if ($validators) {
-            $rules = [];
-            foreach ($validators as $validator => $options) {
-                switch ($validator) {
-                    case 'unique':
-                        // TODO: fix this to support unique on update
-                        if ($action === Action::CREATE) {
-                            $options = [
-                                'class' => get_class($this),
-                                'field' => $field->getName()
-                            ];
-                        }
-                        break;
-                    case 'required':
-                        if (count($field->getEnum())) {
-                            $options = [
-                                'enum' => $field->getEnum()
-                            ];
-                        }
-                        break;
-                }
-                if (!is_null($options)) {
-                    $rules[$validator] = $options;
-                }
-            }
-        }
-        return $rules;
-    }
-
-    /**
-     * @param string $action
-     * @param Record $record
-     * @return array
-     */
     public function getDefaults(string $action, Record $record = null): array
     {
         return [];
@@ -357,6 +312,10 @@ abstract class AbstractModel extends Engine
                 $method = 'isUpdate';
                 break;
             }
+            case Action::RECOVER: {
+                $method = 'isRecover';
+                break;
+            }
         }
         return array_filter($this->fields, function ($field) use ($method) {
             if (!$method) {
@@ -375,5 +334,62 @@ abstract class AbstractModel extends Engine
     public function hashKey(): string
     {
         return uniqid();
+    }
+
+    /**
+     * @param string $action
+     * @param Record $record
+     * @return array
+     */
+    public function getValidators(string $action, Record $record): array
+    {
+        $validation = new Validation();
+        foreach ($this->fields as $key => $field) {
+            $validator = $this->getValidator($field, $action);
+            if ($validator) {
+                $validation->add($key, $record->get($key), $validator);
+            }
+        }
+        return $validation->rules();
+    }
+
+    /**
+     * @param Field $field
+     * @param string $action
+     * @return array|null
+     */
+    private function getValidator(Field $field, string $action)
+    {
+        $rules = null;
+        $validators = $field->getValidators();
+        if ($validators) {
+            $rules = [];
+            foreach ($validators as $validator => $options) {
+                if (!$options) {
+                    $options = [];
+                }
+                if (!is_array($options)) {
+                    $options = [$options];
+                }
+                switch ($validator) {
+                    case 'unique':
+                        // TODO: fix this to support unique on update
+                        if ($action === Action::CREATE) {
+                            $options = array_merge($options, [
+                                'class' => get_class($this),
+                                'field' => $field->getName()
+                            ]);
+                        }
+                        break;
+                }
+                if (count($field->getEnum())) {
+                    $options = array_merge($options, [
+                        'enum' => $field->getEnum()
+                    ]);
+                }
+                $rules[$validator] = $options;
+            }
+        }
+        return $rules;
     }
 }

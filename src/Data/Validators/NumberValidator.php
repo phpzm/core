@@ -14,8 +14,7 @@ trait NumberValidator
      */
     public function isDigits($value)
     {
-        // :value
-        return $value;
+        return ctype_digit($value);
     }
 
     /**
@@ -34,7 +33,13 @@ trait NumberValidator
      */
     public function isFloat($value): bool
     {
-        return is_numeric($value);
+        if ($value === "") {
+            return false;
+        }
+        if (gettype($value) === TYPE_STRING) {
+            $value = (float)$value;
+        }
+        return is_float($value);
     }
 
     /**
@@ -43,7 +48,13 @@ trait NumberValidator
      */
     public function isInteger($value)
     {
-        return is_numeric((int)$value);
+        if ($value === "") {
+            return false;
+        }
+        if (gettype($value) === TYPE_STRING) {
+            $value = (integer)$value;
+        }
+        return is_integer($value);
     }
 
     /**
@@ -72,6 +83,6 @@ trait NumberValidator
      */
     public function isNumeric($value)
     {
-        return $value;
+        return is_numeric($value);
     }
 }

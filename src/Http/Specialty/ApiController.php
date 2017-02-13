@@ -52,7 +52,7 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->post(new Record($data));
+        $posted = $this->repository->post(Record::create($data));
 
         $errors = $this->repository->getErrors()->all();
         if (count($errors)) {
@@ -94,7 +94,7 @@ abstract class ApiController extends Controller
             }
         }
 
-        $collection = $this->repository->get(new Record($data), $start, $end);
+        $collection = $this->repository->get(Record::create($data), $start, $end);
 
         $count = $this->repository->count($data);
 
@@ -122,7 +122,7 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->put(new Record($data));
+        $posted = $this->repository->put(Record::create($data));
 
         $errors = $this->repository->getErrors()->all();
         if (count($errors)) {
@@ -149,7 +149,7 @@ abstract class ApiController extends Controller
             $this->repository->getHashKey() => $id
         ];
 
-        $deleted = $this->repository->delete(new Record($data));
+        $deleted = $this->repository->delete(Record::create($data));
 
         $errors = $this->repository->getErrors()->all();
         if (count($errors)) {

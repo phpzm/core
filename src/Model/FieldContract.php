@@ -28,55 +28,28 @@ class FieldContract
     protected $type;
 
     /**
-     * Options used to configure the field
-     * @var array
-     */
-    protected $options;
-
-    /**
-     * @var array
-     */
-    protected $validators;
-
-    /**
      * @var string
      */
-    protected $label;
+    protected $label = '';
+    protected $from = '';
 
     /**
      * @var boolean
      */
     protected $create;
-
-    /**
-     * @var boolean
-     */
     protected $read;
-
-    /**
-     * @var boolean
-     */
     protected $update;
+    protected $recover;
 
     /**
+     * Options used to configure the field
      * @var array
      */
+    protected $options = [];
+    protected $validators = [];
     protected $enum = [];
-
-    /**
-     * @var array
-     */
     protected $referenced = [];
-
-    /**
-     * @var array
-     */
     protected $references = [];
-
-    /**
-     * @var string
-     */
-    protected $from = '';
 
     /**
      * @var callable
@@ -158,6 +131,14 @@ class FieldContract
     /**
      * @return bool
      */
+    public function isRecover(): bool
+    {
+        return $this->recover;
+    }
+
+    /**
+     * @return bool
+     */
     public function isCalculated(): bool
     {
         return is_callable($this->calculated);
@@ -197,92 +178,112 @@ class FieldContract
 
     /**
      * @param string $collection
-     * @return FieldContract
+     * @return Field
      */
-    public function setCollection(string $collection): FieldContract
+    public function setCollection(string $collection)
     {
         $this->collection = $collection;
         $this->from = '';
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param string $name
-     * @return FieldContract
+     * @return Field
      */
-    public function setName(string $name): FieldContract
+    public function setName(string $name)
     {
         $this->name = $name;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param string $type
-     * @return FieldContract
+     * @return Field
      */
-    public function setType(string $type): FieldContract
+    public function setType(string $type)
     {
         $this->type = $type;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param array $options
-     * @return FieldContract
+     * @return Field
      */
-    public function setOptions(array $options): FieldContract
+    public function setOptions(array $options)
     {
         $this->options = $options;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param array $validators
-     * @return FieldContract
+     * @return Field
      */
-    public function setValidators(array $validators): FieldContract
+    public function setValidators(array $validators)
     {
         $this->validators = $validators;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param string $label
-     * @return FieldContract
+     * @return Field
      */
-    public function setLabel(string $label): FieldContract
+    public function setLabel(string $label)
     {
         $this->label = $label;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param bool $create
-     * @return FieldContract
+     * @return Field
      */
-    public function create(bool $create): FieldContract
+    public function create(bool $create)
     {
         $this->create = $create;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param bool $read
-     * @return FieldContract
+     * @return Field
      */
-    public function read(bool $read): FieldContract
+    public function read(bool $read)
     {
         $this->read = $read;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
      * @param bool $update
-     * @return FieldContract
+     * @return Field
      */
-    public function update(bool $update): FieldContract
+    public function update(bool $update)
     {
         $this->update = $update;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this;
+    }
+
+    /**
+     * @param bool $recover
+     * @return Field
+     */
+    public function recover(bool $recover)
+    {
+        $this->recover = $recover;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 }

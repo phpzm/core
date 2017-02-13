@@ -21,7 +21,7 @@ class ${NAME} extends DataMapper
         $this->collection('${table}', '${primaryKey}');
 
         $this->addField('${primaryKey}', 'int');
-        $this->addField('${description}', 'string')->validator('required');
+        $this->addField('${description}', 'string')->required();
     }
 
     /**

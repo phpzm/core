@@ -51,7 +51,8 @@ class Field extends FieldContract
         $this->options = $options;
 
         $default = [
-            'primaryKey' => false, 'label' => '', 'validators' => [], 'create' => true, 'read' => true, 'update' => true,
+            'primaryKey' => false, 'label' => '', 'validators' => [],
+            'create' => true, 'read' => true, 'update' => true, 'recover' => true,
             'enum' => [], 'referenced' => [], 'references' => [],
         ];
         $options = array_merge($default, $options);
@@ -66,17 +67,20 @@ class Field extends FieldContract
         }
         if (!is_array($this->validators)) {
             $this->validators = [];
-            $this->optional();
         }
     }
 
     /**
      * @param string|array $rule
      * @param array|string $options ('')
+     * @param bool $clear
      * @return Field
      */
-    public function validator($rule, $options = null): Field
+    public function validator($rule, $options = null, bool $clear = false): Field
     {
+        if ($clear) {
+            $this->validators = [];
+        }
         if (!is_array($rule)) {
             $this->validators[$rule] = $options;
             return $this;
@@ -128,25 +132,31 @@ class Field extends FieldContract
      */
     public function enum(array $items): Field
     {
-        $this->string();
+        if (!$this->type) {
+            $this->string();
+        }
         $this->enum = $items;
         return $this;
     }
 
     /**
      * @param callable $callable
+     * @return Field
      */
-    public function calculated(callable $callable)
+    public function calculated(callable $callable): Field
     {
         $this->calculated = $callable;
+        return $this;
     }
 
     /**
+     * @param bool $force
      * @return Field
      */
-    public function required(): Field
+    public function required(bool $force = false): Field
     {
-        $this->validator(['required', $this->type]);
+        $required = $force ? ['required', $this->type] : [$this->type];
+        $this->validator($required, null, true);
         return $this;
     }
 
@@ -155,7 +165,7 @@ class Field extends FieldContract
      */
     public function optional(): Field
     {
-        $this->validator([$this->type => ['optional' => true]]);
+        $this->validator($this->type, ['optional' => true], true);
         return $this;
     }
 
