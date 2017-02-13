@@ -45,5 +45,4 @@ trait FileValidator
         // :[text/plain(...)]
         return $value;
     }
-
 }

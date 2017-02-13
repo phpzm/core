@@ -53,7 +53,7 @@ class Collection extends Origin implements Iterator
     {
         $instance = $this->instance;
         if ($instance) {
-            return $this->map(function($value, $key) use ($instance, $name, $arguments) {
+            return $this->map(function ($value, $key) use ($instance, $name, $arguments) {
                 return call_user_func_array([$instance, $name], array_merge($key, $value, $arguments));
             });
         }

@@ -70,7 +70,6 @@ class DataMapper extends AbstractModel
             $this->reset();
 
             if ($created) {
-
                 $record->set($this->getPrimaryKey(), $created);
                 if ($this->after($action, $record)) {
                     return $record;

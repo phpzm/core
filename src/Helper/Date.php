@@ -133,7 +133,7 @@ class Date extends DateTime
      */
     public function diffDays($compare = 'today', $absolute = false)
     {
-        if (!($compare instanceOf DateTime)) {
+        if (!($compare instanceof DateTime)) {
             $compare = new DateTime($compare);
         }
         return (int)parent::diff($compare, $absolute)->format('%d');

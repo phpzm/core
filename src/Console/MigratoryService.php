@@ -32,7 +32,6 @@ class MigratoryService extends Service
         $fileName = $classReflection->getFileName();
 
         if (!empty($fileName)) {
-
             $classStartLine = 0;
             $classEndLine = $classReflection->getEndLine();
             $classLines = $classEndLine - $classStartLine;

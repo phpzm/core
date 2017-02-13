@@ -45,5 +45,4 @@ trait DatabaseValidator
         }
         return false;
     }
-
 }

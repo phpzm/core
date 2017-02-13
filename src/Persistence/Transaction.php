@@ -81,5 +81,4 @@ class Transaction
         }
         return self::$logging;
     }
-
 }

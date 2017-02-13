@@ -112,14 +112,12 @@ class App
         $response = null;
         $http = new Http(self::request());
         try {
-
             $response = $http->handler();
             if ($response->isSuccess()) {
                 if (!Transaction::commit()) {
                     throw new ErrorException("Transaction can't commit the changes");
                 }
             }
-
         } catch (Throwable $throw) {
             $fail = $throw;
         }

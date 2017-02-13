@@ -285,5 +285,4 @@ class FieldContract
         $this->update = $update;
         return $this;
     }
-
 }

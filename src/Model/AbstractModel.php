@@ -200,7 +200,7 @@ abstract class AbstractModel extends Engine
      */
     protected function instance(string $collection, string $primaryKey, string $hashKey = ''): AbstractModel
     {
-		if ($this->collection) {
+        if ($this->collection) {
             $this->parents[$this->collection] = $this->primaryKey;
         }
         $this->collection = $collection;

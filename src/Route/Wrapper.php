@@ -1,6 +1,7 @@
 <?php
 
 namespace Simples\Core\Route;
+
 use Simples\Core\Kernel\App;
 
 /**

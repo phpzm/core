@@ -1,6 +1,7 @@
 <?php
 
 namespace Simples\Core\Model;
+
 use Simples\Core\Error\RunTimeError;
 
 /**
