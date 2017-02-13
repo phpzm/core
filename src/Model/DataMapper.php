@@ -30,7 +30,7 @@ class DataMapper extends AbstractModel
             throw new RunTimeError('Create in DataMapper require parameters');
         }
         if (is_array($record)) {
-            $record = Record::create($record);
+            $record = Record::make($record);
         }
 
         $action = Action::CREATE;
@@ -77,7 +77,7 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-        return Record::create([]);
+        return Record::make([]);
     }
 
     /**
@@ -91,7 +91,7 @@ class DataMapper extends AbstractModel
             $record = [];
         }
         if (is_array($record)) {
-            $record = Record::create($record);
+            $record = Record::make($record);
         }
 
         $action = Action::READ;
@@ -119,9 +119,9 @@ class DataMapper extends AbstractModel
 
             $this->reset();
 
-            $after = Record::create(['collection' => $collection]);
+            $after = Record::make(['collection' => $collection]);
             if ($this->after($action, $after)) {
-                return new Collection($after->get('collection'));
+                return Collection::create($after->get('collection'), $this);
             }
         }
         return new Collection([]);
@@ -139,7 +139,7 @@ class DataMapper extends AbstractModel
             throw new RunTimeError('Update in DataMapper require parameters');
         }
         if (is_array($record)) {
-            $record = Record::create($record);
+            $record = Record::make($record);
         }
 
         $action = Action::UPDATE;
@@ -193,7 +193,7 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-        return Record::create([]);
+        return Record::make([]);
     }
 
     /**
@@ -208,7 +208,7 @@ class DataMapper extends AbstractModel
             throw new RunTimeError('Destroy in DataMapper require parameters');
         }
         if (is_array($record)) {
-            $record = Record::create($record);
+            $record = Record::make($record);
         }
 
         $action = Action::DESTROY;
@@ -255,7 +255,7 @@ class DataMapper extends AbstractModel
                 }
             }
         }
-        return Record::create([]);
+        return Record::make([]);
     }
 
     /**

@@ -122,6 +122,6 @@ class Validator
                 $errors[$field] = $error;
             }
         }
-        return Record::create($errors);
+        return Record::make($errors);
     }
 }

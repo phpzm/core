@@ -10,20 +10,6 @@ use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Engine;
 
 /**
- * @method  Record __create($record = null)
- * @method  Collection __read($record = null)
- * @method  Record __update($record = null)
- * @method  Record __destroy($record = null)
- * @method  string __getCollection()
- * @method  string __getPrimaryKey()
- * @method  string __getHashKey()
- * @method  Field __getField(string $name)
- * @method  bool __hasField(string $name)
- * @method  array __getDefaults(string $action, Record $record = null)
- * @method  array __getFields(string $action)
- * @method  string __hashKey()
- * @method  array __getValidators(string $action, Record $record)
- *
  * Class AbstractModel
  * @package Simples\Core\Model
  */
@@ -108,24 +94,11 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * is triggered when invoking inaccessible methods in a static context.
-     *
-     * @param $name string
-     * @param $arguments array
-     * @return mixed
-     * @throws RunTimeError
-     * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.methods
+     * @return AbstractModel
      */
-    public static function __callStatic($name, $arguments)
+    public static function this(): AbstractModel
     {
-        if (substr($name, 0, 2) === '__') {
-            $name = substr($name, 2);
-            $instance = Container::getInstance()->make(static::class);
-            if (method_exists($instance, $name)) {
-                return call_user_func_array([$instance, $name], $arguments);
-            }
-        }
-        throw new RunTimeError("Method not found '{$name}'");
+        return Container::getInstance()->make(static::class);
     }
 
     /**
@@ -334,6 +307,14 @@ abstract class AbstractModel extends Engine
     public function hashKey(): string
     {
         return uniqid();
+    }
+
+    /**
+     * @param $record
+     */
+    public function dump($record)
+    {
+        return $record;
     }
 
     /**

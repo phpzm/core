@@ -48,7 +48,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
      * @param bool $injectable
      * @return Record
      */
-    public static function create($data, bool $injectable = true): Record
+    public static function make($data, bool $injectable = true): Record
     {
         return new static($data, $injectable);
     }

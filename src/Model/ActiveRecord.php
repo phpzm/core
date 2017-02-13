@@ -85,7 +85,7 @@ class ActiveRecord extends AbstractModel
      */
     public function update($record = null): Record
     {
-        return Record::create([]);
+        return Record::make([]);
     }
 
     /**
@@ -95,7 +95,7 @@ class ActiveRecord extends AbstractModel
      */
     public function destroy($record = null): Record
     {
-        return Record::create([]);
+        return Record::make([]);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Simples\Core\Data;
 
 use Iterator;
 use Simples\Core\Error\RunTimeError;
+use Simples\Core\Model\AbstractModel;
 use Simples\Core\Unit\Origin;
 
 /**
@@ -18,7 +19,12 @@ class Collection extends Origin implements Iterator
     /**
      * @var array
      */
-    private $records = [];
+    private $records;
+
+    /**
+     * @var AbstractModel
+     */
+    private $model;
 
     /**
      * @var array
@@ -27,21 +33,33 @@ class Collection extends Origin implements Iterator
 
     /**
      * Collection constructor.
-     * @param array $array
+     * @param array $records
+     * @param AbstractModel|null $model
      */
-    public function __construct(array $array = [])
+    public function __construct(array $records = [], AbstractModel $model = null)
     {
-        $this->records = $array;
+        $this->records = $records;
+        $this->model = $model;
     }
 
     /**
-     * Factory constructor
-     * @param array $array
+     * @param array $records
+     * @param AbstractModel|null $model
      * @return Collection
      */
-    public static function create(array $array = []): Collection
+    public static function create(array $records = [], AbstractModel $model = null): Collection
     {
-        return new static($array);
+        return new static($records, $model);
+    }
+
+    /**
+     * @param AbstractModel $model
+     * @return Collection
+     */
+    public function model(AbstractModel $model): Collection
+    {
+        $this->model = $model;
+        return $this;
     }
 
     /**
@@ -71,17 +89,27 @@ class Collection extends Origin implements Iterator
      * @param $name
      * @param $arguments
      * @return mixed
+     * @throws RunTimeError
      */
     public function __call($name, $arguments)
     {
-        $records = $this->records;
-        foreach ($this->higher as $higher) {
-            $records = $this->{$higher}(function ($value) use ($name, $arguments) {
-                return call_user_func_array([$value, $name], $arguments);
+        if ($this->higher) {
+            $records = $this->records;
+            foreach ($this->higher as $higher) {
+                $records = $this->{$higher}(function ($value) use ($name, $arguments) {
+                    return call_user_func_array([$value, $name], $arguments);
+                });
+            }
+            $this->higher = [];
+            return $records;
+        }
+        $model = $this->model;
+        if ($model) {
+            return $this->map(function ($value) use ($model, $name, $arguments) {
+                return call_user_func_array([$model, $name], [$value]);
             });
         }
-        $this->higher = [];
-        return $records;
+        throw new RunTimeError("Not found '{$name}'");
     }
 
     /**
@@ -137,9 +165,9 @@ class Collection extends Origin implements Iterator
     {
         $var = current($this->records);
         if ($var) {
-            return Record::create($var);
+            return Record::make($var);
         }
-        return Record::create([]);
+        return Record::make([]);
     }
 
     /**
