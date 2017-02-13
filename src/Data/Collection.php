@@ -47,7 +47,7 @@ class Collection extends Origin implements Iterator
      * @param AbstractModel|null $model
      * @return Collection
      */
-    public static function create(array $records = [], AbstractModel $model = null): Collection
+    public static function make(array $records = [], AbstractModel $model = null): Collection
     {
         return new static($records, $model);
     }

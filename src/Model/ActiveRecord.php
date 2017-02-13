@@ -75,7 +75,7 @@ class ActiveRecord extends AbstractModel
      */
     public function read($record = null): Collection
     {
-        return new Collection([]);
+        return Collection::make([]);
     }
 
     /**

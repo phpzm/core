@@ -121,10 +121,10 @@ class DataMapper extends AbstractModel
 
             $after = Record::make(['collection' => $collection]);
             if ($this->after($action, $after)) {
-                return Collection::create($after->get('collection'), $this);
+                return Collection::make($after->get('collection'));
             }
         }
-        return new Collection([]);
+        return Collection::make([]);
     }
 
     /**

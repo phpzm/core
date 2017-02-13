@@ -172,7 +172,7 @@ class ApiRepository
         if ($getting) {
             return $getting;
         }
-        return new Collection([]);
+        return Collection::make([]);
     }
 
     /**
