@@ -39,7 +39,7 @@ trait DatabaseValidator
         $class = off($options, 'class');
         $field = off($options, 'field');
         if (class_exists($class)) {
-            $instance = Container::getInstance()->make($class);
+            $instance = Container::box()->make($class);
             /** @var AbstractModel $instance */
             return $instance->count([$field => $value]) === 0;
         }

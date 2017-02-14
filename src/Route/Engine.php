@@ -257,7 +257,7 @@ class Engine
                 break;
             }
             case 'callable': {
-                call_user_func_array($callback, Container::getInstance()->resolveFunctionParameters($callback, [$this]));
+                call_user_func_array($callback, Container::box()->resolveFunctionParameters($callback, [$this]));
                 break;
             }
         }

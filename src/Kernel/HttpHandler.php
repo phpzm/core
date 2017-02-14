@@ -27,11 +27,6 @@ class HttpHandler extends Response
     private $__match;
 
     /**
-     * @var Container
-     */
-    private $__container;
-
-    /**
      * @var string
      */
     private $__headerOrigin = 'Origin';
@@ -52,7 +47,6 @@ class HttpHandler extends Response
 
         $this->__request = $request;
         $this->__match = $match;
-        $this->__container = $container = Container::getInstance();
     }
 
     /**
@@ -69,14 +63,6 @@ class HttpHandler extends Response
     public function match()
     {
         return $this->__match;
-    }
-
-    /**
-     * @return Container
-     */
-    public function container()
-    {
-        return $this->__container;
     }
 
     /**
@@ -150,6 +136,7 @@ class HttpHandler extends Response
     /**
      * @param $callback
      * @return Response
+     * @throws RunTimeError
      */
     private function controller($callback)
     {
@@ -180,7 +167,7 @@ class HttpHandler extends Response
         if (isset($class) && isset($method) && method_exists($class, $method)) {
 
             /** @var \Simples\Core\Http\Controller $controller */
-            $controller = $this->container()->make($class);
+            $controller = Container::box()->make($class);
             if (!($controller instanceof Controller)) {
                 throw new RunTimeError("The class must be a instance of Controller, '{$class}' given");
             }
@@ -205,9 +192,9 @@ class HttpHandler extends Response
 
         $labels = isset($options['labels']) ? $options['labels'] : true;
         if ($method) {
-            return $this->container()->resolveMethodParameters($callable, $method, $data, $labels);
+            return Container::box()->resolveMethodParameters($callable, $method, $data, $labels);
         }
-        return $this->container()->resolveFunctionParameters($callable, $data, $labels);
+        return Container::box()->resolveFunctionParameters($callable, $data, $labels);
     }
 
     /**

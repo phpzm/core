@@ -38,7 +38,7 @@ class MigratoryService extends Service
 
             $classContent = array_slice(file($fileName), 0, $classLines);
 
-            $methodReflection = new ReflectionMethod(App::class, $method);
+            $methodReflection = new ReflectionMethod($class, $method);
             $methodEndLine = $methodReflection->getEndLine();
 
             $new = '        ' . $line . PHP_EOL;

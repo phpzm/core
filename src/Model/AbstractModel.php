@@ -98,7 +98,7 @@ abstract class AbstractModel extends Engine
      */
     public static function box(): AbstractModel
     {
-        return Container::getInstance()->make(static::class);
+        return Container::box()->make(static::class);
     }
 
     /**

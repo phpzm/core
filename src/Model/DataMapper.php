@@ -367,7 +367,7 @@ class DataMapper extends AbstractModel
             if (count($references)) {
                 foreach ($references as $reference => $class) {
                     /** @var DataMapper $instance */
-                    $instance = Container::getInstance()->make($class);
+                    $instance = Container::box()->make($class);
                     $table = $instance->getCollection();
                     $join[] = new Fusion($field->getName(), $table, $reference);
                 }

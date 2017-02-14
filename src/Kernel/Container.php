@@ -34,7 +34,7 @@ class Container
     /**
      * @return Container Current Container container instance
      */
-    public static function getInstance()
+    public static function box()
     {
         // if there is not a instance yet, create a new one
         if (null === self::$instance) {
