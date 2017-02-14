@@ -43,7 +43,7 @@ class ActiveRecord extends AbstractModel
      */
     public function __set($name, $value)
     {
-        if (!$this->hasField($name)) {
+        if (!$this->has($name)) {
             return null;
         }
         $this->values[$name] = $value;

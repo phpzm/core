@@ -3,13 +3,11 @@
 namespace Simples\Core\Persistence\SQL;
 
 use PDO;
+use Simples\Core\Persistence\SQL\Error\SQLDataError;
 use Simples\Core\Error\RunTimeError;
-use Simples\Core\Model\Field;
 use Simples\Core\Persistence\Driver;
 use Simples\Core\Persistence\Filter;
 use Simples\Core\Persistence\Fusion;
-use Exception;
-use ErrorException;
 
 /**
  * Class SQLDriver
@@ -54,7 +52,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $clausules
      * @param array $values
      * @return string
-     * @throws ErrorException
+     * @throws SQLDataError
      */
     final public function create(array $clausules, array $values)
     {
@@ -65,14 +63,15 @@ abstract class SQLDriver extends SQLConnection implements Driver
         if ($statement && $statement->execute(array_values($values))) {
             return $this->connection()->lastInsertId();
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SQLDataError($sql, [$statement->errorInfo()]);
     }
 
     /**
      * @param array $clausules
      * @param array $values
      * @return array
-     * @throws ErrorException
+     * @throws SQLDataError
      */
     final public function read(array $clausules, array $values = [])
     {
@@ -83,7 +82,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
         if ($statement && $statement->execute(array_values($values))) {
             return $statement->fetchAll(PDO::FETCH_ASSOC);
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SQLDataError($sql, [$statement->errorInfo()]);
     }
 
     /**
@@ -91,7 +91,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $values
      * @param array $filters
      * @return int
-     * @throws ErrorException
+     * @throws SQLDataError
      */
     final public function update(array $clausules, array $values, array $filters)
     {
@@ -105,14 +105,15 @@ abstract class SQLDriver extends SQLConnection implements Driver
         if ($statement && $statement->execute($parameters)) {
             return $statement->rowCount();
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SQLDataError($sql, [$statement->errorInfo()]);
     }
 
     /**
      * @param array $clausules
      * @param array $values
      * @return int
-     * @throws ErrorException
+     * @throws SQLDataError
      */
     final public function destroy(array $clausules, array $values)
     {
@@ -124,7 +125,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
         if ($statement && $statement->execute(array_values($values))) {
             return $statement->rowCount();
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SQLDataError($sql, [$statement->errorInfo()]);
     }
 
     /**
@@ -265,7 +267,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $clausules
      * @param array $modifiers
      * @return array
-     * @throws Exception
+     * @throws RunTimeError
      */
     private function modifiers(array $clausules, array $modifiers): array
     {
@@ -276,7 +278,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
                 $key = ucfirst($key);
                 $key = "parse{$key}";
                 if (!method_exists($this, $key)) {
-                    throw new Exception("Invalid modifier {$key}");
+                    throw new RunTimeError("Invalid modifier {$key}");
                 }
                 $value = $this->$key($value, $modifier['separator']);
                 $command[] = $modifier['instruction'] . ' ' . $value;

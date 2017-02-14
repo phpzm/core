@@ -94,9 +94,9 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @return AbstractModel
+     * @return $this
      */
-    public static function box(): AbstractModel
+    public static function box()
     {
         return Container::box()->make(static::class);
     }
@@ -152,36 +152,13 @@ abstract class AbstractModel extends Engine
     abstract public function count($record = null): int;
 
     /**
-     * This method is called before the operation be executed, the changes made in Record will be save
-     * @param string $action
-     * @param Record $record
-     * @param Record $previous
-     * @return bool
-     */
-    protected function before(string $action, Record $record, Record $previous = null): bool
-    {
-        return true;
-    }
-
-    /**
-     * Triggered after operation be executed, the changes made in Record has no effect in storage
-     * @param string $action
-     * @param Record $record
-     * @return bool
-     */
-    protected function after(string $action, Record $record): bool
-    {
-        return true;
-    }
-
-    /**
      * Configure the instance with reference properties
      * @param string $collection
      * @param string $primaryKey
      * @param string $hashKey
-     * @return AbstractModel
+     * @return $this
      */
-    protected function instance(string $collection, string $primaryKey, string $hashKey = ''): AbstractModel
+    protected function instance(string $collection, string $primaryKey, string $hashKey = '')
     {
         if ($this->collection) {
             $this->parents[$this->collection] = $this->primaryKey;
@@ -190,7 +167,7 @@ abstract class AbstractModel extends Engine
         $this->primaryKey = $primaryKey;
         $this->hashKey = $hashKey ? $hashKey : $this->hashKey;
 
-        $this->add($this->hashKey, 'string')->validator('unique');
+        $this->add($this->hashKey, 'string')->optional(['unique'])->update(false);
         return $this;
     }
 
@@ -205,7 +182,8 @@ abstract class AbstractModel extends Engine
         if ($this->primaryKey === $name) {
             $options['primaryKey'] = true;
             $options['recover'] = false;
-        } elseif (off($options, 'primaryKey')) {
+        }
+        if (off($options, 'primaryKey')) {
             $this->primaryKey = $name;
         }
         $field = new Field($this->collection, $name, $type, $options);
@@ -224,7 +202,7 @@ abstract class AbstractModel extends Engine
      */
     protected function import(string $name, string $relationship, array $options = []): Field
     {
-        $source = $this->getField($relationship);
+        $source = $this->get($relationship);
         $reference = $source->getReferences();
 
         $class = off($reference, 'class');
@@ -233,7 +211,7 @@ abstract class AbstractModel extends Engine
         }
 
         /** @var DataMapper $class */
-        $import = $class::box()->getField($name);
+        $import = $class::box()->get($name);
 
         $from = new Field($import->getCollection(), $name, $import->getType(), $options);
         $this->fields[$name] = $from->from($source);
@@ -242,34 +220,10 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @return string
-     */
-    public function getCollection(): string
-    {
-        return $this->collection;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPrimaryKey(): string
-    {
-        return $this->primaryKey;
-    }
-
-    /**
-     * @return string
-     */
-    public function getHashKey(): string
-    {
-        return $this->hashKey;
-    }
-
-    /**
      * @param string $name
      * @return Field
      */
-    public function getField(string $name): Field
+    final public function get(string $name): Field
     {
         return off($this->fields, $name);
     }
@@ -278,26 +232,16 @@ abstract class AbstractModel extends Engine
      * @param string $name
      * @return bool
      */
-    public function hasField(string $name): bool
+    final public function has(string $name): bool
     {
         return isset($this->fields[$name]);
     }
 
     /**
      * @param string $action
-     * @param Record $record
      * @return array
      */
-    public function getDefaults(string $action, Record $record = null): array
-    {
-        return [];
-    }
-
-    /**
-     * @param string $action
-     * @return array
-     */
-    public function getFields(string $action): array
+    final public function getFields(string $action = ''): array
     {
         $method = '';
         switch ($action) {
@@ -330,19 +274,46 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @return string
+     * @param string $action
+     * @param Record $record
      */
-    public function hashKey(): string
+    public function configureFields(string $action, Record $record)
     {
-        return uniqid();
+        $action = ucfirst($action);
+        if (method_exists($this, "configureFields{$action}")) {
+            call_user_func_array([$this, "configureFields{$action}"], [$record]);
+        }
     }
 
     /**
-     * @param $record
+     * This method is called before the operation be executed, the changes made in Record will be save
+     * @param string $action
+     * @param Record $record
+     * @param Record $previous
+     * @return bool
      */
-    public function dump($record)
+    protected function before(string $action, Record $record, Record $previous = null): bool
     {
-        return $record;
+        $action = ucfirst($action);
+        if (method_exists($this, "before{$action}")) {
+            return call_user_func_array([$this, "before{$action}"], [$record, $previous]);
+        }
+        return true;
+    }
+
+    /**
+     * Triggered after operation be executed, the changes made in Record has no effect in storage
+     * @param string $action
+     * @param Record $record
+     * @return bool
+     */
+    protected function after(string $action, Record $record): bool
+    {
+        $action = ucfirst($action);
+        if (method_exists($this, "after{$action}")) {
+            return call_user_func_array([$this, "after{$action}"], [$record]);
+        }
+        return true;
     }
 
     /**
@@ -350,16 +321,62 @@ abstract class AbstractModel extends Engine
      * @param Record $record
      * @return array
      */
-    public function getValidators(string $action, Record $record): array
+    public function getDefaults(string $action, Record $record = null): array
+    {
+        $action = ucfirst($action);
+        if (method_exists($this, "getDefaults{$action}")) {
+            return call_user_func_array([$this, "getDefaults{$action}"], [$record]);
+        }
+        return [];
+    }
+
+    /**
+     * @param string $action
+     * @param Record $record
+     * @return array
+     */
+    final public function getValidators(string $action, Record $record): array
     {
         $validation = new Validation();
-        foreach ($this->fields as $key => $field) {
+        foreach ($this->getFields($action) as $key => $field) {
             $validator = $this->getValidator($field, $action);
             if ($validator) {
                 $validation->add($key, $record->get($key), $validator);
             }
         }
         return $validation->rules();
+    }
+
+    /**
+     * @return string
+     */
+    final public function hashKey(): string
+    {
+        return uniqid();
+    }
+
+    /**
+     * @return string
+     */
+    final public function getCollection(): string
+    {
+        return $this->collection;
+    }
+
+    /**
+     * @return string
+     */
+    final public function getPrimaryKey(): string
+    {
+        return $this->primaryKey;
+    }
+
+    /**
+     * @return string
+     */
+    final public function getHashKey(): string
+    {
+        return $this->hashKey;
     }
 
     /**

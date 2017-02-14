@@ -2,7 +2,10 @@
 
 namespace Simples\Core\Http\Specialty;
 
+use Simples\Core\Data\Error\ResourceError;
 use Simples\Core\Data\Record;
+use Simples\Core\Persistence\Error\PersistenceError;
+use Simples\Core\Data\Error\ValidationError;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Response;
 use Simples\Core\Model\Field;
@@ -50,15 +53,14 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->create(Record::make($data));
-
-        $errors = $this->repository->getErrors()->all();
-        if (count($errors)) {
-            return $this->answerBadRequest('', $errors);
+        try {
+            $posted = $this->repository->create(Record::make($data));
         }
-
-        if ($posted->isEmpty()) {
-            return $this->answerConflict('');
+        catch (ValidationError $error) {
+            return $this->answerBadRequest('', ['validation' => $error->getDetails()]);
+        }
+        catch (PersistenceError $error) {
+            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
         }
 
         return $this->answerOK($posted->all());
@@ -92,9 +94,13 @@ abstract class ApiController extends Controller
             }
         }
 
-        $collection = $this->repository->read(Record::make($data), $start, $end);
-
-        $count = $this->repository->count($data);
+        try {
+            $collection = $this->repository->read(Record::make($data), $start, $end);
+            $count = $this->repository->count($data);
+        }
+        catch (PersistenceError $error) {
+            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
+        }
 
         return $this->answerOK($collection->getRecords(), (isset($page)) ? ['total' => $count] : []);
     }
@@ -120,18 +126,20 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->update(Record::make($data));
-
-        $errors = $this->repository->getErrors()->all();
-        if (count($errors)) {
-            return $this->answerBadRequest('', $errors);
+        try {
+            $putted = $this->repository->update(Record::make($data));
+        }
+        catch (ValidationError $error) {
+            return $this->answerBadRequest('', ['validation' => $error->getDetails()]);
+        }
+        catch (ResourceError $error) {
+            return $this->answerGone('', ['inconsistency' => $error->getDetails()]);
+        }
+        catch (PersistenceError $error) {
+            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
         }
 
-        if ($posted->isEmpty()) {
-            return $this->answerGone('');
-        }
-
-        return $this->answerOK($posted->all());
+        return $this->answerOK($putted->all());
     }
 
     /**
@@ -146,15 +154,14 @@ abstract class ApiController extends Controller
             $this->repository->getHashKey() => $id
         ];
 
-        $deleted = $this->repository->destroy(Record::make($data));
-
-        $errors = $this->repository->getErrors()->all();
-        if (count($errors)) {
-            return $this->answerBadRequest('', $errors);
+        try {
+            $deleted = $this->repository->destroy(Record::make($data));
         }
-
-        if ($deleted->isEmpty()) {
-            return $this->answerGone('');
+        catch (ResourceError $error) {
+            return $this->answerGone('', ['inconsistency' => $error->getDetails()]);
+        }
+        catch (PersistenceError $error) {
+            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
         }
 
         return $this->answerOK($deleted->all());

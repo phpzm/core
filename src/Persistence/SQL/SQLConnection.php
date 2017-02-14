@@ -22,7 +22,7 @@ abstract class SQLConnection extends Connection
                 $this->dsn(), $this->settings['user'], $this->settings['password'], $this->settings['options']
             );
             $attributes = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                // PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_PERSISTENT => true,
             ];
             foreach ($attributes as $key => $value) {

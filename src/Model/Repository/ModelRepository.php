@@ -5,7 +5,7 @@ namespace Simples\Core\Model\Repository;
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Validator;
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Data\Error\ValidationError;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
 use Simples\Core\Model\Action;
@@ -27,11 +27,6 @@ class ModelRepository
     private $validator;
 
     /**
-     * @var Record
-     */
-    private $errors;
-
-    /**
      * ApiRepository constructor.
      * @param AbstractModel $model
      * @param Validator|null $validator
@@ -41,13 +36,12 @@ class ModelRepository
         $this->model = $model;
 
         $this->validator = $validator ?? new Validator();
-        $this->errors = Record::make([]);
     }
 
     /**
-     * @return ModelRepository
+     * @return $this
      */
-    public static function box(): ModelRepository
+    public static function box()
     {
         return Container::box()->make(static::class);
     }
@@ -69,24 +63,6 @@ class ModelRepository
     }
 
     /**
-     * @param Record $errors
-     * @return $this
-     */
-    public function setErrors(Record $errors)
-    {
-        $this->errors = $errors;
-        return $this;
-    }
-
-    /**
-     * @return Record
-     */
-    public function getErrors()
-    {
-        return $this->errors;
-    }
-
-    /**
      * @param $record
      * @return Record
      */
@@ -102,24 +78,29 @@ class ModelRepository
     /**
      * @param Record|array $record
      * @return Record
+     * @throws ValidationError
      */
     public function create($record): Record
     {
         $record = Record::parse($record);
 
-        $defaults = $this->model->getDefaults(Action::CREATE, $record);
+        $action = Action::CREATE;
+
+        $this->model->configureFields($action, $record);
+
+        $defaults = $this->model->getDefaults($action, $record);
         foreach ($defaults as $field => $default) {
             if (!$record->has($field)) {
                 $record->set($field, $default);
             }
         }
 
-        $validators = $this->model->getValidators(Action::CREATE, $record);
+        $validators = $this->model->getValidators($action, $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
-            $this->setErrors($errors);
-            return Record::make([]);
+            throw new ValidationError($errors->all());
         }
+
         return $this->model->create($record);
     }
 
@@ -142,23 +123,27 @@ class ModelRepository
     /**
      * @param Record|array $record
      * @return Record
+     * @throws ValidationError
      */
     public function update($record): Record
     {
         $record = Record::parse($record);
 
-        $defaults = $this->model->getDefaults(Action::UPDATE, $record);
+        $action = Action::UPDATE;
+
+        $this->model->configureFields($action, $record);
+
+        $defaults = $this->model->getDefaults($action, $record);
         foreach ($defaults as $field => $default) {
             if (!$record->has($field)) {
                 $record->set($field, $default);
             }
         }
 
-        $validators = $this->model->getValidators(Action::UPDATE, $record);
+        $validators = $this->model->getValidators($action, $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
-            $this->setErrors($errors);
-            return Record::make([]);
+            throw new ValidationError($errors->all());
         }
 
         return $this->model->update($record);
@@ -167,16 +152,23 @@ class ModelRepository
     /**
      * @param Record|array $record
      * @return Record
+     * @throws ValidationError
      */
     public function destroy($record): Record
     {
         $record = Record::parse($record);
 
-        $deleting = $this->model->destroy($record);
-        if ($deleting) {
-            return $deleting;
+        $action = Action::DESTROY;
+
+        $this->model->configureFields($action, $record);
+
+        $validators = $this->model->getValidators($action, $record);
+        $errors = $this->parseValidation($validators);
+        if (!$errors->isEmpty()) {
+            throw new ValidationError($errors->all());
         }
-        return Record::make([]);
+
+        return $this->model->destroy($record);
     }
 
     /**
@@ -186,11 +178,7 @@ class ModelRepository
      */
     public function find(array $filters, array $fields): Collection
     {
-        $getting = $this->model->fields($fields)->read(Record::make($filters));
-        if ($getting) {
-            return $getting;
-        }
-        return Collection::make([]);
+        return  $this->model->fields($fields)->read(Record::make($filters));
     }
 
     /**

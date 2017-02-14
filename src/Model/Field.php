@@ -168,11 +168,15 @@ class Field extends AbstractField
     }
 
     /**
+     * @param array $rules
      * @return Field
      */
-    public function optional(): Field
+    public function optional(array $rules = []): Field
     {
         $this->validator($this->type, ['optional' => true], true);
+        foreach ($rules as $rule) {
+            $this->validator($rule, ['optional' => true], false);
+        }
         return $this;
     }
 

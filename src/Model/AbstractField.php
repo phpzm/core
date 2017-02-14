@@ -302,6 +302,14 @@ abstract class AbstractField
     }
 
     /**
+     * @return Field
+     */
+    public function readonly()
+    {
+        return $this->create(false)->read(false)->update(false);
+    }
+
+    /**
      * @param bool $recover
      * @return Field
      */

@@ -4,6 +4,7 @@ namespace Simples\Core\Model;
 
 use Exception;
 use Simples\Core\Data\Collection;
+use Simples\Core\Data\Error\ResourceError;
 use Simples\Core\Data\Record;
 use Simples\Core\Error\RunTimeError;
 use Simples\Core\Helper\Date;
@@ -30,55 +31,58 @@ class DataMapper extends AbstractModel
 
         $action = Action::CREATE;
 
-        if ($this->before($action, $record)) {
-            if (!$record->get($this->hashKey)) {
-                $record->set($this->hashKey, $this->hashKey());
+        if (!$this->before($action, $record)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
+        }
+        if (!$record->get($this->hashKey)) {
+            $record->set($this->hashKey, $this->hashKey());
+        }
+
+        $fields = [];
+        $values = [];
+        foreach ($this->getActionFields($action) as $field) {
+            /** @var Field $field */
+            $name = $field->getName();
+            if ($field->isCalculated()) {
+                $value = $field->calculate($record);
+                $record->set($name, $value);
             }
-
-            $fields = [];
-            $values = [];
-            foreach ($this->getActionFields($action) as $field) {
-                /** @var Field $field */
-                $name = $field->getName();
-                if ($field->isCalculated()) {
-                    $value = $field->calculate($record);
-                    $record->set($name, $value);
-                }
-                if ($record->has($name)) {
-                    $value = $record->get($name);
-                }
-                if (isset($value)) {
-                    $fields[] = $name;
-                    $values[] = $value;
-                    unset($value);
-                }
+            if ($record->has($name)) {
+                $value = $record->get($name);
             }
-            foreach ($this->createKeys as $type => $timestampsKey) {
-                $fields[] = $timestampsKey;
-                $values[] = $this->getTimestampValue($type);
-            }
-
-            $created = $this
-                ->source($this->getCollection())
-                ->fields($fields)
-                ->register($values);
-
-            $this->reset();
-
-            if ($created) {
-                $record->set($this->getPrimaryKey(), $created);
-                if ($this->after($action, $record)) {
-                    return $record;
-                }
+            if (isset($value)) {
+                $fields[] = $name;
+                $values[] = $value;
+                unset($value);
             }
         }
-        return Record::make([]);
+        foreach ($this->createKeys as $type => $timestampsKey) {
+            $fields[] = $timestampsKey;
+            $values[] = $this->getTimestampValue($type);
+        }
+
+        $created = $this
+            ->source($this->getCollection())
+            ->fields($fields)
+            ->register($values);
+
+        $this->reset();
+
+        if ($this->getPrimaryKey()) {
+            $record->set($this->getPrimaryKey(), $created);
+        }
+
+        if (!$this->after($action, $record)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+        }
+        return $record;
     }
 
     /**
      * Read records with the filters informed
      * @param array|Record $record (null)
      * @return Collection
+     * @throws RunTimeError
      */
     final public function read($record = null): Collection
     {
@@ -86,35 +90,37 @@ class DataMapper extends AbstractModel
 
         $action = Action::READ;
 
-        if ($this->before($action, $record)) {
-            $where = [];
-            $filters = [];
-            if (!$record->isEmpty()) {
-                $where = $this->parseReadFilterFields($record->all());
-                $filters = $this->parseReadFilterValues($where);
-            }
-
-            if ($this->destroyKeys) {
-                $where[] = $this->getDestroyFilter();
-            }
-
-            $relations = $this->parseReadRelations();
-
-            $collection = $this
-                ->source($this->getCollection())
-                ->relation($relations)
-                ->fields($this->getActionFields($action))
-                ->filter($where)
-                ->recover($filters);
-
-            $this->reset();
-
-            $after = Record::make(['collection' => $collection]);
-            if ($this->after($action, $after)) {
-                return Collection::make($after->get('collection'));
-            }
+        if (!$this->before($action, $record)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
         }
-        return Collection::make([]);
+
+        $where = [];
+        $filters = [];
+        if (!$record->isEmpty()) {
+            $where = $this->parseReadFilterFields($record->all());
+            $filters = $this->parseReadFilterValues($where);
+        }
+
+        if ($this->destroyKeys) {
+            $where[] = $this->getDestroyFilter();
+        }
+
+        $relations = $this->parseReadRelations();
+
+        $array = $this
+            ->source($this->getCollection())
+            ->relation($relations)
+            ->fields($this->getActionFields($action))
+            ->filter($where)
+            ->recover($filters);
+
+        $this->reset();
+
+        $record = Record::make($array);
+        if (!$this->after($action, $record)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+        }
+        return Collection::make($record->all());
     }
 
     /**
@@ -131,54 +137,57 @@ class DataMapper extends AbstractModel
 
         $previous = $this->previous($record);
         if ($previous->isEmpty()) {
-            return $previous;
+            throw new ResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
 
-        if ($this->before($action, $record, $previous)) {
-            $fields = [];
-            $values = [];
-            foreach ($this->getActionFields($action) as $key => $field) {
-                /** @var Field $field */
-                $name = $field->getName();
-                if ($field->isCalculated()) {
-                    $value = $field->calculate($record);
-                    $record->set($name, $value);
-                }
-                if ($record->has($name)) {
-                    $value = $record->get($name);
-                }
-                if (isset($value)) {
-                    $fields[] = $name;
-                    $values[] = $value;
-                }
+        if (!$this->before($action, $record, $previous)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
+        }
+
+        $record->setPrivate($this->getHashKey());
+
+        $fields = [];
+        $values = [];
+        foreach ($this->getActionFields($action) as $key => $field) {
+            /** @var Field $field */
+            $name = $field->getName();
+            if ($field->isCalculated()) {
+                $value = $field->calculate($record);
+                $record->set($name, $value);
             }
-            foreach ($this->updateKeys as $type => $timestampsKey) {
-                $fields[] = $timestampsKey;
-                $values[] = $this->getTimestampValue($type);
+            if ($record->has($name)) {
+                $value = $record->get($name);
             }
-
-            $filter = new Filter($this->getField($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
-
-            $updated = $this
-                ->source($this->getCollection())
-                ->fields($fields)
-                ->filter([$filter])
-                ->change($values, [$filter->getValue()]);
-
-            $this->reset();
-
-            if ($updated) {
-                foreach ($record->all() as $name => $value) {
-                    $previous->set($name, $value);
-                }
-                $record = $previous;
-
-                if ($this->after($action, $record)) {
-                    return $record;
-                }
+            if (isset($value)) {
+                $fields[] = $name;
+                $values[] = $value;
             }
         }
-        return Record::make([]);
+        foreach ($this->updateKeys as $type => $timestampsKey) {
+            $fields[] = $timestampsKey;
+            $values[] = $this->getTimestampValue($type);
+        }
+
+        $filter = new Filter($this->get($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
+
+        $updated = $this
+            ->source($this->getCollection())
+            ->fields($fields)
+            ->filter([$filter])
+            ->change($values, [$filter->getValue()]);
+
+        $this->reset();
+
+        if (!$updated) {
+            throw new RunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
+        }
+        $record->setPublic($this->getHashKey());
+        $record = $previous->merge($record->all());
+
+        if (!$this->after($action, $record)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+        }
+        return $record;
     }
 
     /**
@@ -195,47 +204,46 @@ class DataMapper extends AbstractModel
 
         $previous = $this->previous($record);
         if ($previous->isEmpty()) {
-            return $previous;
+            throw new ResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
 
-        if ($this->before($action, $record, $previous)) {
-            $filter = new Filter($this->getField($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
-            $filters = [$filter];
-
-            if ($this->destroyKeys) {
-                $fields = [];
-                $values = [];
-                foreach ($this->destroyKeys as $type => $deletedKey) {
-                    $fields[] = $deletedKey;
-                    $values[] = $this->getTimestampValue($type);
-                }
-
-                $removed = $this
-                    ->source($this->getCollection())
-                    ->fields($fields)
-                    ->filter($filters)
-                    ->change($values, [$filter->getValue()]);
-            } else {
-                $removed = $this
-                    ->source($this->getCollection())
-                    ->filter($filters)
-                    ->remove([$record->get($this->getPrimaryKey())]);
-            }
-
-            $this->reset();
-
-            if ($removed) {
-                foreach ($record->all() as $name => $value) {
-                    $previous->set($name, $value);
-                }
-                $record = $previous;
-
-                if ($this->after($action, $record)) {
-                    return $record;
-                }
-            }
+        if (!$this->before($action, $record, $previous)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
         }
-        return Record::make([]);
+        $filter = new Filter($this->get($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
+        $filters = [$filter];
+
+        if ($this->destroyKeys) {
+            $fields = [];
+            $values = [];
+            foreach ($this->destroyKeys as $type => $deletedKey) {
+                $fields[] = $deletedKey;
+                $values[] = $this->getTimestampValue($type);
+            }
+
+            $removed = $this
+                ->source($this->getCollection())
+                ->fields($fields)
+                ->filter($filters)
+                ->change($values, [$filter->getValue()]);
+        } else {
+            $removed = $this
+                ->source($this->getCollection())
+                ->filter($filters)
+                ->remove([$record->get($this->getPrimaryKey())]);
+        }
+
+        $this->reset();
+
+        if (!$removed) {
+            throw new RunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
+        }
+        $record = $previous->merge($record->all());
+
+        if (!$this->after($action, $record)) {
+            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+        }
+        return $record;
     }
 
     /**
@@ -290,7 +298,7 @@ class DataMapper extends AbstractModel
     {
         $filters = [];
         foreach ($data as $name => $value) {
-            $field = $this->getField($name);
+            $field = $this->get($name);
             if (is_null($field)) {
                 throw new RunTimeError("Invalid field name '{$name}'");
             }
