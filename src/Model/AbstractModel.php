@@ -190,7 +190,7 @@ abstract class AbstractModel extends Engine
         $this->primaryKey = $primaryKey;
         $this->hashKey = $hashKey ? $hashKey : $this->hashKey;
 
-        $this->field($this->hashKey, 'string')->validator('unique');
+        $this->add($this->hashKey, 'string')->validator('unique');
         return $this;
     }
 
@@ -200,7 +200,7 @@ abstract class AbstractModel extends Engine
      * @param array $options
      * @return Field
      */
-    protected function field(string $name, string $type = '', array $options = []): Field
+    protected function add(string $name, string $type = '', array $options = []): Field
     {
         if ($this->primaryKey === $name) {
             $options['primaryKey'] = true;

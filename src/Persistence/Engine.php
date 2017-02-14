@@ -88,7 +88,7 @@ class Engine
      * @param array $values
      * @return string
      */
-    public function add($values)
+    final public function register($values)
     {
         return $this->driver()->create($this->clausules, $values);
     }
@@ -97,7 +97,7 @@ class Engine
      * @param $values
      * @return array
      */
-    final public function get($values = [])
+    final public function recover($values = [])
     {
         return $this->driver()->read($this->clausules, $values);
     }
@@ -107,7 +107,7 @@ class Engine
      * @param $filters
      * @return int
      */
-    public function set($values, $filters = [])
+    final public function change($values, $filters = [])
     {
         return $this->driver()->update($this->clausules, $values, $filters);
     }
@@ -116,7 +116,7 @@ class Engine
      * @param $filters
      * @return int
      */
-    public function remove($filters)
+    final public function remove($filters)
     {
         return $this->driver()->destroy($this->clausules, $filters);
     }

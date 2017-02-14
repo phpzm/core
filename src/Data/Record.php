@@ -2,11 +2,11 @@
 
 namespace Simples\Core\Data;
 
+use IteratorAggregate;
+use JsonSerializable;
 use Simples\Core\Error\RunTimeError;
 use Simples\Core\Helper\Json;
 use Simples\Core\Unit\Origin;
-use IteratorAggregate;
-use JsonSerializable;
 use stdClass;
 
 /**
@@ -52,6 +52,26 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     public static function make($data, bool $injectable = true): Record
     {
         return new static($data, $injectable);
+    }
+
+    /**
+     * @param $record
+     * @return Record
+     * @throws RunTimeError
+     */
+    public static function parse($record): Record
+    {
+        if ($record instanceof Record) {
+            return $record;
+        }
+        if (is_array($record)) {
+            return static::make($record);
+        }
+        $type = gettype($record);
+        if ($type === TYPE_OBJECT) {
+            $type = get_class($type);
+        }
+        throw new RunTimeError("Record must be an array or instanceof Record '{$type}' given");
     }
 
     /**
@@ -104,7 +124,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
      */
     public function set(string $name, $value): Record
     {
-        if (!$this->isInjectable() && !$this->indexOf($name) ) {
+        if (!$this->isInjectable() && !$this->indexOf($name)) {
             throw new RunTimeError("The entry '{$name}' not exists");
         }
         $this->public[$name] = $value;

@@ -5,9 +5,8 @@ namespace Simples\Core\Http\Specialty;
 use Simples\Core\Data\Record;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Response;
-use Simples\Core\Model\Action;
 use Simples\Core\Model\Field;
-use Simples\Core\Model\Repository\ApiRepository;
+use Simples\Core\Model\Repository\ModelRepository;
 
 /**
  * Class ApiController
@@ -16,7 +15,7 @@ use Simples\Core\Model\Repository\ApiRepository;
 abstract class ApiController extends Controller
 {
     /**
-     * @var ApiRepository
+     * @var ModelRepository
      */
     protected $repository;
 
@@ -51,7 +50,7 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->post(Record::make($data));
+        $posted = $this->repository->create(Record::make($data));
 
         $errors = $this->repository->getErrors()->all();
         if (count($errors)) {
@@ -93,7 +92,7 @@ abstract class ApiController extends Controller
             }
         }
 
-        $collection = $this->repository->get(Record::make($data), $start, $end);
+        $collection = $this->repository->read(Record::make($data), $start, $end);
 
         $count = $this->repository->count($data);
 
@@ -121,7 +120,7 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->put(Record::make($data));
+        $posted = $this->repository->update(Record::make($data));
 
         $errors = $this->repository->getErrors()->all();
         if (count($errors)) {
@@ -147,7 +146,7 @@ abstract class ApiController extends Controller
             $this->repository->getHashKey() => $id
         ];
 
-        $deleted = $this->repository->delete(Record::make($data));
+        $deleted = $this->repository->destroy(Record::make($data));
 
         $errors = $this->repository->getErrors()->all();
         if (count($errors)) {

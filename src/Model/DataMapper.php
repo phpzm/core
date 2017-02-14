@@ -26,12 +26,7 @@ class DataMapper extends AbstractModel
      */
     final public function create($record = null): Record
     {
-        if (!$record) {
-            throw new RunTimeError('Create in DataMapper require parameters');
-        }
-        if (is_array($record)) {
-            $record = Record::make($record);
-        }
+        $record = Record::parse($record);
 
         $action = Action::CREATE;
 
@@ -66,7 +61,7 @@ class DataMapper extends AbstractModel
             $created = $this
                 ->source($this->getCollection())
                 ->fields($fields)
-                ->add($values);
+                ->register($values);
 
             $this->reset();
 
@@ -87,12 +82,7 @@ class DataMapper extends AbstractModel
      */
     final public function read($record = null): Collection
     {
-        if (!$record) {
-            $record = [];
-        }
-        if (is_array($record)) {
-            $record = Record::make($record);
-        }
+        $record = Record::parse(of($record, []));
 
         $action = Action::READ;
 
@@ -115,7 +105,7 @@ class DataMapper extends AbstractModel
                 ->relation($relations)
                 ->fields($this->getActionFields($action))
                 ->filter($where)
-                ->get($filters);
+                ->recover($filters);
 
             $this->reset();
 
@@ -135,12 +125,7 @@ class DataMapper extends AbstractModel
      */
     final public function update($record = null): Record
     {
-        if (!$record) {
-            throw new RunTimeError('Update in DataMapper require parameters');
-        }
-        if (is_array($record)) {
-            $record = Record::make($record);
-        }
+        $record = Record::parse($record);
 
         $action = Action::UPDATE;
 
@@ -178,7 +163,7 @@ class DataMapper extends AbstractModel
                 ->source($this->getCollection())
                 ->fields($fields)
                 ->filter([$filter])
-                ->set($values, [$filter->getValue()]);
+                ->change($values, [$filter->getValue()]);
 
             $this->reset();
 
@@ -204,12 +189,7 @@ class DataMapper extends AbstractModel
      */
     final public function destroy($record = null): Record
     {
-        if (!$record) {
-            throw new RunTimeError('Destroy in DataMapper require parameters');
-        }
-        if (is_array($record)) {
-            $record = Record::make($record);
-        }
+        $record = Record::parse($record);
 
         $action = Action::DESTROY;
 
@@ -234,7 +214,7 @@ class DataMapper extends AbstractModel
                     ->source($this->getCollection())
                     ->fields($fields)
                     ->filter($filters)
-                    ->set($values, [$filter->getValue()]);
+                    ->change($values, [$filter->getValue()]);
             } else {
                 $removed = $this
                     ->source($this->getCollection())

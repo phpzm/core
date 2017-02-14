@@ -5,14 +5,16 @@ namespace Simples\Core\Model\Repository;
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Validator;
+use Simples\Core\Error\RunTimeError;
+use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
 use Simples\Core\Model\Action;
 
 /**
- * Class ApiRepository
+ * Class ModelRepository
  * @package Simples\Core\Model\Repository
  */
-class ApiRepository
+class ModelRepository
 {
     /**
      * @var AbstractModel
@@ -40,6 +42,14 @@ class ApiRepository
 
         $this->validator = $validator ?? new Validator();
         $this->errors = Record::make([]);
+    }
+
+    /**
+     * @return ModelRepository
+     */
+    public static function box(): ModelRepository
+    {
+        return Container::box()->make(static::class);
     }
 
     /**
@@ -90,11 +100,13 @@ class ApiRepository
     }
 
     /**
-     * @param Record $record
+     * @param Record|array $record
      * @return Record
      */
-    public function post(Record $record): Record
+    public function create($record): Record
     {
+        $record = Record::parse($record);
+
         $defaults = $this->model->getDefaults(Action::CREATE, $record);
         foreach ($defaults as $field => $default) {
             if (!$record->has($field)) {
@@ -112,13 +124,15 @@ class ApiRepository
     }
 
     /**
-     * @param Record $record
+     * @param Record|array $record
      * @param int $start
      * @param int $end
      * @return Collection
      */
-    public function get(Record $record, $start = null, $end = null): Collection
+    public function read($record, $start = null, $end = null): Collection
     {
+        $record = Record::parse($record);
+
         if (!is_null($start) && !is_null($end)) {
             $this->model->limit([$start, $end]);
         }
@@ -129,8 +143,10 @@ class ApiRepository
      * @param Record|array $record
      * @return Record
      */
-    public function put($record): Record
+    public function update($record): Record
     {
+        $record = Record::parse($record);
+
         $defaults = $this->model->getDefaults(Action::UPDATE, $record);
         foreach ($defaults as $field => $default) {
             if (!$record->has($field)) {
@@ -152,8 +168,10 @@ class ApiRepository
      * @param Record|array $record
      * @return Record
      */
-    public function delete($record): Record
+    public function destroy($record): Record
     {
+        $record = Record::parse($record);
+
         $deleting = $this->model->destroy($record);
         if ($deleting) {
             return $deleting;
@@ -225,9 +243,9 @@ class ApiRepository
 
     /**
      * @param bool $logging
-     * @return ApiRepository
+     * @return ModelRepository
      */
-    public function log($logging = true): ApiRepository
+    public function log($logging = true): ModelRepository
     {
         $this->model->log($logging);
         return $this;
