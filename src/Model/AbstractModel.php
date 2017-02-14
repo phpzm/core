@@ -215,18 +215,19 @@ abstract class AbstractModel extends Engine
     }
 
     /**
+     * Allow use this field like readonly in read filtering and getting it in record
      * @param string $name
-     * @param string $field
+     * @param string $relationship
      * @param array $options
      * @return Field
      * @throws RunTimeError
      */
-    protected function import(string $name, string $field, array $options = []): Field
+    protected function import(string $name, string $relationship, array $options = []): Field
     {
-        $source = $this->getField($field);
-        $reference = $source->getReference();
+        $source = $this->getField($relationship);
+        $reference = $source->getReferences();
 
-        $class = $reference['class'];
+        $class = off($reference, 'class');
         if (!class_exists($class)) {
             throw new RunTimeError("Cant not import '{$name}' from '{$class}'");
         }

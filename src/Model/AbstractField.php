@@ -2,13 +2,14 @@
 
 namespace Simples\Core\Model;
 
-class FieldContract
-{
-    /**
-     * @var boolean
-     */
-    protected $primaryKey;
+use stdClass;
 
+/**
+ * Class AbstractField
+ * @package Simples\Core\Model
+ */
+abstract class AbstractField
+{
     /**
      * Collection to which this field belongs
      * @var string
@@ -28,14 +29,19 @@ class FieldContract
     protected $type;
 
     /**
-     * @var string
+     * @var boolean
      */
-    protected $label = '';
+    protected $primaryKey;
 
     /**
      * @var Field
      */
     protected $from;
+
+    /**
+     * @var string
+     */
+    protected $label = '';
 
     /**
      * @var boolean
@@ -52,8 +58,16 @@ class FieldContract
     protected $options = [];
     protected $validators = [];
     protected $enum = [];
+
+    /**
+     * @var array
+     */
     protected $referenced = [];
-    protected $reference = [];
+
+    /**
+     * @var stdClass
+     */
+    protected $references;
 
     /**
      * @var callable
@@ -157,11 +171,11 @@ class FieldContract
     }
 
     /**
-     * @return array
+     * @return stdClass
      */
-    public function getReference(): array
+    public function getReferences(): stdClass
     {
-        return $this->reference;
+        return $this->references;
     }
 
     /**

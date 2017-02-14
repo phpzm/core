@@ -17,7 +17,7 @@ use Simples\Core\Error\RunTimeError;
  * Class Field
  * @package Simples\Core\Model
  */
-class Field extends FieldContract
+class Field extends AbstractField
 {
     /**
      * @var string
@@ -53,7 +53,7 @@ class Field extends FieldContract
         $default = [
             'primaryKey' => false, 'label' => '', 'validators' => [],
             'create' => true, 'read' => true, 'update' => true, 'recover' => true,
-            'enum' => [], 'referenced' => [], 'references' => [],
+            'enum' => [], 'referenced' => [], 'references' => (object)[],
         ];
         $options = array_merge($default, $options);
 
@@ -114,7 +114,7 @@ class Field extends FieldContract
      */
     public function referencesTo(string $class, string $target): Field
     {
-        $this->reference = [
+        $this->references = (object)[
             'target' => $target,
             'class' => $class
         ];
@@ -189,7 +189,7 @@ class Field extends FieldContract
     public function from(Field $reference): Field
     {
         $this->from = $reference;
-        return $this->create(false)->read(true)->update(false)->recover(false);
+        return $this->create(false)->read(true)->update(false);
     }
 
     /**

@@ -35,9 +35,8 @@ abstract class ApiController extends Controller
 
     /**
      * @return Response
-     * @throws \Exception
      */
-    public function post()
+    public function post(): Response
     {
         $this->setLog($this->request()->get('log'));
 
@@ -70,7 +69,7 @@ abstract class ApiController extends Controller
      * @param $id
      * @return Response
      */
-    public function get($id = null)
+    public function get($id = null): Response
     {
         $this->setLog($this->request()->get('log'));
 
@@ -102,10 +101,10 @@ abstract class ApiController extends Controller
     }
 
     /**
+     * @param $id
      * @return Response
-     * @throws \Exception
      */
-    public function put($id)
+    public function put($id): Response
     {
         $this->setLog($this->request()->get('log'));
 
@@ -139,9 +138,8 @@ abstract class ApiController extends Controller
     /**
      * @param $id
      * @return Response
-     * @throws \Exception
      */
-    public function delete($id)
+    public function delete($id): Response
     {
         $this->setLog($this->request()->get('log'));
 

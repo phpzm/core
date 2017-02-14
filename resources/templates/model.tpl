@@ -18,10 +18,10 @@ class ${NAME} extends DataMapper
     {
         parent::__construct();
 
-        $this->collection('${table}', '${primaryKey}');
+        $this->instance('${table}', '${primaryKey}');
 
-        $this->addField('${primaryKey}', 'int');
-        $this->addField('${description}', 'string')->required();
+        $this->field('${primaryKey}')->int();
+        $this->field('${description}')->string()->required();
     }
 
     /**
