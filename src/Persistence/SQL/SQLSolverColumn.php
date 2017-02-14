@@ -33,8 +33,8 @@ class SQLSolverColumn
     private function parseColumnField(Field $column): string
     {
         $collection = $column->getCollection();
-        if (!$collection) {
-            $collection = '__' . strtoupper($column->getFrom()) . '__';
+        if ($column->hasFrom()) {
+            $collection = '__' . strtoupper($column->getFrom()->getName()) . '__';
         }
         $name = $column->getName();
 

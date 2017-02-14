@@ -190,7 +190,7 @@ abstract class AbstractModel extends Engine
         $this->primaryKey = $primaryKey;
         $this->hashKey = $hashKey ? $hashKey : $this->hashKey;
 
-        $this->addField($this->hashKey, 'string')->validator('unique');
+        $this->field($this->hashKey, 'string')->validator('unique');
         return $this;
     }
 
@@ -200,10 +200,11 @@ abstract class AbstractModel extends Engine
      * @param array $options
      * @return Field
      */
-    protected function addField(string $name, string $type = '', array $options = []): Field
+    protected function field(string $name, string $type = '', array $options = []): Field
     {
         if ($this->primaryKey === $name) {
             $options['primaryKey'] = true;
+            $options['recover'] = false;
         } elseif (off($options, 'primaryKey')) {
             $this->primaryKey = $name;
         }
@@ -211,6 +212,32 @@ abstract class AbstractModel extends Engine
         $this->fields[$name] = $field;
 
         return $field;
+    }
+
+    /**
+     * @param string $name
+     * @param string $field
+     * @param array $options
+     * @return Field
+     * @throws RunTimeError
+     */
+    protected function import(string $name, string $field, array $options = []): Field
+    {
+        $source = $this->getField($field);
+        $reference = $source->getReference();
+
+        $class = $reference['class'];
+        if (!class_exists($class)) {
+            throw new RunTimeError("Cant not import '{$name}' from '{$class}'");
+        }
+
+        /** @var DataMapper $class */
+        $import = $class::box()->getField($name);
+
+        $from = new Field($import->getCollection(), $name, $import->getType(), $options);
+        $this->fields[$name] = $from->from($source);
+
+        return $from;
     }
 
     /**

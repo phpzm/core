@@ -80,6 +80,22 @@ class Filter
     }
 
     /**
+     * @return bool
+     */
+    public function hasFrom(): bool
+    {
+        return $this->field->hasFrom();
+    }
+
+    /**
+     * @return Field
+     */
+    public function getFrom(): Field
+    {
+        return $this->field->getFrom();
+    }
+
+    /**
      * @return mixed
      */
     public function getValue()

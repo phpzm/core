@@ -20,7 +20,11 @@ class SQLSolverFilter
     {
         $rule = $filter->getRule();
         if (method_exists($this, $rule)) {
-            $name = "{$filter->getCollection()}.{$filter->getName()}";
+            $collection = $filter->getCollection();
+            if ($filter->hasFrom()) {
+                $collection = '__' . strtoupper($filter->getFrom()->getName()) . '__';
+            }
+            $name = "{$collection}.{$filter->getName()}";
             $value = $filter->getValue();
             $not = $filter->isNot() ? 'NOT ' : '';
             return "{$not}(" . $this->$rule($name, $value) . ")";

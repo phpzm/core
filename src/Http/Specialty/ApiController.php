@@ -79,8 +79,8 @@ abstract class ApiController extends Controller
         $data = [$this->repository->getHashKey() => $id];
         if (!$id) {
             $data = [];
-            $page = (int)$this->request()->get('page');
-            $size = (int)$this->request()->get('size');
+            $page = (int)of($this->request()->get('page'), 1);
+            $size = (int)of($this->request()->get('size'), 25);
             $start = ($page - 1) * $size;
             $end = $size;
             $fields = $this->repository->getFields();

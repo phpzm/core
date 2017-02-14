@@ -114,7 +114,10 @@ class Field extends FieldContract
      */
     public function referencesTo(string $class, string $target): Field
     {
-        $this->references[$target] = $class;
+        $this->reference = [
+            'target' => $target,
+            'class' => $class
+        ];
         return $this;
     }
 
@@ -180,15 +183,13 @@ class Field extends FieldContract
     }
 
     /**
-     * @param string $reference
+     * @param Field $reference
      * @return Field
      */
-    public function from(string $reference): Field
+    public function from(Field $reference): Field
     {
-        $this->collection = '';
         $this->from = $reference;
-        $this->create(false)->read(true)->update(false);
-        return $this;
+        return $this->create(false)->read(true)->update(false)->recover(false);
     }
 
     /**

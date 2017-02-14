@@ -31,7 +31,11 @@ class FieldContract
      * @var string
      */
     protected $label = '';
-    protected $from = '';
+
+    /**
+     * @var Field
+     */
+    protected $from;
 
     /**
      * @var boolean
@@ -49,7 +53,7 @@ class FieldContract
     protected $validators = [];
     protected $enum = [];
     protected $referenced = [];
-    protected $references = [];
+    protected $reference = [];
 
     /**
      * @var callable
@@ -155,9 +159,9 @@ class FieldContract
     /**
      * @return array
      */
-    public function getReferences(): array
+    public function getReference(): array
     {
-        return $this->references;
+        return $this->reference;
     }
 
     /**
@@ -169,9 +173,17 @@ class FieldContract
     }
 
     /**
-     * @return string
+     * @return bool
      */
-    public function getFrom(): string
+    public function hasFrom(): bool
+    {
+        return !!$this->from;
+    }
+
+    /**
+     * @return Field
+     */
+    public function getFrom(): Field
     {
         return $this->from;
     }
@@ -183,7 +195,6 @@ class FieldContract
     public function setCollection(string $collection)
     {
         $this->collection = $collection;
-        $this->from = '';
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
