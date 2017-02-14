@@ -111,9 +111,13 @@ class Field extends AbstractField
      * @param string $class
      * @param string $target
      * @return Field
+     * @throws RunTimeError
      */
     public function referencesTo(string $class, string $target): Field
     {
+        if (off($this->references, 'class')) {
+            throw new RunTimeError("Relationship already defined to '{$this->references->class}'");
+        }
         $this->references = (object)[
             'target' => $target,
             'class' => $class
