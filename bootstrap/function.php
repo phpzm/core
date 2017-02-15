@@ -300,3 +300,18 @@ if (!function_exists('clearpath')) {
         }));
     }
 }
+
+if (!function_exists('test')) {
+    /**
+     * @param mixed $output
+     * @param mixed $optional (null)
+     * @return mixed
+     */
+    function test($output, $optional = null)
+    {
+        if (env('TEST_MODE')) {
+            return $output;
+        }
+        return $optional;
+    }
+}

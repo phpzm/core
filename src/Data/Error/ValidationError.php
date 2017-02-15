@@ -13,9 +13,10 @@ class ValidationError extends RunTimeError
     /**
      * ValidationError constructor.
      * @param array $details
+     * @param string $message
      */
-    public function __construct(array $details = [])
+    public function __construct(array $details = [], string $message = '')
     {
-        parent::__construct('', $details);
+        parent::__construct($message, $details);
     }
 }

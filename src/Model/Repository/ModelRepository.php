@@ -4,11 +4,13 @@ namespace Simples\Core\Model\Repository;
 
 use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
+use Simples\Core\Data\Validation;
 use Simples\Core\Data\Validator;
 use Simples\Core\Data\Error\ValidationError;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
 use Simples\Core\Model\Action;
+use Simples\Core\Model\Field;
 
 /**
  * Class ModelRepository
@@ -25,6 +27,11 @@ class ModelRepository
      * @var Validator
      */
     private $validator;
+
+    /**
+     * @var array
+     */
+    private $fields;
 
     /**
      * ApiRepository constructor.
@@ -95,7 +102,7 @@ class ModelRepository
             }
         }
 
-        $validators = $this->model->getValidators($action, $record);
+        $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
             throw new ValidationError($errors->all());
@@ -140,7 +147,7 @@ class ModelRepository
             }
         }
 
-        $validators = $this->model->getValidators($action, $record);
+        $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
             throw new ValidationError($errors->all());
@@ -162,7 +169,7 @@ class ModelRepository
 
         $this->model->configureFields($action, $record);
 
-        $validators = $this->model->getValidators($action, $record);
+        $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
             throw new ValidationError($errors->all());
@@ -227,6 +234,59 @@ class ModelRepository
     private function parseValidation($validators)
     {
         return $this->getValidator()->parse($validators);
+    }
+
+    /**
+     * @param array $fields
+     * @param Record $record
+     * @return array
+     */
+    final public function getValidators(array $fields, Record $record): array
+    {
+        $validation = new Validation();
+        foreach ($fields as $key => $field) {
+            $validator = $this->parseValidator($field);
+            if ($validator) {
+                $validation->add($key, $record->get($key), $validator);
+            }
+        }
+        return $validation->rules();
+    }
+
+    /**
+     * @param Field $field
+     * @return array|null
+     */
+    private function parseValidator(Field $field)
+    {
+        $rules = null;
+        $validators = $field->getValidators();
+        if ($validators) {
+            $rules = [];
+            foreach ($validators as $validator => $options) {
+                if (!$options) {
+                    $options = [];
+                }
+                if (!is_array($options)) {
+                    $options = [$options];
+                }
+                switch ($validator) {
+                    case 'unique':
+                        $options = array_merge($options, [
+                            'class' => get_class($this),
+                            'field' => $field->getName()
+                        ]);
+                        break;
+                }
+                if (count($field->getEnum())) {
+                    $options = array_merge($options, [
+                        'enum' => $field->getEnum()
+                    ]);
+                }
+                $rules[$validator] = $options;
+            }
+        }
+        return $rules;
     }
 
     /**

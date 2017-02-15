@@ -3,8 +3,8 @@
 namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
+use Simples\Core\Data\Error\ValidationError;
 use Simples\Core\Data\Record;
-use Simples\Core\Data\Validation;
 use Simples\Core\Error\RunTimeError;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Engine;
@@ -331,23 +331,6 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @param string $action
-     * @param Record $record
-     * @return array
-     */
-    final public function getValidators(string $action, Record $record): array
-    {
-        $validation = new Validation();
-        foreach ($this->getFields($action) as $key => $field) {
-            $validator = $this->getValidator($field, $action);
-            if ($validator) {
-                $validation->add($key, $record->get($key), $validator);
-            }
-        }
-        return $validation->rules();
-    }
-
-    /**
      * @return string
      */
     final public function hashKey(): string
@@ -380,42 +363,31 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * @param Field $field
-     * @param string $action
-     * @return array|null
+     * @param $action
+     * @throws RunTimeError
      */
-    private function getValidator(Field $field, string $action)
+    protected function throwAction($action)
     {
-        $rules = null;
-        $validators = $field->getValidators();
-        if ($validators) {
-            $rules = [];
-            foreach ($validators as $validator => $options) {
-                if (!$options) {
-                    $options = [];
-                }
-                if (!is_array($options)) {
-                    $options = [$options];
-                }
-                switch ($validator) {
-                    case 'unique':
-                        // TODO: fix this to support unique on update
-                        if ($action === Action::CREATE) {
-                            $options = array_merge($options, [
-                                'class' => get_class($this),
-                                'field' => $field->getName()
-                            ]);
-                        }
-                        break;
-                }
-                if (count($field->getEnum())) {
-                    $options = array_merge($options, [
-                        'enum' => $field->getEnum()
-                    ]);
-                }
-                $rules[$validator] = $options;
-            }
-        }
-        return $rules;
+        throw new RunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
+    }
+
+    /**
+     * @param $action
+     * @param $hook
+     * @throws RunTimeError
+     */
+    protected function throwHook($action, $hook)
+    {
+        throw new RunTimeError("Can't resolve hook `{$action}`.`{$hook}` in '" . get_class($this) . "'");
+    }
+
+    /**
+     * @param array $details
+     * @param string $message
+     * @throws ValidationError
+     */
+    protected function throwValidation(array $details, string $message = '')
+    {
+        throw new ValidationError($details, $message);
     }
 }

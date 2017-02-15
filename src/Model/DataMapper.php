@@ -32,30 +32,16 @@ class DataMapper extends AbstractModel
         $action = Action::CREATE;
 
         if (!$this->before($action, $record)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'before');
         }
         if (!$record->get($this->hashKey)) {
             $record->set($this->hashKey, $this->hashKey());
         }
 
-        $fields = [];
-        $values = [];
-        foreach ($this->getActionFields($action) as $field) {
-            /** @var Field $field */
-            $name = $field->getName();
-            if ($field->isCalculated()) {
-                $value = $field->calculate($record);
-                $record->set($name, $value);
-            }
-            if ($record->has($name)) {
-                $value = $record->get($name);
-            }
-            if (isset($value)) {
-                $fields[] = $name;
-                $values[] = $value;
-                unset($value);
-            }
-        }
+        $create = $this->configureRecord($action, $record);
+        $fields = $create->keys();
+        $values = $create->values();
+
         foreach ($this->createKeys as $type => $timestampsKey) {
             $fields[] = $timestampsKey;
             $values[] = $this->getTimestampValue($type);
@@ -73,7 +59,7 @@ class DataMapper extends AbstractModel
         }
 
         if (!$this->after($action, $record)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'after');
         }
         return $record;
     }
@@ -91,34 +77,32 @@ class DataMapper extends AbstractModel
         $action = Action::READ;
 
         if (!$this->before($action, $record)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'before');
         }
 
         $where = [];
         $filters = [];
         if (!$record->isEmpty()) {
-            $where = $this->parseReadFilterFields($record->all());
-            $filters = $this->parseReadFilterValues($where);
+            $where = $this->parseFilterFields($record->all());
+            $filters = $this->parseFilterValues($where);
         }
 
         if ($this->destroyKeys) {
             $where[] = $this->getDestroyFilter();
         }
 
-        $relations = $this->parseReadRelations();
-
         $array = $this
             ->source($this->getCollection())
-            ->relation($relations)
+            ->relation($this->parseReadRelations())
             ->fields($this->getActionFields($action))
-            ->filter($where)
+            ->filter($where)// TODO: needs review
             ->recover($filters);
 
         $this->reset();
 
         $record = Record::make($array);
         if (!$this->after($action, $record)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'after');
         }
         return Collection::make($record->all());
     }
@@ -141,28 +125,15 @@ class DataMapper extends AbstractModel
         }
 
         if (!$this->before($action, $record, $previous)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'before');
         }
 
         $record->setPrivate($this->getHashKey());
 
-        $fields = [];
-        $values = [];
-        foreach ($this->getActionFields($action) as $key => $field) {
-            /** @var Field $field */
-            $name = $field->getName();
-            if ($field->isCalculated()) {
-                $value = $field->calculate($record);
-                $record->set($name, $value);
-            }
-            if ($record->has($name)) {
-                $value = $record->get($name);
-            }
-            if (isset($value)) {
-                $fields[] = $name;
-                $values[] = $value;
-            }
-        }
+        $update = $this->configureRecord($action, $record);
+        $fields = $update->keys();
+        $values = $update->values();
+
         foreach ($this->updateKeys as $type => $timestampsKey) {
             $fields[] = $timestampsKey;
             $values[] = $this->getTimestampValue($type);
@@ -173,19 +144,19 @@ class DataMapper extends AbstractModel
         $updated = $this
             ->source($this->getCollection())
             ->fields($fields)
-            ->filter([$filter])
+            ->filter([$filter])// TODO: needs review
             ->change($values, [$filter->getValue()]);
 
         $this->reset();
 
         if (!$updated) {
-            throw new RunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
+            $this->throwAction($action);
         }
         $record->setPublic($this->getHashKey());
         $record = $previous->merge($record->all());
 
         if (!$this->after($action, $record)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'after');
         }
         return $record;
     }
@@ -208,7 +179,7 @@ class DataMapper extends AbstractModel
         }
 
         if (!$this->before($action, $record, $previous)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`before` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'before');
         }
         $filter = new Filter($this->get($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
         $filters = [$filter];
@@ -224,24 +195,24 @@ class DataMapper extends AbstractModel
             $removed = $this
                 ->source($this->getCollection())
                 ->fields($fields)
-                ->filter($filters)
+                ->filter($filters)// TODO: needs review
                 ->change($values, [$filter->getValue()]);
         } else {
             $removed = $this
                 ->source($this->getCollection())
-                ->filter($filters)
+                ->filter($filters)// TODO: needs review
                 ->remove([$record->get($this->getPrimaryKey())]);
         }
 
         $this->reset();
 
         if (!$removed) {
-            throw new RunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
+            $this->throwAction($action);
         }
         $record = $previous->merge($record->all());
 
         if (!$this->after($action, $record)) {
-            throw new RunTimeError("Can't resolve hook `{$action}`.`after` in '" . get_class($this) . "'");
+            $this->throwHook($action, 'after');
         }
         return $record;
     }
@@ -255,19 +226,45 @@ class DataMapper extends AbstractModel
     {
         // Record
         $alias = 'count';
-        $data = $this
+        $count = $this
             ->fields([
                 new Field($this->getCollection(), $this->getPrimaryKey(), Field::AGGREGATOR_COUNT, ['alias' => $alias])
             ])
             ->limit(null)
-            ->read($record);
+            ->read($record)->current();
 
         $this->reset();
 
-        if (!$data->current()->isEmpty()) {
-            return (int)$data->current()->get($alias);
+        if (!$count->has($alias)) {
+            return $this->throwAction($alias);
         }
-        return 0;
+
+        return (int)$count->get($alias);
+    }
+
+    /**
+     * @param string $action
+     * @param Record $record
+     * @return Record
+     */
+    private function configureRecord(string $action, Record $record): Record
+    {
+        $values = Record::make([]);
+        $fields = $this->getActionFields($action);
+        foreach ($fields as $field) {
+            /** @var Field $field */
+            $name = $field->getName();
+            $value = $field->getDefault();
+            if ($record->has($name)) {
+                $value = $record->get($name);
+            }
+            if ($field->isCalculated()) {
+                $value = $field->calculate($record);
+                $record->set($name, $value);
+            }
+            $values->set($name, $value);
+        }
+        return $values;
     }
 
     /**
@@ -294,7 +291,7 @@ class DataMapper extends AbstractModel
      * @return array
      * @throws Exception
      */
-    protected function parseReadFilterFields(array $data): array
+    protected function parseFilterFields(array $data): array
     {
         $filters = [];
         foreach ($data as $name => $value) {
@@ -311,7 +308,7 @@ class DataMapper extends AbstractModel
      * @param array $filters
      * @return array
      */
-    protected function parseReadFilterValues(array $filters): array
+    protected function parseFilterValues(array $filters): array
     {
         $values = [];
         /** @var Filter $filter */

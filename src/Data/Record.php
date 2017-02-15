@@ -273,4 +273,20 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
         $this->private = array_merge($this->private, $private);
         return $this;
     }
+
+    /**
+     * @return array
+     */
+    public function keys(): array
+    {
+        return array_keys($this->public);
+    }
+
+    /**
+     * @return array
+     */
+    public function values(): array
+    {
+        return array_values($this->public);
+    }
 }

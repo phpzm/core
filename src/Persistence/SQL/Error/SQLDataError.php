@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Persistence\SQL\Error;
 
-use Simples\Core\Error\PersistenceError;
+use Simples\Core\Persistence\Error\PersistenceError;
 
 /**
  * Class PersistenceException
@@ -27,6 +27,8 @@ class SQLDataError extends PersistenceError
                     $this->relationship(off($detail, 2));
                     break;
                 }
+                default:
+                    return $details;
             }
         }
         return $this->errors;

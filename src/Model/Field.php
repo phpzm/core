@@ -53,7 +53,7 @@ class Field extends AbstractField
         $default = [
             'primaryKey' => false, 'label' => '', 'validators' => [],
             'create' => true, 'read' => true, 'update' => true, 'recover' => true,
-            'enum' => [], 'referenced' => [], 'references' => (object)[],
+            'enum' => [], 'referenced' => [], 'references' => (object)[], 'default' => ''
         ];
         $options = array_merge($default, $options);
 
@@ -110,10 +110,11 @@ class Field extends AbstractField
     /**
      * @param string $class
      * @param string $target
+     * @param bool $nullable
      * @return Field
      * @throws RunTimeError
      */
-    public function referencesTo(string $class, string $target): Field
+    public function referencesTo(string $class, string $target, bool $nullable = false): Field
     {
         if (off($this->references, 'class')) {
             throw new RunTimeError("Relationship already defined to '{$this->references->class}'");
@@ -122,15 +123,10 @@ class Field extends AbstractField
             'target' => $target,
             'class' => $class
         ];
+        if ($nullable) {
+            $this->default = null;
+        }
         return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPrimaryKey(): bool
-    {
-        return $this->primaryKey;
     }
 
     /**
@@ -143,6 +139,15 @@ class Field extends AbstractField
             $this->string();
         }
         $this->enum = $items;
+        return $this;
+    }
+
+    /**
+     * @return Field
+     */
+    public function nullable(): Field
+    {
+        $this->default = null;
         return $this;
     }
 

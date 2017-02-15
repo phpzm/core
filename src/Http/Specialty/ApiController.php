@@ -57,10 +57,10 @@ abstract class ApiController extends Controller
             $posted = $this->repository->create(Record::make($data));
         }
         catch (ValidationError $error) {
-            return $this->answerBadRequest('', ['validation' => $error->getDetails()]);
+            return $this->answerBadRequest(test($error->getMessage()), ['validation' => $error->getDetails()]);
         }
         catch (PersistenceError $error) {
-            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
+            return $this->answerPreconditionFailed(test($error->getMessage()), ['inconsistency' => $error->getDetails()]);
         }
 
         return $this->answerOK($posted->all());
@@ -99,7 +99,7 @@ abstract class ApiController extends Controller
             $count = $this->repository->count($data);
         }
         catch (PersistenceError $error) {
-            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
+            return $this->answerPreconditionFailed(test($error->getMessage()), ['inconsistency' => $error->getDetails()]);
         }
 
         return $this->answerOK($collection->getRecords(), (isset($page)) ? ['total' => $count] : []);
@@ -130,13 +130,13 @@ abstract class ApiController extends Controller
             $putted = $this->repository->update(Record::make($data));
         }
         catch (ValidationError $error) {
-            return $this->answerBadRequest('', ['validation' => $error->getDetails()]);
+            return $this->answerBadRequest(test($error->getMessage()), ['validation' => $error->getDetails()]);
         }
         catch (ResourceError $error) {
-            return $this->answerGone('', ['inconsistency' => $error->getDetails()]);
+            return $this->answerGone(test($error->getMessage()), ['inconsistency' => $error->getDetails()]);
         }
         catch (PersistenceError $error) {
-            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
+            return $this->answerPreconditionFailed(test($error->getMessage()), ['inconsistency' => $error->getDetails()]);
         }
 
         return $this->answerOK($putted->all());
@@ -158,10 +158,10 @@ abstract class ApiController extends Controller
             $deleted = $this->repository->destroy(Record::make($data));
         }
         catch (ResourceError $error) {
-            return $this->answerGone('', ['inconsistency' => $error->getDetails()]);
+            return $this->answerGone(test($error->getMessage()), ['inconsistency' => $error->getDetails()]);
         }
         catch (PersistenceError $error) {
-            return $this->answerPreconditionFailed('', ['inconsistency' => $error->getDetails()]);
+            return $this->answerPreconditionFailed(test($error->getMessage()), ['inconsistency' => $error->getDetails()]);
         }
 
         return $this->answerOK($deleted->all());

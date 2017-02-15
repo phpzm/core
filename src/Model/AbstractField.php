@@ -44,6 +44,11 @@ abstract class AbstractField
     protected $label = '';
 
     /**
+     * @var mixed
+     */
+    protected $default;
+
+    /**
      * @var boolean
      */
     protected $create;
@@ -99,6 +104,14 @@ abstract class AbstractField
     }
 
     /**
+     * @return bool
+     */
+    public function isPrimaryKey(): bool
+    {
+        return $this->primaryKey;
+    }
+
+    /**
      * @return array
      */
     public function getOptions(): array
@@ -120,6 +133,18 @@ abstract class AbstractField
     public function getLabel(): string
     {
         return $this->label;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefault()
+    {
+        if (is_callable($this->default)) {
+            $callable = $this->default;
+            return $callable();
+        }
+        return $this->default;
     }
 
     /**
