@@ -2,10 +2,8 @@
 
 namespace Simples\Core\Data;
 
-use Iterator;
 use Simples\Core\Error\RunTimeError;
 use Simples\Core\Model\AbstractModel;
-use Simples\Core\Unit\Origin;
 
 /**
  * Class Collection
@@ -14,22 +12,17 @@ use Simples\Core\Unit\Origin;
  * @property Collection each
  * @package Simples\Core\Domain
  */
-class Collection extends Origin implements Iterator
+class Collection extends AbstractCollection
 {
-    /**
-     * @var array
-     */
-    private $records;
-
     /**
      * @var AbstractModel
      */
-    private $model;
+    protected $model;
 
     /**
      * @var array
      */
-    private $higher = [];
+    protected $higher = [];
 
     /**
      * Collection constructor.
@@ -59,6 +52,7 @@ class Collection extends Origin implements Iterator
     public function model(AbstractModel $model): Collection
     {
         $this->model = $model;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
@@ -76,9 +70,11 @@ class Collection extends Origin implements Iterator
             throw new RunTimeError("Method '{$name}' not found");
         }
         $this->higher[] = $name;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
+    /** @noinspection SpellCheckingInspection */
     /**
      * Ex.:
      *   $result = Collection::create([new Example('apple'), new Example('orange')])
@@ -148,61 +144,5 @@ class Collection extends Origin implements Iterator
     public function size()
     {
         return count($this->records);
-    }
-
-    /**
-     *
-     */
-    public function rewind()
-    {
-        reset($this->records);
-    }
-
-    /**
-     * @return Record
-     */
-    public function current()
-    {
-        $var = current($this->records);
-        if ($var) {
-            return Record::make($var);
-        }
-        return Record::make([]);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function key()
-    {
-        $var = key($this->records);
-        return $var;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function next()
-    {
-        $var = next($this->records);
-        return $var;
-    }
-
-    /**
-     * @return bool
-     */
-    public function valid()
-    {
-        $key = key($this->records);
-        $var = ($key !== null && $key !== false);
-        return $var;
-    }
-
-    /**
-     * @return array
-     */
-    public function getRecords()
-    {
-        return $this->records;
     }
 }

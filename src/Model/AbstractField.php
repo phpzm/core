@@ -212,14 +212,6 @@ abstract class AbstractField
     }
 
     /**
-     * @return bool
-     */
-    public function hasFrom(): bool
-    {
-        return !!$this->from;
-    }
-
-    /**
      * @return Field
      */
     public function getFrom(): Field
@@ -324,14 +316,6 @@ abstract class AbstractField
         $this->update = $update;
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
-    }
-
-    /**
-     * @return Field
-     */
-    public function readonly()
-    {
-        return $this->create(false)->read(false)->update(false);
     }
 
     /**

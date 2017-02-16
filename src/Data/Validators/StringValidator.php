@@ -23,6 +23,13 @@ trait StringValidator
      */
     public function isString($value): bool
     {
+        if (!is_scalar($value)) {
+            return false;
+        }
+        $value = (string)$value;
+        if (!is_string($value)) {
+            return false;
+        }
         return !!strlen($value);
     }
 

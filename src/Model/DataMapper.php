@@ -254,7 +254,6 @@ class DataMapper extends AbstractModel
         foreach ($fields as $field) {
             /** @var Field $field */
             $name = $field->getName();
-            $value = $field->getDefault();
             if ($record->has($name)) {
                 $value = $record->get($name);
             }
@@ -262,7 +261,10 @@ class DataMapper extends AbstractModel
                 $value = $field->calculate($record);
                 $record->set($name, $value);
             }
-            $values->set($name, $value);
+            if (isset($value)) {
+                $values->set($name, $value);
+                unset($value);
+            }
         }
         return $values;
     }

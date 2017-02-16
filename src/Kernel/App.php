@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Kernel;
 
+use ErrorException;
 use Simples\Core\Console\ControllerService;
 use Simples\Core\Console\HelpService;
 use Simples\Core\Console\ModelService;
@@ -11,9 +12,7 @@ use Simples\Core\Console\Service;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Persistence\Transaction;
-use Simples\Core\Route\Router;
 use Throwable;
-use ErrorException;
 
 /**
  * Class App
@@ -219,24 +218,6 @@ class App
     }
 
     /**
-     * Load the routes of project
-     *
-     * @param Router $router The router what will be used
-     * @param array $files (null) If not informe will be used "route.files"
-     * @return Router Object with the routes loaded in
-     */
-    public static function routes(Router $router, array $files = null)
-    {
-        $files = $files ? $files : self::config('route.files');
-
-        foreach ($files as $file) {
-            $router->load(path(true, $file));
-        }
-
-        return $router;
-    }
-
-    /**
      * Simple helper to generate a valid route to resources of project
      *
      * Ex.: `self::route('/download/images/picture.png')`, will print //localhost/download/images/picture.png
@@ -252,5 +233,25 @@ class App
             out($route);
         }
         return $route;
+    }
+
+    /**
+     * @param array $trace
+     * @return array
+     */
+    public static function beautifulTrace(array $trace): array
+    {
+        $stack = [];
+        foreach ($trace as $value) {
+            $trace = off($value, 'function');
+            if ($trace === 'call_user_func_array') {
+                continue;
+            }
+            if (off($value, 'class') && off($value, 'function')) {
+                $trace = off($value, 'class') . App::options('separator') .  off($value, 'function');
+            }
+            $stack[] = $trace;
+        }
+        return $stack;
     }
 }

@@ -31,6 +31,15 @@ trait DatabaseValidator
 
     /**
      * @param $value
+     * @return bool
+     */
+    public function isReject ($value): bool
+    {
+        return empty($value);
+    }
+
+    /**
+     * @param $value
      * @param $options
      * @return mixed
      */
@@ -41,7 +50,11 @@ trait DatabaseValidator
         if (class_exists($class)) {
             $instance = Container::box()->make($class);
             /** @var AbstractModel $instance */
-            return $instance->count([$field => $value]) === 0;
+            $filter = [$field => $value];
+            if (off($options, 'primaryKey')) {
+                $filter[off($options, 'primaryKey.name')] = off($options, 'primaryKey.value');
+            }
+            return $instance->count($filter) === 0;
         }
         return false;
     }

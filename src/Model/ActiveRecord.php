@@ -7,6 +7,7 @@ use Simples\Core\Data\Record;
 use Exception;
 
 /**
+ * @SuppressWarnings(PHPMD)
  * Class ActiveRecord
  * @package Simples\Core\Model
  */

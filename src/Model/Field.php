@@ -222,4 +222,30 @@ class Field extends AbstractField
         }
         throw new RunTimeError("Type '{$name}' not supported");
     }
+
+    /**
+     * @return bool
+     */
+    public function hasFrom(): bool
+    {
+        return !!$this->from;
+    }
+
+    /**
+     * @return Field
+     */
+    public function readonly()
+    {
+        return $this->create(false)->read(false)->update(false);
+    }
+
+    /**
+     * @return Field
+     */
+    public function reject(): Field
+    {
+        $this->validators = ['reject' => ''];
+        $this->enum = [];
+        return $this;
+    }
 }

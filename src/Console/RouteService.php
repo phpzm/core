@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Console;
 
+use Simples\Core\Kernel\Http;
 use Simples\Core\Route\Router;
 use Simples\Core\Kernel\App;
 
@@ -16,9 +17,9 @@ abstract class RouteService extends Service
      */
     public static function execute(App $app)
     {
-        $router = new Router($app::options('separator'), $app::options('labels'), $app::options('type'));
+        $router = new Router($app::options('labels'), $app::options('type'));
 
-        $routes = App::routes($router)->getTrace();
+        $routes = Http::routes($router)->getTrace();
 
         echo str_pad('METHOD', 10, ' '), ' | ', str_pad('URI', 50, ' '), ' | ', str_pad('GROUP', 6, ' '), PHP_EOL,
         str_pad('', 140, '-'), PHP_EOL;

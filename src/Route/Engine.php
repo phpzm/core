@@ -47,7 +47,7 @@ class Engine
     /**
      * @var bool
      */
-    protected $labels = false;
+    protected $labels;
 
     /**
      * @var string
@@ -61,12 +61,13 @@ class Engine
 
     /**
      * Engine constructor.
-     * @param $labels
-     * @param $contentType
-     * @param $headers
+     * @param bool $labels
+     * @param string|null $contentType
+     * @param array|null $headers
      */
-    public function __construct($labels = false, $contentType = null, $headers = null)
+    public function __construct(bool $labels = false, string $contentType = null, array $headers = null)
     {
+        $this->labels = $labels;
         $this->type = of($contentType, Response::CONTENT_TYPE_PLAIN);
         $this->headers = $headers;
     }
@@ -347,7 +348,7 @@ class Engine
     {
         $groups = [];
         foreach ($this->routes as $method => $paths) {
-            foreach ($paths as $path => $route) {
+            foreach ($paths as $route) {
                 $trace[] = [
                     'method' => $method,
                     'uri' => $route['uri'],

@@ -1,5 +1,50 @@
 <?php
 
+if (!function_exists('server')) {
+    /**
+     * @param string $index
+     * @return mixed
+     */
+    function server(string $index)
+    {
+        return filter(INPUT_SERVER, $index);
+    }
+}
+
+if (!function_exists('post')) {
+    /**
+     * @param string $index
+     * @return mixed
+     */
+    function post(string $index)
+    {
+        return filter(INPUT_POST, $index);
+    }
+}
+
+if (!function_exists('get')) {
+    /**
+     * @param string $index
+     * @return mixed
+     */
+    function get(string $index)
+    {
+        return filter(INPUT_GET, $index);
+    }
+}
+
+if (!function_exists('filter')) {
+    /**
+     * @param int $source
+     * @param string $index
+     * @return mixed
+     */
+    function filter(int $source, string $index)
+    {
+        return filter_input($source, $index);
+    }
+}
+
 if (!function_exists('env')) {
     /**
      * @param string $property
@@ -74,34 +119,47 @@ if (!function_exists('out')) {
      * @param bool $print (true)
      * @param string $type (null)
      * @return string
+     *
+     * @SuppressWarnings("CyclomaticComplexity")
      */
     function out($value, $print = true, $type = null)
     {
-        $type = of($type, gettype($value));
-        switch ($type) {
-            case TYPE_BOOLEAN:
-                $value = $value ? 'true' : 'false';
+        $out = '';
+        switch (of($type, gettype($value))) {
+            case TYPE_BOOLEAN: {
+                $out = $value ? 'true' : 'false';
                 break;
+            }
             case TYPE_INTEGER:
             case TYPE_FLOAT:
-            case TYPE_STRING:
-                $value = trim($value);
+            case TYPE_STRING: {
+                $out = trim($value);
                 break;
+            }
             case TYPE_ARRAY:
             case TYPE_OBJECT:
-                $value = json_encode($value);
-                break;
-            case TYPE_RESOURCE:
-                $value = serialize($value);
-                break;
-            case TYPE_NULL:
-            case TYPE_UNKNOWN_TYPE:
-                $value = '';
+            case TYPE_RESOURCE: {
+                $out = json_encode($value);
+            }
         }
+        // case TYPE_NULL:
+        // case TYPE_UNKNOWN_TYPE:
         if ($print) {
-            print $value;
+            print $out;
         }
-        return $value;
+        return $out;
+    }
+}
+
+if (!function_exists('iif')) {
+    /**
+     * @param mixed $value
+     * @param mixed $default (false)
+     * @return mixed
+     */
+    function iif($value, $default = false)
+    {
+        return !$value ? $default : $value;
     }
 }
 
@@ -120,7 +178,7 @@ if (!function_exists('of')) {
 if (!function_exists('off')) {
     /**
      * @param mixed $value
-     * @param mixed $property (null)
+     * @param string|int $property (null)
      * @param mixed $default (null)
      *
      * @return mixed
@@ -133,11 +191,13 @@ if (!function_exists('off')) {
         if (!$value) {
             return $default;
         }
-
         if (is_array($value)) {
-            return isset($value[$property]) ? $value[$property] : $default;
-        } elseif (is_object($value)) {
-            return isset($value->$property) ? $value->$property : $default;
+            return search($value, $property, $default);
+        }
+        /** @noinspection PhpVariableVariableInspection */
+        if ($value && is_object($value) && isset($value->$property)) {
+            /** @noinspection PhpVariableVariableInspection */
+            return  $value->$property;
         }
         return $default;
     }
@@ -145,7 +205,7 @@ if (!function_exists('off')) {
 
 if (!function_exists('stop')) {
     /**
-     * @die
+     * @SuppressWarnings("ExitExpression")
      */
     function stop()
     {
@@ -160,6 +220,8 @@ if (!function_exists('stop')) {
 
 if (!function_exists('config')) {
     /**
+     * @SuppressWarnings(PHPMD)
+     *
      * @param string $name
      * @return mixed
      */
@@ -243,18 +305,19 @@ if (!function_exists('throw_format')) {
 
 if (!function_exists('search')) {
     /**
-     * @param mixed $context
+     * @param array $context
      * @param array|string $path
+     * @param mixed $default (null)
      * @return mixed|null
      */
-    function search($context, $path)
+    function search(array $context, $path, $default = null)
     {
         if (!is_array($path)) {
             $path = explode('.', $path);
         }
         foreach ($path as $piece) {
             if (!is_array($context) || !array_key_exists($piece, $context)) {
-                return null;
+                return $default;
             }
             $context = $context[$piece];
         }

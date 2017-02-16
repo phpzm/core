@@ -28,7 +28,7 @@ class SQLDataError extends PersistenceError
                     break;
                 }
                 default:
-                    return $details;
+                    $this->errors[] = $detail;
             }
         }
         return $this->errors;

@@ -57,14 +57,16 @@ abstract class SQLDriver extends SQLConnection implements Driver
     final public function create(array $clausules, array $values)
     {
         $sql = $this->getInsert($clausules);
-        $this->addLog($sql, $values, off($clausules, 'log', false));
+        $parameters = array_values($values);
+
+        $this->addLog($sql, $parameters, off($clausules, 'log', false));
         $statement = $this->statement($sql);
 
-        if ($statement && $statement->execute(array_values($values))) {
+        if ($statement && $statement->execute($parameters)) {
             return $this->connection()->lastInsertId();
         }
 
-        throw new SQLDataError($sql, [$statement->errorInfo()]);
+        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -76,14 +78,16 @@ abstract class SQLDriver extends SQLConnection implements Driver
     final public function read(array $clausules, array $values = [])
     {
         $sql = $this->getSelect($clausules);
-        $this->addLog($sql, $values, off($clausules, 'log', false));
+        $parameters = array_values($values);
+
+        $this->addLog($sql, $parameters, off($clausules, 'log', false));
         $statement = $this->statement($sql);
 
-        if ($statement && $statement->execute(array_values($values))) {
+        if ($statement && $statement->execute($parameters)) {
             return $statement->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        throw new SQLDataError($sql, [$statement->errorInfo()]);
+        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -106,7 +110,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
             return $statement->rowCount();
         }
 
-        throw new SQLDataError($sql, [$statement->errorInfo()]);
+        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -118,15 +122,17 @@ abstract class SQLDriver extends SQLConnection implements Driver
     final public function destroy(array $clausules, array $values)
     {
         $sql = $this->getDelete($clausules);
+        $parameters = array_values($values);
+
         $this->addLog($sql, $values, off($clausules, 'log', false));
 
         $statement = $this->statement($sql);
 
-        if ($statement && $statement->execute(array_values($values))) {
+        if ($statement && $statement->execute($parameters)) {
             return $statement->rowCount();
         }
 
-        throw new SQLDataError($sql, [$statement->errorInfo()]);
+        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -135,13 +141,10 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getInsert(array $clausules): string
     {
-        $source = off($clausules, 'source', '<source>');
-        $fields = off($clausules, 'fields', '<fields>');
+        $source = off($clausules, 'source', '<< source >>');
+        $fields = off($clausules, 'fields', '<< fields >>');
 
-        $inserts = [];
-        foreach ($fields as $key => $field) {
-            $inserts[] = '?';
-        }
+        $inserts = array_slice(explode(',', str_repeat(',?', count($fields))), 1);
 
         $command = [];
         $command[] = 'INSERT INTO';
@@ -159,8 +162,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getSelect(array $clausules): string
     {
-        $table = off($clausules, 'source', '<source>');
-        $columns = off($clausules, 'fields', '<fields>');
+        $table = off($clausules, 'source', '<< source >>');
+        $columns = off($clausules, 'fields', '<< fields >>');
         $join = off($clausules, 'relation');
 
         $command = [];
@@ -205,9 +208,9 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getUpdate(array $clausules): string
     {
-        $table = off($clausules, 'source', '<source>');
+        $table = off($clausules, 'source', '<< source >>');
         $join = off($clausules, 'relation');
-        $columns = off($clausules, 'fields', '<fields>');
+        $columns = off($clausules, 'fields', '<< fields >>');
 
         $sets = $columns;
         if (is_array($columns)) {
@@ -242,7 +245,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getDelete(array $clausules): string
     {
-        $table = off($clausules, 'source', '<source>');
+        $table = off($clausules, 'source', '<< source >>');
         $join = off($clausules, 'relation');
 
         $command = [];

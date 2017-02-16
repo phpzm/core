@@ -11,11 +11,16 @@ use Simples\Core\Error\RunTimeError;
 class ResourceError extends RunTimeError
 {
     /**
-     * ValidationError constructor.
+     * @var int
+     */
+    protected $status = 410;
+
+    /**
+     * ResourceError constructor.
      * @param array $details
      */
     public function __construct(array $details = [])
     {
-        parent::__construct('', $details);
+        parent::__construct('Resource error', $details);
     }
 }

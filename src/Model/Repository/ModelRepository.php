@@ -29,11 +29,6 @@ class ModelRepository
     private $validator;
 
     /**
-     * @var array
-     */
-    private $fields;
-
-    /**
      * ApiRepository constructor.
      * @param AbstractModel $model
      * @param Validator|null $validator
@@ -245,7 +240,7 @@ class ModelRepository
     {
         $validation = new Validation();
         foreach ($fields as $key => $field) {
-            $validator = $this->parseValidator($field);
+            $validator = $this->parseValidator($field, $record);
             if ($validator) {
                 $validation->add($key, $record->get($key), $validator);
             }
@@ -255,9 +250,10 @@ class ModelRepository
 
     /**
      * @param Field $field
+     * @param Record $record
      * @return array|null
      */
-    private function parseValidator(Field $field)
+    private function parseValidator(Field $field, Record $record)
     {
         $rules = null;
         $validators = $field->getValidators();
@@ -272,9 +268,14 @@ class ModelRepository
                 }
                 switch ($validator) {
                     case 'unique':
+                        $primaryKey = $this->model->getPrimaryKey();
                         $options = array_merge($options, [
                             'class' => get_class($this),
-                            'field' => $field->getName()
+                            'field' => $field->getName(),
+                            'primaryKey' => [
+                                'name' => $primaryKey,
+                                'value' => $record->get($primaryKey)
+                            ]
                         ]);
                         break;
                 }

@@ -36,7 +36,6 @@ class Validator
 
     /**
      * @param $value
-     * @param array $options
      * @return bool
      */
     public function isRequired($value): bool

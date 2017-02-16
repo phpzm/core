@@ -5,6 +5,7 @@ namespace Simples\Core\Http;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
+use Simples\Core\Kernel\Http;
 
 /**
  * Class Request
@@ -40,7 +41,17 @@ class Request implements RequestInterface
     /**
      * @var array
      */
-    private $data = [];
+    private $body = [];
+
+    /**
+     * @var string
+     */
+    private $protocolVersion = '';
+
+    /**
+     * @var string
+     */
+    private $target = '';
 
     /**
      * Request constructor.
@@ -81,9 +92,9 @@ class Request implements RequestInterface
      */
     private function getMethodFromServer()
     {
-        $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
-        $method = isset($_GET["_method"]) ? $_GET["_method"] : $method;
-        $method = isset($_POST["_method"]) ? $_POST["_method"] : $method;
+        $method = server('REQUEST_METHOD');
+        $method = iif(get('_method'), $method);
+        $method = iif(post('_method'), $method);
         $this->method = strtolower($method);
 
         return $this;
@@ -91,6 +102,7 @@ class Request implements RequestInterface
 
     /**
      * @return $this
+     * @SuppressWarnings("Superglobals")
      */
     private function getHeadersFromServer()
     {
@@ -107,8 +119,8 @@ class Request implements RequestInterface
      */
     private function getUrlFromServer()
     {
-        $self = isset($_SERVER['PHP_SELF']) ? str_replace('index.php/', '', $_SERVER['PHP_SELF']) : '';
-        $uri = isset($_SERVER['REQUEST_URI']) ? explode('?', $_SERVER['REQUEST_URI'])[0] : '';
+        $self = str_replace('index.php/', '', server('PHP_SELF'));
+        $uri = server('REQUEST_URI') ? explode('?', server('REQUEST_URI'))[0] : '';
         $start = '';
 
         if ($self !== $uri) {
@@ -121,17 +133,18 @@ class Request implements RequestInterface
         }
         $this->uri = substr($uri, -1) !== '/' ? $uri . '/' : $uri;
 
-        $this->url = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] . $start : $this->url;
+        $this->url = server('HTTP_HOST') ? server('HTTP_HOST') . $start : $this->url;
 
         return $this;
     }
 
     /**
      * @return $this
+     * @SuppressWarnings("Superglobals")
      */
     private function getDataFromServer()
     {
-        $_PAYLOAD = (array) json_decode(file_get_contents("php://input"));
+        $_PAYLOAD = (array)json_decode(file_get_contents("php://input"));
         if (!$_PAYLOAD) {
             $_PAYLOAD = [];
         }
@@ -156,7 +169,7 @@ class Request implements RequestInterface
         if (isset($data['_method'])) {
             unset($data['_method']);
         }
-        $this->data[$source] = $data;
+        $this->body[$source] = $data;
     }
 
     /**
@@ -189,7 +202,7 @@ class Request implements RequestInterface
     public function getInputs()
     {
         $inputs = [];
-        foreach ($this->data as $datum) {
+        foreach ($this->body as $datum) {
             foreach ($datum as $key => $value) {
                 $inputs[$key] = new Input($value);
             }
@@ -219,7 +232,7 @@ class Request implements RequestInterface
      */
     public function get($name)
     {
-        return off($this->data['GET'], $name);
+        return off($this->body['GET'], $name);
     }
 
     /**
@@ -228,7 +241,7 @@ class Request implements RequestInterface
      */
     public function post($name)
     {
-        return off($this->data['POST'], $name);
+        return off($this->body['POST'], $name);
     }
 
     /**
@@ -240,7 +253,7 @@ class Request implements RequestInterface
      */
     public function getProtocolVersion()
     {
-        // TODO: Implement getProtocolVersion() method.
+        return $this->protocolVersion;
     }
 
     /**
@@ -258,7 +271,9 @@ class Request implements RequestInterface
      */
     public function withProtocolVersion($version)
     {
-        // TODO: Implement withProtocolVersion() method.
+        $copy = clone $this;
+        $copy->protocolVersion = $version;
+        return $copy;
     }
 
     /**
@@ -288,7 +303,7 @@ class Request implements RequestInterface
      */
     public function getHeaders()
     {
-        $this->headers;
+        return $this->headers;
     }
 
     /**
@@ -344,7 +359,7 @@ class Request implements RequestInterface
      */
     public function getHeaderLine($name)
     {
-        // TODO: Implement getHeaderLine() method.
+        return $this->getHeader($name);
     }
 
     /**
@@ -364,7 +379,12 @@ class Request implements RequestInterface
      */
     public function withHeader($name, $value)
     {
-        // TODO: Implement withHeader() method.
+        if (!$this->hasHeader($name)) {
+            throw new \InvalidArgumentException("Invalid header name `{$name}`");
+        }
+        $copy = clone $this;
+        $copy->headers[$name] = $value;
+        return $copy;
     }
 
     /**
@@ -385,7 +405,7 @@ class Request implements RequestInterface
      */
     public function withAddedHeader($name, $value)
     {
-        // TODO: Implement withAddedHeader() method.
+        return $this->withHeader($name, $value);
     }
 
     /**
@@ -402,17 +422,19 @@ class Request implements RequestInterface
      */
     public function withoutHeader($name)
     {
-        // TODO: Implement withoutHeader() method.
+        $copy = clone $this;
+        unset($copy->headers[$name]);
+        return $copy;
     }
 
     /**
      * Gets the body of the message.
      *
-     * @return StreamInterface Returns the body as a stream.
+     * @return array StreamInterface Returns the body as a stream.
      */
     public function getBody()
     {
-        // TODO: Implement getBody() method.
+        return $this->body;
     }
 
     /**
@@ -430,7 +452,9 @@ class Request implements RequestInterface
      */
     public function withBody(StreamInterface $body)
     {
-        // TODO: Implement withBody() method.
+        $copy = clone $this;
+        $copy->body = $body;
+        return $copy;
     }
 
     /**
@@ -451,7 +475,7 @@ class Request implements RequestInterface
      */
     public function getRequestTarget()
     {
-        // TODO: Implement getRequestTarget() method.
+        return $this->target;
     }
 
     /**
@@ -473,7 +497,9 @@ class Request implements RequestInterface
      */
     public function withRequestTarget($requestTarget)
     {
-        // TODO: Implement withRequestTarget() method.
+        $copy = clone $this;
+        $copy->target = $requestTarget;
+        return $copy;
     }
 
     /**
@@ -493,7 +519,12 @@ class Request implements RequestInterface
      */
     public function withMethod($method)
     {
-        // TODO: Implement withMethod() method.
+        if (!in_array($method, Http::METHODS)) {
+
+        }
+        $copy = clone $this;
+        $copy->method = $method;
+        return $copy;
     }
 
     /**
@@ -528,6 +559,11 @@ class Request implements RequestInterface
      */
     public function withUri(UriInterface $uri, $preserveHost = false)
     {
-        // TODO: Implement withUri() method.
+        $copy = clone $this;
+        if ($preserveHost) {
+            // TODO: management of uri
+        }
+        $copy->uri = $uri;
+        return $copy;
     }
 }

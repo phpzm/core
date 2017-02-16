@@ -2,7 +2,6 @@
 
 namespace Simples\Core\Helper;
 
-use Simples\Core\Route\Wrapper;
 use Error;
 
 /**

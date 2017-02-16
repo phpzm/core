@@ -13,6 +13,8 @@ use Throwable;
 /**
  * Class HandlerHttp
  * @package Simples\Core\Kernel
+ *
+ * @SuppressWarnings("camelCasePropertyName")
  */
 class HttpHandler extends Response
 {
@@ -205,7 +207,7 @@ class HttpHandler extends Response
     private function call($callback, $parameters)
     {
         ob_start();
-        // TODO: multi catch in line since 7.1
+
         try {
             $result = call_user_func_array($callback, $parameters);
         } catch (Throwable $throw) {
@@ -225,7 +227,7 @@ class HttpHandler extends Response
      * @param $content
      * @return Response
      */
-    private function parse($content) : Response
+    private function parse($content): Response
     {
         // TODO: organize usage of status codes
         $output = [];
@@ -251,9 +253,20 @@ class HttpHandler extends Response
         ];
         if ($content instanceof Throwable) {
             $status = 500;
+            $details = [];
+            $context = [];
+            if ($content instanceof RunTimeError) {
+                $status = $content->getStatus();
+                $details = $content->getDetails();
+                $context = $content->getContext();
+            }
             if (env('TEST_MODE')) {
-                $meta['fail'] = get_class($content);
-                $meta['trace'] = $content->getTrace();
+                $meta['error'] = [
+                    'fail' => get_class($content),
+                    'details' => $details,
+                    'context' => $context,
+                    'trace' => App::beautifulTrace($content->getTrace())
+                ];
             }
             $content = throw_format($content);
         }

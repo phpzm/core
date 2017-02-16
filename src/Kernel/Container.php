@@ -3,6 +3,10 @@
 namespace Simples\Core\Kernel;
 
 use Simples\Core\Error\RunTimeError;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionFunction;
+use ReflectionParameter;
 
 /**
  * Class Container
@@ -108,7 +112,7 @@ class Container
     protected function makeInstance($className)
     {
         // class reflection
-        $reflection = new \ReflectionClass($className);
+        $reflection = new ReflectionClass($className);
         // get the class constructor
         $constructor = $reflection->getConstructor();
 
@@ -133,7 +137,7 @@ class Container
     public function resolveMethodParameters($instance, $method, $parameters, $labels = false)
     {
         // method reflection
-        $reflectionMethod = new \ReflectionMethod($instance, $method);
+        $reflectionMethod = new ReflectionMethod($instance, $method);
 
         // resolved array of parameters
         return $this->resolveParameters($reflectionMethod->getParameters(), $parameters, $labels);
@@ -148,7 +152,7 @@ class Container
     public function resolveFunctionParameters($callable, $parameters, $labels = false)
     {
         // method reflection
-        $reflectionFunction = new \ReflectionFunction($callable);
+        $reflectionFunction = new ReflectionFunction($callable);
 
         // resolved array of parameters
         return $this->resolveParameters($reflectionFunction->getParameters(), $parameters, $labels);
@@ -164,29 +168,54 @@ class Container
     {
         $parametersToPass = [];
 
-        /** @var \ReflectionParameter $reflectionParameter */
+        /** @var ReflectionParameter $reflectionParameter */
         foreach ($parameters as $reflectionParameter) {
-            $parameterClassName = isset($reflectionParameter->getClass()->name) ? $reflectionParameter->getClass()->name : '';
 
-            if ($parameterClassName) {
+            /** @noinspection PhpAssignmentInConditionInspection */
+            if ($parameterClassName = $this->extractClassName($reflectionParameter)) {
                 $parametersToPass[] = self::make($parameterClassName);
-            } elseif (isset($data[$reflectionParameter->getName()]) || count($data)) {
-                $parameter = null;
-                if ($labels && isset($data[$reflectionParameter->getName()])) {
-                    $parameter = $data[$reflectionParameter->getName()];
-                    unset($data[$reflectionParameter->getName()]);
-                }
-                if (!$parameter && isset($data[0])) {
-                    $parameter = $data[0];
-                    array_shift($data);
-                    reset($data);
-                }
-                $parametersToPass[] = $parameter;
-            } else {
-                $parametersToPass[] = null;
+                continue;
             }
+            if (isset($data[$reflectionParameter->getName()]) || count($data)) {
+                $parametersToPass[] = $this->parseParameter($reflectionParameter, $data, $labels);
+                continue;
+            }
+            $parametersToPass[] = null;
         }
 
         return $parametersToPass;
+    }
+
+    /**
+     * @param ReflectionParameter $reflectionParameter
+     * @param $data
+     * @param $labels
+     * @return null
+     */
+    private function parseParameter(ReflectionParameter $reflectionParameter, $data, $labels)
+    {
+        $parameter = null;
+        if ($labels && isset($data[$reflectionParameter->getName()])) {
+            $parameter = $data[$reflectionParameter->getName()];
+            unset($data[$reflectionParameter->getName()]);
+        }
+        if (!$parameter && isset($data[0])) {
+            $parameter = $data[0];
+            array_shift($data);
+            reset($data);
+        }
+        return $parameter;
+    }
+
+    /**
+     * @param ReflectionParameter $reflectionParameter
+     * @return string
+     */
+    private function extractClassName(ReflectionParameter $reflectionParameter)
+    {
+        if (isset($reflectionParameter->getClass()->name)) {
+            return $reflectionParameter->getClass()->name;
+        }
+        return '';
     }
 }

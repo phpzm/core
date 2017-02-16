@@ -2,10 +2,9 @@
 
 namespace Simples\Core\Http;
 
+use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
-use \InvalidArgumentException;
-use \RuntimeException;
-use \Exception;
+use RuntimeException;
 
 /**
  * Class Stream

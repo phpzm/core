@@ -3,7 +3,6 @@
 namespace Simples\Core\Route;
 
 use Simples\Core\Kernel\App;
-use Stringy\StaticStringy as stringy;
 
 /**
  * Class Router
@@ -19,12 +18,11 @@ class Router extends Engine
 {
     /**
      * Router constructor.
-     * @param $separator
      * @param $labels
      * @param $contentType
      * @param $headers
      */
-    public function __construct($separator, $labels = false, $contentType = null, $headers = null)
+    public function __construct($labels = false, $contentType = null, $headers = null)
     {
         parent::__construct($labels, $contentType, $headers);
     }
@@ -153,36 +151,6 @@ class Router extends Engine
             $item = (object)$item;
             $this->on($item->method, "{$uri}/{$item->uri}", "{$class}{$separator}{$item->callable}", $options);
         }
-
-        return $this;
-    }
-
-    /**
-     * @param string $method
-     * @param string $path
-     * @param string $namespace
-     * @param array $options
-     * @return $this
-     */
-    public function mirror($method, $path, $namespace, $options = [])
-    {
-        $path = substr($path, -1) === '/' ? $path . '(.*)' : $path . '/(.*)';
-
-        $this->on($method, $path, function ($path) use ($namespace, $options) {
-            $fragments = explode('/', $path);
-
-            $method = stringy::camelize(array_pop($fragments));
-
-            $peaces = array_map(function ($peace) {
-                return stringy::upperCamelize($peace);
-            }, $fragments);
-
-            $class = implode('\\', $peaces);
-
-            $use = (($namespace[0] !== '\\') ? ('\\' . $namespace) : ($namespace)) . '\\' . $class;
-
-            //return $this->resolve("{$use}@{$method}", [$this->data], $options);
-        });
 
         return $this;
     }

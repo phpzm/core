@@ -200,6 +200,7 @@ class Response extends ResponseStream
             if (gettype($contents) === TYPE_OBJECT) {
                 if (isset($contents->meta)) {
                     if (gettype($contents->meta) === TYPE_OBJECT) {
+                        /** @noinspection PhpVariableVariableInspection */
                         $contents->meta->$property = $value;
                     }
                     if (gettype($contents->meta) === TYPE_ARRAY) {

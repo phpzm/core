@@ -3,7 +3,6 @@
 namespace Simples\Core\Persistence;
 
 use Simples\Core\Route\Wrapper;
-use \Throwable;
 
 /**
  * Class Connection

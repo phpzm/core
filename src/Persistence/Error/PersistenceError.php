@@ -10,4 +10,18 @@ use Simples\Core\Error\RunTimeError;
  */
 class PersistenceError extends RunTimeError
 {
+    /**
+     * @var int
+     */
+    protected $status = 412;
+
+    /**
+     * PersistenceError constructor.
+     * @param array $details
+     * @param array $context
+     */
+    public function __construct(array $details = [], array $context = [])
+    {
+        parent::__construct('Persistence error', $details, $context);
+    }
 }

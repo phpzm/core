@@ -75,38 +75,6 @@ class Date extends DateTime
     }
 
     /**
-     * @param array $holidays Array with dates formatted with `d/m`
-     * @param int $forward Minimum of days to add
-     * @param array $weekend Days of week what will be like holidays
-     * @return string
-     */
-    public function next(array $holidays = [], int $forward = 0, $weekend = ['0', '6'])
-    {
-        $search = true;
-        $dated = 0;
-
-        do {
-            $week = $this->format('w');
-            $day = $this->format('d/m');
-
-            $is_weekend = in_array($week, $weekend);
-            $is_holiday = in_array($day, $holidays);
-            $is_dated = $dated >= $forward;
-
-            if (!$is_weekend && !$is_holiday && $is_dated) {
-                return $this->toString();
-            }
-
-            $this->addDays(1);
-            if (!$is_weekend && !$is_holiday) {
-                $dated++;
-            }
-        } while ($search);
-
-        return $this->toString();
-    }
-
-    /**
      * @param $date
      * @return int
      */
@@ -142,7 +110,7 @@ class Date extends DateTime
     /**
      * @return string
      */
-    public function toString()
+    protected function toString()
     {
         return $this->format(static::$format);
     }

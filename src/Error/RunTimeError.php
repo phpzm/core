@@ -3,6 +3,7 @@
 namespace Simples\Core\Error;
 
 use Exception;
+use Simples\Core\Kernel\App;
 
 /**
  * Class RunTimeError
@@ -11,20 +12,32 @@ use Exception;
 class RunTimeError extends Exception
 {
     /**
+     * @var int
+     */
+    protected $status = 500;
+
+    /**
      * @var array
      */
     private $details;
 
     /**
+     * @var array
+     */
+    private $context;
+
+    /**
      * RunTimeError constructor.
      * @param string $message
      * @param array $details
+     * @param array $context
      */
-    public function __construct($message = '', array $details = [])
+    public function __construct($message = '', array $details = [], array $context = [])
     {
         parent::__construct($message, 0, null);
 
         $this->details = $this->parse($details);
+        $this->context = $context;
     }
 
     /**
@@ -33,6 +46,22 @@ class RunTimeError extends Exception
     public function getDetails(): array
     {
         return $this->details;
+    }
+
+    /**
+     * @return int
+     */
+    public function getStatus(): int
+    {
+        return $this->status;
+    }
+
+    /**
+     * @return array
+     */
+    public function getContext(): array
+    {
+        return $this->context;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Simples\Core\Data\Error;
 
 use Simples\Core\Error\RunTimeError;
+use Simples\Core\Helper\Json;
 
 /**
  * Class ValidationError
@@ -11,12 +12,17 @@ use Simples\Core\Error\RunTimeError;
 class ValidationError extends RunTimeError
 {
     /**
+     * @var int
+     */
+    protected $status = 400;
+
+    /**
      * ValidationError constructor.
      * @param array $details
      * @param string $message
      */
     public function __construct(array $details = [], string $message = '')
     {
-        parent::__construct($message, $details);
+        parent::__construct(iif($message, 'Validation error'), $details);
     }
 }
