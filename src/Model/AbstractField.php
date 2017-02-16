@@ -55,6 +55,7 @@ abstract class AbstractField
     protected $read;
     protected $update;
     protected $recover;
+    protected $readonly;
 
     /**
      * Options used to configure the field
@@ -177,6 +178,14 @@ abstract class AbstractField
     public function isRecover(): bool
     {
         return $this->recover;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isReadonly(): bool
+    {
+        return $this->readonly;
     }
 
     /**

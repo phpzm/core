@@ -52,7 +52,7 @@ class Field extends AbstractField
 
         $default = [
             'primaryKey' => false, 'label' => '', 'validators' => [],
-            'create' => true, 'read' => true, 'update' => true, 'recover' => true,
+            'create' => true, 'read' => true, 'update' => true, 'recover' => true, 'readonly' => false,
             'enum' => [], 'referenced' => [], 'references' => (object)[], 'default' => ''
         ];
         $options = array_merge($default, $options);
@@ -236,6 +236,7 @@ class Field extends AbstractField
      */
     public function readonly()
     {
+        $this->readonly = true;
         return $this->create(false)->read(false)->update(false);
     }
 
