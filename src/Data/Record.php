@@ -281,6 +281,18 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * @param array $public
+     * @param array $private
+     * @return Record
+     */
+    public function import(array $public, array $private = []): Record
+    {
+        $this->public = array_merge($public, $this->public);
+        $this->private = array_merge($private, $this->private);
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function keys(): array

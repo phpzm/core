@@ -172,7 +172,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $command[] = 'FROM';
         $command[] = $table;
         if ($join) {
-            $command[] = $this->parseJoin($table, $join);
+            $command[] = $this->parseJoin($join);
         }
 
         $modifiers = [
@@ -223,7 +223,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $command[] = 'UPDATE';
         $command[] = $table;
         if ($join) {
-            $command[] = $this->parseJoin($table, $join);
+            $command[] = $this->parseJoin($join);
         }
         $command[] = 'SET';
         $command[] = $sets;
@@ -252,7 +252,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
         $command[] = 'DELETE FROM';
         $command[] = $table;
         if ($join) {
-            $command[] = $this->parseJoin($table, $join);
+            $command[] = $this->parseJoin($join);
         }
 
         $modifiers = [
@@ -347,20 +347,22 @@ abstract class SQLDriver extends SQLConnection implements Driver
     }
 
     /**
-     * @param string $table
      * @param array $resources
      * @return string
      */
-    protected function parseJoin(string $table, array $resources): string
+    protected function parseJoin(array $resources): string
     {
         $join = [];
         /** @var Fusion $resource */
         foreach ($resources as $resource) {
             $type = $resource->isExclusive() ? 'INNER' : 'LEFT';
             $collection = $resource->getCollection();
-            $left = "`{$table}`.`{$resource->getReferenced()}`";
-            $alias = '__' . strtoupper($resource->getReferenced()) . '__';
-            $right = "`{$alias}`.`{$resource->getReferences()}`";
+            $left = "`{$resource->getSource()}`.`{$resource->getReferences()}`";
+            $alias = $resource->getCollection();
+            if ($resource->isRename()) {
+                $alias = '__' . strtoupper($resource->getReferences()) . '__';
+            }
+            $right = "`{$alias}`.`{$resource->getReferenced()}`";
             $join[] = "{$type} JOIN `{$collection}` AS {$alias} ON ({$left} = {$right})";
         }
 

@@ -40,6 +40,11 @@ abstract class AbstractModel extends Engine
     protected $fields = [];
 
     /**
+     * @var array
+     */
+    private $maps = [];
+
+    /**
      * Key used to relationships and to represent the primary key database
      * @var string
      */
@@ -155,19 +160,26 @@ abstract class AbstractModel extends Engine
      * Configure the instance with reference properties
      * @param string $collection
      * @param string $primaryKey
-     * @param string $hashKey
+     * @param string $relationship
      * @return $this
+     * @throws RunTimeError
      */
-    protected function instance(string $collection, string $primaryKey, string $hashKey = '')
+    protected function instance(string $collection, string $primaryKey, string $relationship = '')
     {
         if ($this->collection) {
-            $this->parents[$this->collection] = $this->primaryKey;
+            $this->parents[$relationship] =  clone $this;
+            $this->add($relationship)->integer()->setCollection($collection)->update(false);
+
+            if (!$relationship) {
+                throw new RunTimeError("When extending one model you need give a name to relationship");
+            }
         }
         $this->collection = $collection;
         $this->primaryKey = $primaryKey;
-        $this->hashKey = $hashKey ? $hashKey : $this->hashKey;
 
-        $this->add($this->hashKey, 'string')->optional(['unique'])->update(false);
+        $this->add($this->hashKey)->hashKey();
+        $this->add($primaryKey)->primaryKey();
+
         return $this;
     }
 
@@ -179,13 +191,6 @@ abstract class AbstractModel extends Engine
      */
     protected function add(string $name, string $type = '', array $options = []): Field
     {
-        if ($this->primaryKey === $name) {
-            $options['primaryKey'] = true;
-            $options['recover'] = false;
-        }
-        if (off($options, 'primaryKey')) {
-            $this->primaryKey = $name;
-        }
         $field = new Field($this->collection, $name, $type, $options);
         $this->fields[$name] = $field;
 
@@ -238,10 +243,22 @@ abstract class AbstractModel extends Engine
     }
 
     /**
+     * @param string $source
+     * @param string $target
+     */
+    public function map(string $source, string $target)
+    {
+        $this->maps[$source] = $target;
+    }
+
+    /**
+     * @SuppressWarnings("BooleanArgumentFlag");
+     *
      * @param string $action
+     * @param bool $strict
      * @return array
      */
-    final public function getFields(string $action = ''): array
+    final public function getFields(string $action = '', bool $strict = true): array
     {
         $method = '';
         switch ($action) {
@@ -262,7 +279,22 @@ abstract class AbstractModel extends Engine
                 break;
             }
         }
-        return array_filter($this->fields, function ($field) use ($method) {
+
+        return $this->filterFields($this->getCollection(), $method, $strict);
+    }
+
+    /**
+     * @param string $collection
+     * @param string $method
+     * @param bool $strict
+     * @return array
+     */
+    private function filterFields(string $collection, string $method, bool $strict)
+    {
+        return array_filter($this->fields, function ($field) use ($collection, $method, $strict) {
+            if ($strict && $field->getCollection() !== $collection) {
+                return null;
+            }
             if (!$method) {
                 return $field;
             }
@@ -282,6 +314,9 @@ abstract class AbstractModel extends Engine
         $action = ucfirst($action);
         if (method_exists($this, "configureFields{$action}")) {
             call_user_func_array([$this, "configureFields{$action}"], [$record]);
+        }
+        foreach ($this->maps as $source => $target) {
+            $record->set($target, $record->get($source));
         }
     }
 
@@ -336,6 +371,14 @@ abstract class AbstractModel extends Engine
     final public function hashKey(): string
     {
         return uniqid();
+    }
+
+    /**
+     * @return array
+     */
+    final public function getParents(): array
+    {
+        return $this->parents;
     }
 
     /**

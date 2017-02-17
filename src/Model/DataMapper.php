@@ -11,6 +11,7 @@ use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Filter;
 use Simples\Core\Persistence\Fusion;
+use Simples\Core\Route\Wrapper;
 use Simples\Core\Security\Auth;
 
 /**
@@ -28,6 +29,13 @@ class DataMapper extends AbstractModel
     final public function create($record = null): Record
     {
         $record = Record::parse($record);
+
+        foreach ($this->getParents() as $relationship => $parent) {
+            /** @var DataMapper $parent */
+            $create = $parent->create($record);
+            $record->set($relationship, $create->get($parent->getPrimaryKey()));
+            $record->import($create->all());
+        }
 
         $action = Action::CREATE;
 
@@ -94,7 +102,7 @@ class DataMapper extends AbstractModel
         $array = $this
             ->source($this->getCollection())
             ->relation($this->parseReadRelations())
-            ->fields($this->getActionFields($action))
+            ->fields($this->getActionFields($action, false))
             ->filter($where)// TODO: needs review
             ->recover($filters);
 
@@ -116,6 +124,11 @@ class DataMapper extends AbstractModel
     final public function update($record = null): Record
     {
         $record = Record::parse($record);
+
+        foreach ($this->getParents() as $parent) {
+            /** @var DataMapper $parent */
+            $record->import($parent->update($record)->all());
+        }
 
         $action = Action::UPDATE;
 
@@ -170,6 +183,11 @@ class DataMapper extends AbstractModel
     final public function destroy($record = null): Record
     {
         $record = Record::parse($record);
+
+        foreach ($this->getParents() as $parent) {
+            /** @var DataMapper $parent */
+            $record->import($parent->destroy($record)->all());
+        }
 
         $action = Action::DESTROY;
 
@@ -270,10 +288,13 @@ class DataMapper extends AbstractModel
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag");
+     *
      * @param string $action
+     * @param bool $strict
      * @return array|mixed
      */
-    protected function getActionFields(string $action)
+    protected function getActionFields(string $action, bool $strict = true)
     {
         if (off($this->getClausules(), 'fields')) {
             $fields = off($this->getClausules(), 'fields');
@@ -283,7 +304,7 @@ class DataMapper extends AbstractModel
             $this->fields(null);
         }
         if (!isset($fields)) {
-            $fields = $this->getFields($action);
+            $fields = $this->getFields($action, $strict);
         }
         return $fields;
     }
@@ -348,14 +369,19 @@ class DataMapper extends AbstractModel
     protected function parseReadRelations(): array
     {
         $join = [];
+        /** @var DataMapper $parent */
+        foreach ($this->getParents() as $relationship => $parent) {
+            $join[] = new Fusion(
+                $parent->getCollection(), $parent->getPrimaryKey(), $this->getCollection(), $relationship, false, false
+            );
+        }
         foreach ($this->fields as $field) {
             /** @var Field $field */
             $reference = $field->getReferences();
             if (off($reference, 'class')) {
                 /** @var DataMapper $instance */
                 $instance = Container::box()->make($reference->class);
-                $table = $instance->getCollection();
-                $join[] = new Fusion($field->getName(), $table, $reference->target);
+                $join[] = new Fusion($instance->getCollection(), $reference->referenced, $reference->collection, $field->getName());
             }
         }
         return $join;
@@ -371,7 +397,7 @@ class DataMapper extends AbstractModel
         $primaryKey = $this->getPrimaryKey();
 
         $filter = [$hashKey => $record->get($hashKey)];
-        if ($record->get($primaryKey)) {
+        if (!$record->get($hashKey)) {
             $filter = [$primaryKey => $record->get($primaryKey)];
         }
 

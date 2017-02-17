@@ -10,6 +10,53 @@
     PHP Mess Detector
   </description>
 
+  <!-- Clean Code Rules -->
+  <!--    BooleanArgumentFlag -->
+  <!--    ElseExpression -->
+  <!--    StaticAccess -->
+  <!--    Code Size Rules -->
+  <!--    CyclomaticComplexity -->
+  <!--    NPathComplexity -->
+  <!--    ExcessiveMethodLength -->
+  <!--    ExcessiveClassLength -->
+  <!--    ExcessiveParameterList -->
+  <!--    ExcessivePublicCount -->
+  <!--    TooManyFields -->
+  <!--    TooManyMethods -->
+  <!--    TooManyPublicMethods -->
+  <!--    ExcessiveClassComplexity -->
+
+  <!-- Controversial Rules -->
+  <!--    Superglobals -->
+  <!--    CamelCaseClassName -->
+  <!--    CamelCasePropertyName -->
+  <!--    CamelCaseMethodName -->
+  <!--    CamelCaseParameterName -->
+  <!--    CamelCaseVariableName -->
+
+  <!-- Design Rules -->
+  <!--    ExitExpression -->
+  <!--    EvalExpression -->
+  <!--    GotoStatement -->
+  <!--    NumberOfChildren -->
+  <!--    DepthOfInheritance -->
+  <!--    CouplingBetweenObjects -->
+  <!--    DevelopmentCodeFragment -->
+
+  <!-- Naming Rules -->
+  <!--    ShortVariable -->
+  <!--    LongVariable -->
+  <!--    ShortMethodName -->
+  <!--    ConstructorWithNameAsEnclosingClass -->
+  <!--    ConstantNamingConventions -->
+  <!--    BooleanGetMethodName -->
+
+  <!-- Unused Code Rules -->
+  <!--    UnusedPrivateField -->
+  <!--    UnusedLocalVariable -->
+  <!--    UnusedPrivateMethod -->
+  <!--    UnusedFormalParameter -->
+
   <rule ref="rulesets/cleancode.xml">
     <exclude name="StaticAccess"/>
   </rule>

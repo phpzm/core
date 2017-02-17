@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Model;
 
+use Simples\Core\Data\Record;
 use Simples\Core\Error\RunTimeError;
 
 /**
@@ -113,18 +114,19 @@ class Field extends AbstractField
      * @SuppressWarnings("BooleanArgumentFlag")
      *
      * @param string $class
-     * @param string $target
+     * @param string $referenced
      * @param bool $nullable
      * @return Field
      * @throws RunTimeError
      */
-    public function referencesTo(string $class, string $target, bool $nullable = false): Field
+    public function referencesTo(string $class, string $referenced, bool $nullable = false): Field
     {
         if (off($this->references, 'class')) {
             throw new RunTimeError("Relationship already defined to '{$this->references->class}'");
         }
         $this->references = (object)[
-            'target' => $target,
+            'collection' => $this->getCollection(),
+            'referenced' => $referenced,
             'class' => $class
         ];
         if ($nullable) {
@@ -254,5 +256,22 @@ class Field extends AbstractField
         $this->validators = ['reject' => ''];
         $this->enum = [];
         return $this;
+    }
+
+    /**
+     * @return Field
+     */
+    public function primaryKey(): Field
+    {
+        $this->primaryKey = true;
+        return $this->integer()->recover(false);
+    }
+
+    /**
+     * @return Field
+     */
+    public function hashKey(): Field
+    {
+        return $this->optional(['unique'])->update(false);
     }
 }

@@ -81,6 +81,11 @@ abstract class AbstractField
     protected $calculated;
 
     /**
+     * @var callable
+     */
+    protected $map;
+
+    /**
      * @return string
      */
     public function getCollection(): string
