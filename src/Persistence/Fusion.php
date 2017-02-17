@@ -29,6 +29,8 @@ class Fusion
     private $exclusive;
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Fusion constructor.
      * @param string $referenced
      * @param string $collection

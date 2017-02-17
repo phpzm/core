@@ -53,6 +53,8 @@ abstract class Json
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param $string
      * @param bool $assoc
      * @param int $depth

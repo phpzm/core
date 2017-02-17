@@ -71,6 +71,8 @@ class Field extends AbstractField
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string|array $rule
      * @param array|string $options ('')
      * @param bool $clear
@@ -108,6 +110,8 @@ class Field extends AbstractField
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $class
      * @param string $target
      * @param bool $nullable
@@ -162,6 +166,8 @@ class Field extends AbstractField
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param bool $force
      * @return Field
      */

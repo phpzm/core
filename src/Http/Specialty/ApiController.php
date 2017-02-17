@@ -2,10 +2,7 @@
 
 namespace Simples\Core\Http\Specialty;
 
-use Simples\Core\Data\Error\ResourceError;
 use Simples\Core\Data\Record;
-use Simples\Core\Persistence\Error\PersistenceError;
-use Simples\Core\Data\Error\ValidationError;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Response;
 use Simples\Core\Model\Field;

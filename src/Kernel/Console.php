@@ -9,21 +9,21 @@ namespace Simples\Core\Kernel;
 class Console
 {
     /**
-     * @param $argv
+     * @param array $argv
      * @return array
      */
-    public function parseParameters($argv)
+    public function parseParameters(array $argv): array
     {
         array_shift($argv);
 
         $parameters = [];
         foreach ($argv as $arg) {
             $in = explode("=", $arg);
+            $value = 0;
             if (count($in) == 2) {
-                $parameters[$in[0]] = $in[1];
-            } else {
-                $parameters[$in[0]] = 0;
+                $value = $in[1];
             }
+            $parameters[$in[0]] = $value;
         }
         return $parameters;
     }

@@ -291,6 +291,8 @@ class ModelRepository
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param bool $logging
      * @return ModelRepository
      */

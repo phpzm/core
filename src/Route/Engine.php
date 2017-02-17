@@ -2,9 +2,9 @@
 
 namespace Simples\Core\Route;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Simples\Core\Http\Response;
-use \RecursiveDirectoryIterator;
-use \RecursiveIteratorIterator;
 use Simples\Core\Kernel\App;
 use Simples\Core\Kernel\Container;
 
@@ -60,6 +60,8 @@ class Engine
     private $headers;
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Engine constructor.
      * @param bool $labels
      * @param string|null $contentType
@@ -114,12 +116,11 @@ class Engine
      */
     final public function on($methods, $uri, $callback, $options = [])
     {
+        if ($methods === '*') {
+            $methods = self::ALL;
+        }
         if (gettype($methods) === 'string') {
-            if ($methods === '*') {
-                $methods = self::ALL;
-            } else {
-                $methods = explode(',', $methods);
-            }
+            $methods = explode(',', $methods);
         }
 
         foreach ($methods as $method) {
@@ -297,12 +298,11 @@ class Engine
         foreach ($resources as $resource) {
             if (is_dir($resource->getFilename())) {
                 continue;
-            } else {
-                $pattern = '/' . preg_quote(App::options('root'), '/') . '/';
-                $file = preg_replace($pattern, '', $resource->getPathname(), 1);
-                if ($file) {
-                    $files[] = $file;
-                }
+            }
+            $pattern = '/' . preg_quote(App::options('root'), '/') . '/';
+            $file = preg_replace($pattern, '', $resource->getPathname(), 1);
+            if ($file) {
+                $files[] = $file;
             }
         }
 
@@ -358,7 +358,7 @@ class Engine
                 $group = off($route['options'], 'group');
                 if ($group) {
                     $groups[] = [
-                        'type'=> $group['type'], 'callback' => $route['callback']
+                        'type' => $group['type'], 'callback' => $route['callback']
                     ];
                 }
             }

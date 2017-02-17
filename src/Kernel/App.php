@@ -99,6 +99,7 @@ class App
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
      * Used to catch http requests and handle response to their
      *
      * @param bool $output (true) Define if the method will generate one output with the response
@@ -223,16 +224,11 @@ class App
      * Ex.: `self::route('/download/images/picture.png')`, will print //localhost/download/images/picture.png
      *
      * @param string $uri Path to route
-     * @param bool $print Output or not the route generated
      * @return string
      */
-    public static function route($uri, $print = true)
+    public static function route($uri)
     {
-        $route = '//' . self::request()->getUrl() . '/' . ($uri{0} === '/' ? substr($uri, 1) : $uri);
-        if ($print) {
-            out($route);
-        }
-        return $route;
+        return '//' . self::request()->getUrl() . '/' . ($uri{0} === '/' ? substr($uri, 1) : $uri);
     }
 
     /**

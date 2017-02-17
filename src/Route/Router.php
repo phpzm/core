@@ -17,6 +17,8 @@ use Simples\Core\Kernel\App;
 class Router extends Engine
 {
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Router constructor.
      * @param $labels
      * @param $contentType

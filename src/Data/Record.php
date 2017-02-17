@@ -32,6 +32,8 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     private $injectable;
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Record constructor.
      * @param array|stdClass $data
      * @param bool $injectable
@@ -44,6 +46,8 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Factory constructor
      * @param array|stdClass $data
      * @param bool $injectable
@@ -183,6 +187,8 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $name
      * @param bool $public
      * @return bool

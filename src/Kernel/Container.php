@@ -128,6 +128,8 @@ class Container
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param $instance
      * @param $method
      * @param $parameters
@@ -144,6 +146,8 @@ class Container
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param $callable
      * @param $parameters
      * @param bool $labels
@@ -159,6 +163,8 @@ class Container
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param $parameters
      * @param $data
      * @param bool $labels

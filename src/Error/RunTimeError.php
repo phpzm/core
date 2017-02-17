@@ -3,7 +3,6 @@
 namespace Simples\Core\Error;
 
 use Exception;
-use Simples\Core\Kernel\App;
 
 /**
  * Class RunTimeError

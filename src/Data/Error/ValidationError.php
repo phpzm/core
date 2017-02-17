@@ -3,7 +3,6 @@
 namespace Simples\Core\Data\Error;
 
 use Simples\Core\Error\RunTimeError;
-use Simples\Core\Helper\Json;
 
 /**
  * Class ValidationError

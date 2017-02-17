@@ -54,6 +54,8 @@ class Request implements RequestInterface
     private $target = '';
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Request constructor.
      * @param boolean $strict
      * @param string $method
@@ -528,6 +530,8 @@ class Request implements RequestInterface
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Returns an instance with the provided URI.
      *
      * This method MUST update the Host header of the returned request by

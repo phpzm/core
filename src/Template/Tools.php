@@ -16,16 +16,24 @@ class Tools
     protected $data;
 
     /**
-     * @param $path
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
+     * @param string $path
      * @param bool $print
      * @return string
      */
-    protected function href($path, $print = true)
+    protected function href(string $path, $print = true)
     {
-        return App::route($path, $print);
+        $route = App::route($path);
+        if ($print) {
+            out($route);
+        }
+        return $route;
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param bool $print
      * @return string
      */
@@ -52,6 +60,8 @@ class Tools
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $path
      * @param bool $print
      * @return string
@@ -62,6 +72,8 @@ class Tools
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $path
      * @param bool $print
      * @return string
@@ -72,6 +84,8 @@ class Tools
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $path
      * @param bool $print
      * @return string
@@ -82,6 +96,8 @@ class Tools
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param $path
      * @param bool $print
      * @return string

@@ -41,6 +41,8 @@ class Filter
         RULE_BLANK = 'blank';
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Filter constructor.
      * @param Field $field
      * @param mixed $value

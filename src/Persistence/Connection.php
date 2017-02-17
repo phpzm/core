@@ -56,6 +56,8 @@ abstract class Connection
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $command
      * @param array $parameters
      * @param bool $logging (false)
