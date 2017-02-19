@@ -3,14 +3,14 @@
 namespace Simples\Core\Security;
 
 use Simples\Core\Error\RunTimeError;
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Http\Error\ForbiddenError;
 
 /**
  * Class Jwt
  * @package Simples\Core\Security
  */
-abstract class Jwt
+abstract class JWT
 {
     /**
      * @param array $data
@@ -21,7 +21,7 @@ abstract class Jwt
     {
         $header = base64_encode(json_encode(['type' => 'JWT', 'alg' => 'HS256']));
 
-        $payload = base64_encode(Encryption::encode(Json::encode($data), $secret));
+        $payload = base64_encode(Encryption::encode(JSON::encode($data), $secret));
 
         $signature = base64_encode(hash_hmac('sha256', "{$header}.{$payload}", $secret, true));
 
@@ -43,7 +43,7 @@ abstract class Jwt
         if (count($peaces) !== 3) {
             throw new ForbiddenError("The token '{$token}' is invalid");
         }
-        return (array)Json::decode(Encryption::decode(base64_decode($peaces[1]), $secret));
+        return (array)JSON::decode(Encryption::decode(base64_decode($peaces[1]), $secret));
     }
 
     /**
