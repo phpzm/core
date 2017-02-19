@@ -5,7 +5,7 @@ namespace Simples\Core\Data;
 use IteratorAggregate;
 use JsonSerializable;
 use Simples\Core\Error\RunTimeError;
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Unit\Origin;
 use stdClass;
 
@@ -17,16 +17,19 @@ use stdClass;
 class Record extends Origin implements IteratorAggregate, JsonSerializable
 {
     /**
+     * Values accessible of Record
      * @var array
      */
     private $public;
 
     /**
+     * Values hidden into Record
      * @var array
      */
     private $private;
 
     /**
+     * Define if the can be expanded
      * @var bool
      */
     private $injectable;
@@ -59,6 +62,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Convert data into a Record instance
      * @param $record
      * @return Record
      * @throws RunTimeError
@@ -67,6 +71,9 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     {
         if ($record instanceof Record) {
             return $record;
+        }
+        if ($record instanceof stdClass) {
+            $record = (array)$record;
         }
         if (is_array($record)) {
             return static::make($record);
@@ -79,28 +86,20 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
-     * @param $name
-     * @return bool|null|string
+     * Get a value of Record
+     * @param string $name
+     * @return mixed
      */
     public function __get($name)
     {
-        $value = null;
-
-        switch ($name) {
-            case 'json':
-                $value = Json::encode($this->public);
-                break;
-            default:
-                if ($this->indexOf($name)) {
-                    $value = $this->public[$name];
-                }
-                break;
+        if ($this->indexOf($name)) {
+            return $this->get($name);
         }
-
-        return $value;
+        return null;
     }
 
     /**
+     * Set a value in Record
      * @param string $name
      * @param $value
      * @return Record
@@ -112,6 +111,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Get a value of the Record
      * @param string $name
      * @return mixed
      */
@@ -121,6 +121,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Set a value of the Record
      * @param string $name
      * @param mixed $value
      * @return Record
@@ -136,6 +137,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Remove a key and associated value of the Record
      * @param string $name
      * @return Record
      */
@@ -146,6 +148,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Make a property hidden
      * @param string $name
      * @return Record
      */
@@ -159,6 +162,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Make a property be public
      * @param string $name
      * @return Record
      */
@@ -172,6 +176,55 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * This method merge an array of data to record overriding the previously value of the keys
+     *
+     * @param array $public
+     * @param array $private
+     * @return Record
+     */
+    public function merge(array $public, array $private = []): Record
+    {
+        $this->public = array_merge($this->public, $public);
+        $this->private = array_merge($this->private, $private);
+        return $this;
+    }
+
+    /**
+     * This method import an array of data to record keeping the previously value of the keys
+     *
+     * @param array $public
+     * @param array $private
+     * @return Record
+     */
+    public function import(array $public, array $private = []): Record
+    {
+        $this->public = array_merge($public, $this->public);
+        $this->private = array_merge($private, $this->private);
+        return $this;
+    }
+
+    /**
+     * Get the name of properties managed by Record
+     * @param array $except
+     * @return array
+     */
+    public function keys(array $except = []): array
+    {
+        return array_keys($this->all($except));
+    }
+
+    /**
+     * Get the values of properties managed by Record
+     * @param array $except
+     * @return array
+     */
+    public function values(array $except = []): array
+    {
+        return array_values($this->all($except));
+    }
+
+    /**
+     * Recover all values of the Record
      * @param array $except
      * @return array
      */
@@ -189,6 +242,7 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     /**
      * @SuppressWarnings("BooleanArgumentFlag")
      *
+     * Check is exists a property into Record
      * @param string $name
      * @param bool $public
      * @return bool
@@ -202,12 +256,49 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Alias to indexOf
      * @param string $name
      * @return bool
      */
     public function has(string $name)
     {
         return $this->indexOf($name);
+    }
+
+    /**
+     * Return info about injectable property of the Record
+     * @return bool
+     */
+    public function isInjectable(): bool
+    {
+        return $this->injectable;
+    }
+
+    /**
+     * Check if the Record is empty
+     * @return bool
+     */
+    public function isEmpty(): bool
+    {
+        return count($this->public) === 0;
+    }
+
+    /**
+     * Return the count of properties maneged by Record
+     * @return int
+     */
+    public function size(): int
+    {
+        return count($this->public);
+    }
+
+    /**
+     * Return a string of properties of the Record
+     * @return string
+     */
+    public function toJSON(): string
+    {
+        return JSON::encode($this->public);
     }
 
     /**
@@ -225,38 +316,6 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     }
 
     /**
-     * @return bool
-     */
-    public function isInjectable(): bool
-    {
-        return $this->injectable;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isEmpty(): bool
-    {
-        return count($this->public) === 0;
-    }
-
-    /**
-     * @return int
-     */
-    public function size(): int
-    {
-        return count($this->public);
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString(): string
-    {
-        return $this->json;
-    }
-
-    /**
      * Specify data which should be serialized to JSON
      * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
      * @return mixed data which can be serialized by <b>json_encode</b>,
@@ -266,45 +325,5 @@ class Record extends Origin implements IteratorAggregate, JsonSerializable
     function jsonSerialize()
     {
         return $this->public;
-    }
-
-    /**
-     * @param array $public
-     * @param array $private
-     * @return Record
-     */
-    public function merge(array $public, array $private = []): Record
-    {
-        $this->public = array_merge($this->public, $public);
-        $this->private = array_merge($this->private, $private);
-        return $this;
-    }
-
-    /**
-     * @param array $public
-     * @param array $private
-     * @return Record
-     */
-    public function import(array $public, array $private = []): Record
-    {
-        $this->public = array_merge($public, $this->public);
-        $this->private = array_merge($private, $this->private);
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function keys(): array
-    {
-        return array_keys($this->public);
-    }
-
-    /**
-     * @return array
-     */
-    public function values(): array
-    {
-        return array_values($this->public);
     }
 }

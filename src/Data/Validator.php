@@ -8,7 +8,7 @@ use Simples\Core\Data\Validators\FileValidator;
 use Simples\Core\Data\Validators\LogicalValidator;
 use Simples\Core\Data\Validators\NumberValidator;
 use Simples\Core\Data\Validators\StringValidator;
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Stringy\Stringy;
 
 /**
@@ -43,7 +43,7 @@ class Validator
         if (is_scalar($value)) {
             return strlen((string)$value) > 0;
         }
-        return !empty(Json::encode($value));
+        return !empty(JSON::encode($value));
     }
 
     /**

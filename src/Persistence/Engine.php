@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Persistence;
 
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Helper\Text;
 use Simples\Core\Kernel\App;
 
@@ -80,7 +80,7 @@ class Engine
         if ($this->driver) {
             return $this->driver;
         }
-        $settings = Text::replace(Json::encode($this->settings), '"', "'");
+        $settings = Text::replace(JSON::encode($this->settings), '"', "'");
         throw new \Exception("Cant use driver: {$settings}");
     }
 

@@ -4,7 +4,7 @@ namespace Simples\Core\Message;
 
 use ForceUTF8\Encoding;
 use Simples\Core\Helper\File;
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Helper\Text;
 
 /**
@@ -204,7 +204,7 @@ class Mail
     {
         $instance = new static();
         if (File::exists($filename)) {
-            $properties = Json::decode(File::read($filename));
+            $properties = JSON::decode(File::read($filename));
             foreach ($properties as $key => $value) {
                 /** @noinspection PhpVariableVariableInspection */
                 $instance->$key = $value;
@@ -225,7 +225,7 @@ class Mail
             $properties[$key] = $value;
         }
 
-        return Json::encode($properties);
+        return JSON::encode($properties);
     }
 
     /**

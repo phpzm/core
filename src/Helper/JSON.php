@@ -8,7 +8,7 @@ use Error;
  * Class Json
  * @package Simples\Core\Helper
  */
-abstract class Json
+abstract class JSON
 {
     /**
      * @param $mixed

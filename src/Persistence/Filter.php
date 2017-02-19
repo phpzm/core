@@ -3,7 +3,7 @@
 namespace Simples\Core\Persistence;
 
 use Simples\Core\Error\RunTimeError;
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Kernel\App;
 use Simples\Core\Model\Field;
 
@@ -139,7 +139,7 @@ class Filter
     {
         $marker = App::options('filter');
         if (!is_scalar($value)) {
-            $value = Json::encode($value);
+            $value = JSON::encode($value);
         }
         if (!$rule) {
             $rule = static::RULE_EQUAL;
@@ -165,7 +165,7 @@ class Filter
             case static::RULE_NEAR: {
                 $value = $this->value;
                 if (!is_scalar($value)) {
-                    $value = Json::encode($value);
+                    $value = JSON::encode($value);
                 }
                 return "%{$value}%";
             }
