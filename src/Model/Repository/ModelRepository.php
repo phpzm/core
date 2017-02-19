@@ -90,12 +90,7 @@ class ModelRepository
 
         $this->model->configureFields($action, $record);
 
-        $defaults = $this->model->getDefaults($action, $record);
-        foreach ($defaults as $field => $default) {
-            if (!$record->has($field)) {
-                $record->set($field, $default);
-            }
-        }
+        $record->import($this->model->getDefaults($action, $record));
 
         $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
@@ -135,12 +130,7 @@ class ModelRepository
 
         $this->model->configureFields($action, $record);
 
-        $defaults = $this->model->getDefaults($action, $record);
-        foreach ($defaults as $field => $default) {
-            if (!$record->has($field)) {
-                $record->set($field, $default);
-            }
-        }
+        $record->import($this->model->getDefaults($action, $record));
 
         $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
