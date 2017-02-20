@@ -1,4 +1,6 @@
 <?php
+use Simples\Core\Error\SimplesRunTimeError;
+use Simples\Core\Kernel\App;
 
 /**
  * @param string $index
@@ -265,6 +267,20 @@ function is_iterator($var)
 function throw_format(Throwable $throw)
 {
     return "[{$throw->getMessage()}] ON [{$throw->getFile()}] AT [{$throw->getLine()}]";
+}
+
+/**
+ * @param SimplesRunTimeError $error
+ * @return array
+ */
+function error_format(SimplesRunTimeError $error): array
+{
+    return ['error' => [
+        'fail' => get_class($error),
+        'details' => $error->getDetails(),
+        'context' => $error->getContext(),
+        'trace' => App::beautifulTrace($error->getTrace())
+    ]];
 }
 
 /**

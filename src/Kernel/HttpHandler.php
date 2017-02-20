@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Kernel;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
@@ -138,7 +138,7 @@ class HttpHandler extends Response
     /**
      * @param $callback
      * @return Response
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     private function controller($callback)
     {
@@ -171,7 +171,7 @@ class HttpHandler extends Response
             /** @var \Simples\Core\Http\Controller $controller */
             $controller = Container::box()->make($class);
             if (!($controller instanceof Controller)) {
-                throw new RunTimeError("The class must be a instance of Controller, '{$class}' given");
+                throw new SimplesRunTimeError("The class must be a instance of Controller, '{$class}' given");
             }
             if (is_callable($controller)) {
                 $controller($this->request(), $this, $this->match());
@@ -253,20 +253,9 @@ class HttpHandler extends Response
         ];
         if ($content instanceof Throwable) {
             $status = 500;
-            $details = [];
-            $context = [];
-            if ($content instanceof RunTimeError) {
+            if ($content instanceof SimplesRunTimeError) {
                 $status = $content->getStatus();
-                $details = $content->getDetails();
-                $context = $content->getContext();
-            }
-            if (env('TEST_MODE')) {
-                $meta['error'] = [
-                    'fail' => get_class($content),
-                    'details' => $details,
-                    'context' => $context,
-                    'trace' => App::beautifulTrace($content->getTrace())
-                ];
+                $meta = array_merge($meta, error_format($content));
             }
             $content = throw_format($content);
         }

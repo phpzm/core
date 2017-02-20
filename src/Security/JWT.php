@@ -2,9 +2,9 @@
 
 namespace Simples\Core\Security;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Helper\JSON;
-use Simples\Core\Http\Error\ForbiddenError;
+use Simples\Core\Http\Error\SimplesForbiddenError;
 
 /**
  * Class Jwt
@@ -32,16 +32,16 @@ abstract class JWT
      * @param string $token
      * @param string $secret
      * @return array
-     * @throws ForbiddenError
+     * @throws SimplesForbiddenError
      */
     public static function payload(string $token, string $secret): array
     {
         if (!static::verify($token, $secret)) {
-            throw new ForbiddenError("The token '{$token}' is invalid");
+            throw new SimplesForbiddenError("The token '{$token}' is invalid");
         }
         $peaces = explode('.', $token);
         if (count($peaces) !== 3) {
-            throw new ForbiddenError("The token '{$token}' is invalid");
+            throw new SimplesForbiddenError("The token '{$token}' is invalid");
         }
         return (array)JSON::decode(Encryption::decode(base64_decode($peaces[1]), $secret));
     }

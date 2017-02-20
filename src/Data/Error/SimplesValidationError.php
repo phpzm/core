@@ -2,13 +2,13 @@
 
 namespace Simples\Core\Data\Error;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 
 /**
  * Class ValidationError
  * @package Simples\Core\Data\Error
  */
-class ValidationError extends RunTimeError
+class SimplesValidationError extends SimplesRunTimeError
 {
     /**
      * @var int
@@ -22,6 +22,6 @@ class ValidationError extends RunTimeError
      */
     public function __construct(array $details = [], string $message = '')
     {
-        parent::__construct(iif($message, 'Validation error'), $details);
+        parent::__construct('Validation error' . ($message ? 'in `' . $message . '`' : '') , $details);
     }
 }

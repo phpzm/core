@@ -3,7 +3,7 @@
 namespace Simples\Core\Model;
 
 use Simples\Core\Data\Record;
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 
 /**
  * @method Field string($size = 255)
@@ -67,7 +67,7 @@ class Field extends AbstractField
             $this->update(false);
         }
         if (!is_array($this->validators)) {
-            $this->validators = [];
+            $this->optional();
         }
     }
 
@@ -117,12 +117,12 @@ class Field extends AbstractField
      * @param string $referenced
      * @param bool $nullable
      * @return Field
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     public function referencesTo(string $class, string $referenced, bool $nullable = false): Field
     {
         if (off($this->references, 'class')) {
-            throw new RunTimeError("Relationship already defined to '{$this->references->class}'");
+            throw new SimplesRunTimeError("Relationship already defined to '{$this->references->class}'");
         }
         $this->references = (object)[
             'collection' => $this->getCollection(),
@@ -170,13 +170,16 @@ class Field extends AbstractField
     /**
      * @SuppressWarnings("BooleanArgumentFlag")
      *
-     * @param bool $force
+     * @param array $rules
      * @return Field
+     * @internal param bool $force
      */
-    public function required(bool $force = false): Field
+    public function required(array $rules = []): Field
     {
-        $required = $force ? ['required', $this->type] : [$this->type];
-        $this->validator($required, null, true);
+        $this->validator(['required', $this->type], null, true);
+        foreach ($rules as $rule) {
+            $this->validator($rule, ['optional' => true], false);
+        }
         return $this;
     }
 
@@ -217,7 +220,7 @@ class Field extends AbstractField
      * @param $name
      * @param $arguments
      * @return Field
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     public function __call($name, $arguments): Field
     {
@@ -228,7 +231,7 @@ class Field extends AbstractField
             }
             return $this;
         }
-        throw new RunTimeError("Type '{$name}' not supported");
+        throw new SimplesRunTimeError("Type '{$name}' not supported");
     }
 
     /**

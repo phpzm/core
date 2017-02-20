@@ -2,13 +2,13 @@
 
 namespace Simples\Core\Data\Error;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 
 /**
  * Class ResourceError
  * @package Simples\Core\Data\Error
  */
-class ResourceError extends RunTimeError
+class SimplesResourceError extends SimplesRunTimeError
 {
     /**
      * @var int

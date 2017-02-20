@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Persistence\SQL;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Persistence\Filter;
 
 /**
@@ -14,7 +14,7 @@ class SQLSolverFilter
     /**
      * @param Filter $filter
      * @return string
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     public function render(Filter $filter): string
     {
@@ -29,7 +29,7 @@ class SQLSolverFilter
             $not = $filter->isNot() ? 'NOT ' : '';
             return "{$not}(" . $this->$rule($name, $value) . ")";
         }
-        throw new RunTimeError("SQLFilterSolver can't resolve '{$rule}'");
+        throw new SimplesRunTimeError("SQLFilterSolver can't resolve '{$rule}'");
     }
 
     /**

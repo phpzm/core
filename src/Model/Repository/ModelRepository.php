@@ -6,7 +6,7 @@ use Simples\Core\Data\Collection;
 use Simples\Core\Data\Record;
 use Simples\Core\Data\Validation;
 use Simples\Core\Data\Validator;
-use Simples\Core\Data\Error\ValidationError;
+use Simples\Core\Data\Error\SimplesValidationError;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
 use Simples\Core\Model\Action;
@@ -80,7 +80,7 @@ class ModelRepository
     /**
      * @param Record|array $record
      * @return Record
-     * @throws ValidationError
+     * @throws SimplesValidationError
      */
     public function create($record): Record
     {
@@ -95,7 +95,7 @@ class ModelRepository
         $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
-            throw new ValidationError($errors->all());
+            throw new SimplesValidationError($errors->all(), get_class($this));
         }
 
         return $this->model->create($record);
@@ -120,7 +120,7 @@ class ModelRepository
     /**
      * @param Record|array $record
      * @return Record
-     * @throws ValidationError
+     * @throws SimplesValidationError
      */
     public function update($record): Record
     {
@@ -133,14 +133,16 @@ class ModelRepository
         $record->import($this->model->getDefaults($action, $record));
 
         $hashKey = $this->model->getHashKey();
-        $primaryKey = $this->model->getPrimaryKey();
-        $value = $this->find([$hashKey => $record->get($hashKey)], [$primaryKey])->current()->get($primaryKey);
-        $record->set($primaryKey, $value);
+        if ($record->get($hashKey)) {
+            $primaryKey = $this->model->getPrimaryKey();
+            $value = $this->find([$hashKey => $record->get($hashKey)], [$primaryKey])->current()->get($primaryKey);
+            $record->set($primaryKey, $value);
+        }
 
         $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
-            throw new ValidationError($errors->all());
+            throw new SimplesValidationError($errors->all(), get_class($this));
         }
 
         return $this->model->update($record);
@@ -149,7 +151,7 @@ class ModelRepository
     /**
      * @param Record|array $record
      * @return Record
-     * @throws ValidationError
+     * @throws SimplesValidationError
      */
     public function destroy($record): Record
     {
@@ -162,7 +164,7 @@ class ModelRepository
         $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
-            throw new ValidationError($errors->all());
+            throw new SimplesValidationError($errors->all(), get_class($this));
         }
 
         return $this->model->destroy($record);

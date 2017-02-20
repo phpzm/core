@@ -8,7 +8,7 @@ use Exception;
  * Class RunTimeError
  * @package Simples\Core\Error
  */
-class RunTimeError extends Exception
+class SimplesRunTimeError extends Exception
 {
     /**
      * @var int

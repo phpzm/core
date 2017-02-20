@@ -3,8 +3,8 @@
 namespace Simples\Core\Persistence\SQL;
 
 use PDO;
-use Simples\Core\Persistence\SQL\Error\SQLDataError;
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Persistence\SQL\Error\SimplesSQLDataErrorSimples;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Persistence\Driver;
 use Simples\Core\Persistence\Filter;
 use Simples\Core\Persistence\Fusion;
@@ -52,7 +52,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $clausules
      * @param array $values
      * @return string
-     * @throws SQLDataError
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function create(array $clausules, array $values)
     {
@@ -66,14 +66,14 @@ abstract class SQLDriver extends SQLConnection implements Driver
             return $this->connection()->lastInsertId();
         }
 
-        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
      * @param array $clausules
      * @param array $values
      * @return array
-     * @throws SQLDataError
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function read(array $clausules, array $values = [])
     {
@@ -87,7 +87,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
             return $statement->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -95,7 +95,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $values
      * @param array $filters
      * @return int
-     * @throws SQLDataError
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function update(array $clausules, array $values, array $filters)
     {
@@ -110,14 +110,14 @@ abstract class SQLDriver extends SQLConnection implements Driver
             return $statement->rowCount();
         }
 
-        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
      * @param array $clausules
      * @param array $values
      * @return int
-     * @throws SQLDataError
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function destroy(array $clausules, array $values)
     {
@@ -132,7 +132,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
             return $statement->rowCount();
         }
 
-        throw new SQLDataError([$statement->errorInfo()], [$sql, $parameters]);
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -270,7 +270,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $clausules
      * @param array $modifiers
      * @return array
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     private function modifiers(array $clausules, array $modifiers): array
     {
@@ -281,7 +281,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
                 $key = ucfirst($key);
                 $key = "parse{$key}";
                 if (!method_exists($this, $key)) {
-                    throw new RunTimeError("Invalid modifier {$key}");
+                    throw new SimplesRunTimeError("Invalid modifier {$key}");
                 }
                 $value = $this->$key($value, $modifier['separator']);
                 $command[] = $modifier['instruction'] . ' ' . $value;
@@ -372,7 +372,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
     /**
      * @param $columns
      * @return string
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function parseColumns($columns)
     {
@@ -388,6 +388,6 @@ abstract class SQLDriver extends SQLConnection implements Driver
             }
             return implode(', ', $fields);
         }
-        throw new RunTimeError("Columns must be an 'array' or 'string', {$type} given");
+        throw new SimplesRunTimeError("Columns must be an 'array' or 'string', {$type} given");
     }
 }

@@ -2,13 +2,13 @@
 
 namespace Simples\Core\Persistence\Error;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 
 /**
  * Class PersistenceError
  * @package Simples\Core\Persistence\Error
  */
-class PersistenceError extends RunTimeError
+class SimplesPersistenceError extends SimplesRunTimeError
 {
     /**
      * @var int

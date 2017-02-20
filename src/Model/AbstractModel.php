@@ -3,9 +3,9 @@
 namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
-use Simples\Core\Data\Error\ValidationError;
+use Simples\Core\Data\Error\SimplesValidationError;
 use Simples\Core\Data\Record;
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Engine;
 
@@ -162,7 +162,7 @@ abstract class AbstractModel extends Engine
      * @param string $primaryKey
      * @param string $relationship
      * @return $this
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function instance(string $collection, string $primaryKey, string $relationship = '')
     {
@@ -171,7 +171,7 @@ abstract class AbstractModel extends Engine
             $this->add($relationship)->integer()->setCollection($collection)->update(false);
 
             if (!$relationship) {
-                throw new RunTimeError("When extending one model you need give a name to relationship");
+                throw new SimplesRunTimeError("When extending one model you need give a name to relationship");
             }
         }
         $this->collection = $collection;
@@ -203,7 +203,7 @@ abstract class AbstractModel extends Engine
      * @param string $relationship
      * @param array $options
      * @return Field
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function import(string $name, string $relationship, array $options = []): Field
     {
@@ -212,7 +212,7 @@ abstract class AbstractModel extends Engine
 
         $class = off($reference, 'class');
         if (!class_exists($class)) {
-            throw new RunTimeError("Cant not import '{$name}' from '{$class}'");
+            throw new SimplesRunTimeError("Cant not import '{$name}' from '{$class}'");
         }
 
         /** @var DataMapper $class */
@@ -407,30 +407,30 @@ abstract class AbstractModel extends Engine
 
     /**
      * @param $action
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function throwAction($action)
     {
-        throw new RunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
+        throw new SimplesRunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
     }
 
     /**
      * @param $action
      * @param $hook
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function throwHook($action, $hook)
     {
-        throw new RunTimeError("Can't resolve hook `{$action}`.`{$hook}` in '" . get_class($this) . "'");
+        throw new SimplesRunTimeError("Can't resolve hook `{$action}`.`{$hook}` in '" . get_class($this) . "'");
     }
 
     /**
      * @param array $details
      * @param string $message
-     * @throws ValidationError
+     * @throws SimplesValidationError
      */
     protected function throwValidation(array $details, string $message = '')
     {
-        throw new ValidationError($details, $message);
+        throw new SimplesValidationError($details, $message);
     }
 }

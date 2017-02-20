@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Data;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Model\AbstractModel;
 
 /**
@@ -61,13 +61,13 @@ class Collection extends AbstractCollection
      *
      * @param $name string
      * @return Collection
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members
      */
     function __get($name): Collection
     {
         if (!method_exists($this, $name)) {
-            throw new RunTimeError("Method '{$name}' not found");
+            throw new SimplesRunTimeError("Method '{$name}' not found");
         }
         $this->higher[] = $name;
         /** @noinspection PhpIncompatibleReturnTypeInspection */
@@ -85,7 +85,7 @@ class Collection extends AbstractCollection
      * @param $name
      * @param $arguments
      * @return mixed
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     public function __call($name, $arguments)
     {
@@ -105,7 +105,7 @@ class Collection extends AbstractCollection
                 return call_user_func_array([$model, $name], [$value]);
             });
         }
-        throw new RunTimeError("Not found '{$name}'");
+        throw new SimplesRunTimeError("Not found '{$name}'");
     }
 
     /**

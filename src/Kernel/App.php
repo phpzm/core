@@ -243,19 +243,28 @@ class App
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param array $trace
+     * @param bool $filter
      * @return array
      */
-    public static function beautifulTrace(array $trace): array
+    public static function beautifulTrace(array $trace, bool $filter = true): array
     {
         $stack = [];
+        stop($trace);
         foreach ($trace as $value) {
             $trace = off($value, 'function');
             if ($trace === 'call_user_func_array') {
                 continue;
             }
-            if (off($value, 'class') && off($value, 'function')) {
-                $trace = off($value, 'class') . App::options('separator') .  off($value, 'function');
+            $class = off($value, 'class');
+            $function = off($value, 'function');
+            if ($filter && strpos($class, 'Simples\\Core\\Kernel') === 0) {
+                continue;
+            }
+            if ($class && $function) {
+                $trace = $class . App::options('separator') . $function;
             }
             $stack[] = $trace;
         }

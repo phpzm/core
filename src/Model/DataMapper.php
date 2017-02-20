@@ -4,9 +4,9 @@ namespace Simples\Core\Model;
 
 use Exception;
 use Simples\Core\Data\Collection;
-use Simples\Core\Data\Error\ResourceError;
+use Simples\Core\Data\Error\SimplesResourceError;
 use Simples\Core\Data\Record;
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Filter;
@@ -24,7 +24,7 @@ class DataMapper extends AbstractModel
      * Method with the responsibility of create a record of model
      * @param array|Record $record (null)
      * @return Record
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     final public function create($record = null): Record
     {
@@ -76,7 +76,7 @@ class DataMapper extends AbstractModel
      * Read records with the filters informed
      * @param array|Record $record (null)
      * @return Collection
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     final public function read($record = null): Collection
     {
@@ -119,7 +119,7 @@ class DataMapper extends AbstractModel
      * Update the record given
      * @param array|Record $record (null)
      * @return Record
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     final public function update($record = null): Record
     {
@@ -135,7 +135,7 @@ class DataMapper extends AbstractModel
         $previous = $this->previous($record);
 
         if ($previous->isEmpty()) {
-            throw new ResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
+            throw new SimplesResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
 
         if (!$this->before($action, $record, $previous)) {
@@ -179,7 +179,7 @@ class DataMapper extends AbstractModel
      * Remove the given record of database
      * @param array|Record $record (null)
      * @return Record
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     final public function destroy($record = null): Record
     {
@@ -195,7 +195,7 @@ class DataMapper extends AbstractModel
         $previous = $this->previous($record);
 
         if ($previous->isEmpty()) {
-            throw new ResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
+            throw new SimplesResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
 
         if (!$this->before($action, $record, $previous)) {
@@ -323,7 +323,7 @@ class DataMapper extends AbstractModel
         foreach ($data as $name => $value) {
             $field = $this->get($name);
             if (is_null($field)) {
-                throw new RunTimeError("Invalid field name '{$name}'");
+                throw new SimplesRunTimeError("Invalid field name '{$name}'");
             }
             $filters[] = new Filter($field, $value);
         }

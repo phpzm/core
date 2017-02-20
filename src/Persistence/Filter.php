@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Persistence;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Helper\JSON;
 use Simples\Core\Kernel\App;
 use Simples\Core\Model\Field;
@@ -175,14 +175,14 @@ class Filter
      * @param string $separator
      * @param int $size
      * @return array
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function separator(string $value, string $separator, int $size): array
     {
         $array = explode($separator, $value);
         if (count($array) < $size) {
             $count = count($array);
-            throw new RunTimeError("Invalid number of arguments to create a rule. " .
+            throw new SimplesRunTimeError("Invalid number of arguments to create a rule. " .
                 "Expected '{$size}' given '{$count}' to rule '{$this->rule}'");
         }
         if (count($array) > $size) {

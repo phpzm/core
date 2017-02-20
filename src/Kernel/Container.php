@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Kernel;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionFunction;
@@ -83,7 +83,7 @@ class Container
      *
      * @param string $alias
      * @return mixed
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     public function make(string $alias)
     {
@@ -100,7 +100,7 @@ class Container
         if (class_exists($alias)) {
             return self::register($alias, $this->makeInstance($alias))->make($alias);
         }
-        throw new RunTimeError("Class '{$alias}' not found");
+        throw new SimplesRunTimeError("Class '{$alias}' not found");
     }
 
     /**

@@ -2,13 +2,13 @@
 
 namespace Simples\Core\Http\Error;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 
 /**
  * Class ForbiddenError
  * @package Simples\Core\Http\Error
  */
-class ForbiddenError extends RunTimeError
+class SimplesForbiddenError extends SimplesRunTimeError
 {
     /**
      * @var int

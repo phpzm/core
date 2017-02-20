@@ -2,13 +2,13 @@
 
 namespace Simples\Core\Persistence\SQL\Error;
 
-use Simples\Core\Persistence\Error\PersistenceError;
+use Simples\Core\Persistence\Error\SimplesPersistenceError;
 
 /**
  * Class PersistenceException
  * @package Simples\Core\Error
  */
-class SQLDataError extends PersistenceError
+class SimplesSQLDataErrorSimples extends SimplesPersistenceError
 {
     /**
      * @var array
