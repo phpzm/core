@@ -133,6 +133,7 @@ class DataMapper extends AbstractModel
         $action = Action::UPDATE;
 
         $previous = $this->previous($record);
+
         if ($previous->isEmpty()) {
             throw new ResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
@@ -192,6 +193,7 @@ class DataMapper extends AbstractModel
         $action = Action::DESTROY;
 
         $previous = $this->previous($record);
+
         if ($previous->isEmpty()) {
             throw new ResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
@@ -199,6 +201,7 @@ class DataMapper extends AbstractModel
         if (!$this->before($action, $record, $previous)) {
             $this->throwHook($action, 'before');
         }
+
         $filter = new Filter($this->get($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
         $filters = [$filter];
 
@@ -393,8 +396,8 @@ class DataMapper extends AbstractModel
      */
     protected function previous(Record $record): Record
     {
-        $hashKey = $this->hashKey;
         $primaryKey = $this->getPrimaryKey();
+        $hashKey = $this->hashKey;
 
         $filter = [$hashKey => $record->get($hashKey)];
         if (!$record->get($hashKey)) {
@@ -416,6 +419,6 @@ class DataMapper extends AbstractModel
     protected function getDestroyFilter(): Filter
     {
         $field = new Field($this->getCollection(), $this->destroyKeys['at'], Field::TYPE_DATETIME);
-        return new Filter($field, Filter::rule(null, Filter::RULE_BLANK));
+        return new Filter($field, Filter::apply(Filter::RULE_BLANK));
     }
 }

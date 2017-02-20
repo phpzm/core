@@ -219,6 +219,17 @@ class App
     }
 
     /**
+     * Get value default created in defaults config to some class
+     * @param string $class
+     * @param string $property
+     * @return mixed
+     */
+    public static function defaults(string $class, string $property)
+    {
+        return static::config("defaults.{$class}.{$property}");
+    }
+
+    /**
      * Simple helper to generate a valid route to resources of project
      *
      * Ex.: `self::route('/download/images/picture.png')`, will print //localhost/download/images/picture.png

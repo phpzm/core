@@ -45,6 +45,15 @@ class SQLSolverFilter
      * @param string $name
      * @return string
      */
+    protected function not(string $name): string
+    {
+        return "{$name} <> ?";
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
     protected function between($name): string
     {
         return "{$name} BETWEEN ? AND ?";

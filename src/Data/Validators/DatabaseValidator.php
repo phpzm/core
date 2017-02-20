@@ -4,6 +4,7 @@ namespace Simples\Core\Data\Validators;
 
 use Simples\Core\Kernel\Container;
 use Simples\Core\Model\AbstractModel;
+use Simples\Core\Persistence\Filter;
 
 /**
  * Class DateValidator
@@ -51,8 +52,8 @@ trait DatabaseValidator
             $instance = Container::box()->make($class);
             /** @var AbstractModel $instance */
             $filter = [$field => $value];
-            if (off($options, 'primaryKey')) {
-                $filter[off($options, 'primaryKey.name')] = off($options, 'primaryKey.value');
+            if (off($options, 'primaryKey.value')) {
+                $filter[off($options, 'primaryKey.name')] = Filter::apply(Filter::RULE_NOT, off($options, 'primaryKey.value'));
             }
             return $instance->count($filter) === 0;
         }

@@ -36,7 +36,7 @@ class Filter
     /**
      * @var string
      */
-    const RULE_EQUAL = 'equal', RULE_NEAR = 'near', RULE_BETWEEN = 'between',
+    const RULE_EQUAL = 'equal',  RULE_NOT = 'not', RULE_NEAR = 'near', RULE_BETWEEN = 'between',
         RULE_DAY = 'day', RULE_MONTH = 'month', RULE_YEAR = 'year', RULE_COMPETENCE = 'competence',
         RULE_BLANK = 'blank';
 
@@ -131,18 +131,15 @@ class Filter
     }
 
     /**
-     * @param mixed $value
      * @param string $rule
+     * @param mixed $value
      * @return string
      */
-    public static function rule($value, $rule = null): string
+    public static function apply(string $rule, $value = null): string
     {
         $marker = App::options('filter');
         if (!is_scalar($value)) {
             $value = JSON::encode($value);
-        }
-        if (!$rule) {
-            $rule = static::RULE_EQUAL;
         }
         return "{$rule}{$marker}{$value}";
     }

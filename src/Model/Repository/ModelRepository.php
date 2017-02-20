@@ -132,6 +132,11 @@ class ModelRepository
 
         $record->import($this->model->getDefaults($action, $record));
 
+        $hashKey = $this->model->getHashKey();
+        $primaryKey = $this->model->getPrimaryKey();
+        $value = $this->find([$hashKey => $record->get($hashKey)], [$primaryKey])->current()->get($primaryKey);
+        $record->set($primaryKey, $value);
+
         $validators = $this->getValidators($this->getFields(), $record);
         $errors = $this->parseValidation($validators);
         if (!$errors->isEmpty()) {
