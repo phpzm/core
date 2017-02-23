@@ -110,6 +110,7 @@ class App
     {
         $fail = null;
         $response = null;
+
         $http = new Http(self::request());
         try {
             $response = $http->handler();
@@ -252,7 +253,6 @@ class App
     public static function beautifulTrace(array $trace, bool $filter = true): array
     {
         $stack = [];
-        stop($trace);
         foreach ($trace as $value) {
             $trace = off($value, 'function');
             if ($trace === 'call_user_func_array') {
