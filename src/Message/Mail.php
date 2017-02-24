@@ -4,7 +4,7 @@ namespace Simples\Core\Message;
 
 use ForceUTF8\Encoding;
 use Simples\Core\Helper\File;
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Helper\Text;
 
 /**
@@ -108,75 +108,75 @@ class Mail
     /**
      * @param string $driver
      * @return bool
+     *
+     * @SuppressWarnings("CyclomaticComplexity")
      */
-    public function send($driver = 'default')
+    public function send($driver = 'default'): bool
     {
-        $sent = false;
-
-        if ($this->toAddress) {
-            $file = $this->id . '.' . 'mail';
-
-            $root = storage('files/mail');
-
-            $waiting = path($root, self::STATUS_WAITING, $file);
-            if (File::exists($waiting)) {
-                File::destroy($waiting);
-            }
-
-            $settings = off(config('mail'), $driver);
-
-            $mailer = new \PHPMailer();
-
-            $mailer->isSMTP();
-            $mailer->SMTPAuth = true;
-
-            $mailer->Host = off($settings, 'host');
-            $mailer->Port = off($settings, 'port');
-            $mailer->SMTPSecure = off($settings, 'secure');
-            $mailer->Username = off($settings, 'user');
-            $mailer->Password = off($settings, 'password');
-
-            $mailer->addAddress($this->toAddress, $this->toName ? $this->toName : '');
-
-            if (!$this->fromAddress) {
-                if (!($this->fromAddress = off($settings, 'address'))) {
-                    $this->fromAddress = $mailer->Username;
-                }
-            }
-            if (!$this->fromName) {
-                $this->fromName = off($settings, 'name', off(config('app'), 'name'));
-            }
-
-            $mailer->setFrom($this->fromAddress, $this->fromName);
-
-            if ($this->replyToAddress) {
-                $mailer->addReplyTo($this->replyToAddress, of($this->replyToName, ''));
-            }
-
-            foreach ($this->ccs as $cc) {
-                $mailer->addCC($cc->address, $cc->name);
-            }
-
-            $mailer->isHTML(true);
-
-            $mailer->Subject = Encoding::fixUTF8($this->subject);
-            $mailer->Body = Encoding::fixUTF8(Text::replace($this->message, '{id}', $this->id));
-            $mailer->AltBody = $this->alt;
-
-            foreach ($this->attachments as $attachment) {
-                $mailer->addAttachment($attachment->filename, $attachment->description);
-            }
-
-            $filename = path($root, self::STATUS_SENT, $file);
-            $sent = $mailer->send();
-
-            if (!$sent) {
-                $filename = path($root, self::STATUS_ERROR, $file);
-                $this->error = $mailer->ErrorInfo;
-            }
-
-            File::write($filename, $this->json());
+        if (!$this->toAddress) {
+            return false;
         }
+        $file = $this->id . '.' . 'mail';
+
+        $root = storage('files/mail');
+
+        $waiting = path($root, self::STATUS_WAITING, $file);
+        if (File::exists($waiting)) {
+            File::destroy($waiting);
+        }
+
+        $settings = off(config('mail'), $driver);
+
+        $mailer = new \PHPMailer();
+
+        $mailer->isSMTP();
+        $mailer->SMTPAuth = true;
+
+        $mailer->Host = off($settings, 'host');
+        $mailer->Port = off($settings, 'port');
+        $mailer->SMTPSecure = off($settings, 'secure');
+        $mailer->Username = off($settings, 'user');
+        $mailer->Password = off($settings, 'password');
+
+        $mailer->addAddress($this->toAddress, $this->toName ? $this->toName : '');
+
+        if (!$this->fromAddress && !($this->fromAddress = off($settings, 'address'))) {
+            $this->fromAddress = $mailer->Username;
+        }
+
+        if (!$this->fromName) {
+            $this->fromName = off($settings, 'name', off(config('app'), 'name'));
+        }
+
+        $mailer->setFrom($this->fromAddress, $this->fromName);
+
+        if ($this->replyToAddress) {
+            $mailer->addReplyTo($this->replyToAddress, of($this->replyToName, ''));
+        }
+
+        foreach ($this->ccs as $cc) {
+            $mailer->addCC($cc->address, $cc->name);
+        }
+
+        $mailer->isHTML(true);
+
+        $mailer->Subject = Encoding::fixUTF8($this->subject);
+        $mailer->Body = Encoding::fixUTF8(Text::replace($this->message, '{id}', $this->id));
+        $mailer->AltBody = $this->alt;
+
+        foreach ($this->attachments as $attachment) {
+            $mailer->addAttachment($attachment->filename, $attachment->description);
+        }
+
+        $filename = path($root, self::STATUS_SENT, $file);
+        $sent = $mailer->send();
+
+        if (!$sent) {
+            $filename = path($root, self::STATUS_ERROR, $file);
+            $this->error = $mailer->ErrorInfo;
+        }
+
+        File::write($filename, $this->json());
 
         return $sent;
     }
@@ -203,7 +203,7 @@ class Mail
     {
         $instance = new static();
         if (File::exists($filename)) {
-            $properties = Json::decode(File::read($filename));
+            $properties = JSON::decode(File::read($filename));
             foreach ($properties as $key => $value) {
                 /** @noinspection PhpVariableVariableInspection */
                 $instance->$key = $value;
@@ -223,7 +223,7 @@ class Mail
             $properties[$key] = $value;
         }
 
-        return Json::encode($properties);
+        return JSON::encode($properties);
     }
 
     /**

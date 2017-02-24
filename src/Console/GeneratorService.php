@@ -100,6 +100,5 @@ abstract class GeneratorService extends Service
      * @param FileManager $fileManager
      * @throws \Exception
      */
-    protected abstract static function others(FileManager $fileManager);
-
+    abstract protected static function others(FileManager $fileManager);
 }

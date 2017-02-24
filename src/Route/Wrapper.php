@@ -1,6 +1,7 @@
 <?php
 
 namespace Simples\Core\Route;
+
 use Simples\Core\Kernel\App;
 
 /**
@@ -72,14 +73,7 @@ abstract class Wrapper
      */
     protected static function trace()
     {
-        $stack = [];
-        foreach (debug_backtrace() as $value) {
-            $trace = '-----';
-            if (off($value, 'class') && off($value, 'function')) {
-                $trace = off($value, 'class') . App::options('separator') .  off($value, 'function');
-            }
-            $stack[] = $trace;
-        }
+        $stack = App::beautifulTrace(debug_backtrace());
 
         return array_slice($stack, 3);
     }

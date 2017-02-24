@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Persistence\SQL;
 
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Persistence\Filter;
 
 /**
@@ -14,18 +14,22 @@ class SQLSolverFilter
     /**
      * @param Filter $filter
      * @return string
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     public function render(Filter $filter): string
     {
         $rule = $filter->getRule();
         if (method_exists($this, $rule)) {
-            $name = "{$filter->getCollection()}.{$filter->getName()}";
+            $collection = $filter->getCollection();
+            if ($filter->hasFrom()) {
+                $collection = '__' . strtoupper($filter->getFrom()->getName()) . '__';
+            }
+            $name = "{$collection}.{$filter->getName()}";
             $value = $filter->getValue();
             $not = $filter->isNot() ? 'NOT ' : '';
             return "{$not}(" . $this->$rule($name, $value) . ")";
         }
-        throw new RunTimeError("SQLFilterSolver can't resolve '{$rule}'");
+        throw new SimplesRunTimeError("SQLFilterSolver can't resolve '{$rule}'");
     }
 
     /**
@@ -35,6 +39,15 @@ class SQLSolverFilter
     protected function equal(string $name): string
     {
         return "{$name} = ?";
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    protected function not(string $name): string
+    {
+        return "{$name} <> ?";
     }
 
     /**

@@ -2,14 +2,13 @@
 
 namespace Simples\Core\Helper;
 
-use Simples\Core\Route\Wrapper;
 use Error;
 
 /**
  * Class Json
  * @package Simples\Core\Helper
  */
-abstract class Json
+abstract class JSON
 {
     /**
      * @param $mixed
@@ -54,6 +53,8 @@ abstract class Json
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param $string
      * @param bool $assoc
      * @param int $depth

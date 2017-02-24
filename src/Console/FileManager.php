@@ -138,7 +138,7 @@ class FileManager
      */
     private function replace()
     {
-        foreach ($this->stream as $layer => &$content) {
+        foreach ($this->stream as &$content) {
             foreach ($this->replacements as $field) {
                 $content = Text::replace($content, $field['field'], $field['value']);
             }

@@ -2,9 +2,9 @@
 
 namespace Simples\Core\Route;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Simples\Core\Http\Response;
-use \RecursiveDirectoryIterator;
-use \RecursiveIteratorIterator;
 use Simples\Core\Kernel\App;
 use Simples\Core\Kernel\Container;
 
@@ -47,7 +47,7 @@ class Engine
     /**
      * @var bool
      */
-    protected $labels = false;
+    protected $labels;
 
     /**
      * @var string
@@ -60,13 +60,16 @@ class Engine
     private $headers;
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Engine constructor.
-     * @param $labels
-     * @param $contentType
-     * @param $headers
+     * @param bool $labels
+     * @param string|null $contentType
+     * @param array|null $headers
      */
-    public function __construct($labels = false, $contentType = null, $headers = null)
+    public function __construct(bool $labels = false, string $contentType = null, array $headers = null)
     {
+        $this->labels = $labels;
         $this->type = of($contentType, Response::CONTENT_TYPE_PLAIN);
         $this->headers = $headers;
     }
@@ -113,12 +116,11 @@ class Engine
      */
     final public function on($methods, $uri, $callback, $options = [])
     {
+        if ($methods === '*') {
+            $methods = self::ALL;
+        }
         if (gettype($methods) === 'string') {
-            if ($methods === '*') {
-                $methods = self::ALL;
-            } else {
-                $methods = explode(',', $methods);
-            }
+            $methods = explode(',', $methods);
         }
 
         foreach ($methods as $method) {
@@ -257,7 +259,7 @@ class Engine
                 break;
             }
             case 'callable': {
-                call_user_func_array($callback, Container::getInstance()->resolveFunctionParameters($callback, [$this]));
+                call_user_func_array($callback, Container::box()->resolveFunctionParameters($callback, [$this]));
                 break;
             }
         }
@@ -296,12 +298,11 @@ class Engine
         foreach ($resources as $resource) {
             if (is_dir($resource->getFilename())) {
                 continue;
-            } else {
-                $pattern = '/' . preg_quote(App::$ROOT, '/') . '/';
-                $file = preg_replace($pattern, '', $resource->getPathname(), 1);
-                if ($file) {
-                    $files[] = $file;
-                }
+            }
+            $pattern = '/' . preg_quote(App::options('root'), '/') . '/';
+            $file = preg_replace($pattern, '', $resource->getPathname(), 1);
+            if ($file) {
+                $files[] = $file;
             }
         }
 
@@ -347,7 +348,7 @@ class Engine
     {
         $groups = [];
         foreach ($this->routes as $method => $paths) {
-            foreach ($paths as $path => $route) {
+            foreach ($paths as $route) {
                 $trace[] = [
                     'method' => $method,
                     'uri' => $route['uri'],
@@ -357,7 +358,7 @@ class Engine
                 $group = off($route['options'], 'group');
                 if ($group) {
                     $groups[] = [
-                        'type'=> $group['type'], 'callback' => $route['callback']
+                        'type' => $group['type'], 'callback' => $route['callback']
                     ];
                 }
             }

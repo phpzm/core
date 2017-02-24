@@ -5,9 +5,8 @@ namespace Simples\Core\Http\Specialty;
 use Simples\Core\Data\Record;
 use Simples\Core\Http\Controller;
 use Simples\Core\Http\Response;
-use Simples\Core\Model\Action;
 use Simples\Core\Model\Field;
-use Simples\Core\Model\Repository\ApiRepository;
+use Simples\Core\Model\Repository\ModelRepository;
 
 /**
  * Class ApiController
@@ -16,7 +15,7 @@ use Simples\Core\Model\Repository\ApiRepository;
 abstract class ApiController extends Controller
 {
     /**
-     * @var ApiRepository
+     * @var ModelRepository
      */
     protected $repository;
 
@@ -35,13 +34,12 @@ abstract class ApiController extends Controller
 
     /**
      * @return Response
-     * @throws \Exception
      */
-    public function post()
+    public function post(): Response
     {
         $this->setLog($this->request()->get('log'));
 
-        $fields = $this->repository->getFields(Action::CREATE);
+        $fields = $this->repository->getFields();
 
         $data = [];
         foreach ($fields as $name => $field) {
@@ -52,16 +50,7 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->post(new Record($data));
-
-        $errors = $this->repository->getErrors()->all();
-        if (count($errors)) {
-            return $this->answerBadRequest('', $errors);
-        }
-
-        if ($posted->isEmpty()) {
-            return $this->answerConflict('');
-        }
+        $posted = $this->repository->create(Record::make($data));
 
         return $this->answerOK($posted->all());
     }
@@ -70,7 +59,7 @@ abstract class ApiController extends Controller
      * @param $id
      * @return Response
      */
-    public function get($id = null)
+    public function get($id = null): Response
     {
         $this->setLog($this->request()->get('log'));
 
@@ -79,11 +68,11 @@ abstract class ApiController extends Controller
         $data = [$this->repository->getHashKey() => $id];
         if (!$id) {
             $data = [];
-            $page = (int)$this->request()->get('page');
-            $size = (int)$this->request()->get('size');
+            $page = (int)of($this->request()->get('page'), 1);
+            $size = (int)of($this->request()->get('size'), 25);
             $start = ($page - 1) * $size;
             $end = $size;
-            $fields = $this->repository->getFields(Action::READ);
+            $fields = $this->repository->getFields();
 
             /** @var Field $field */
             foreach ($fields as $name => $field) {
@@ -94,22 +83,21 @@ abstract class ApiController extends Controller
             }
         }
 
-        $collection = $this->repository->get(new Record($data), $start, $end);
-
+        $collection = $this->repository->read(Record::make($data), $start, $end);
         $count = $this->repository->count($data);
 
         return $this->answerOK($collection->getRecords(), (isset($page)) ? ['total' => $count] : []);
     }
 
     /**
+     * @param $id
      * @return Response
-     * @throws \Exception
      */
-    public function put($id)
+    public function put($id): Response
     {
         $this->setLog($this->request()->get('log'));
 
-        $fields = $this->repository->getFields(Action::UPDATE);
+        $fields = $this->repository->getFields();
 
         $data = [
             $this->repository->getHashKey() => $id
@@ -122,26 +110,16 @@ abstract class ApiController extends Controller
             }
         }
 
-        $posted = $this->repository->put(new Record($data));
+        $putted = $this->repository->update(Record::make($data));
 
-        $errors = $this->repository->getErrors()->all();
-        if (count($errors)) {
-            return $this->answerBadRequest('', $errors);
-        }
-
-        if ($posted->isEmpty()) {
-            return $this->answerGone('');
-        }
-
-        return $this->answerOK($posted->all());
+        return $this->answerOK($putted->all());
     }
 
     /**
      * @param $id
      * @return Response
-     * @throws \Exception
      */
-    public function delete($id)
+    public function delete($id): Response
     {
         $this->setLog($this->request()->get('log'));
 
@@ -149,16 +127,7 @@ abstract class ApiController extends Controller
             $this->repository->getHashKey() => $id
         ];
 
-        $deleted = $this->repository->delete(new Record($data));
-
-        $errors = $this->repository->getErrors()->all();
-        if (count($errors)) {
-            return $this->answerBadRequest('', $errors);
-        }
-
-        if ($deleted->isEmpty()) {
-            return $this->answerGone('');
-        }
+        $deleted = $this->repository->destroy(Record::make($data));
 
         return $this->answerOK($deleted->all());
     }

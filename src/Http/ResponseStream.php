@@ -119,12 +119,17 @@ class ResponseStream implements ResponseInterface
             $this->validateStatus($statusCode);
         }
         $this->stream = new Stream('php://memory', 'wb+');
-        $this->protocol = $protocol ? $protocol : (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : $this->protocol);
+        if (!$protocol) {
+            $protocol = server('SERVER_PROTOCOL');
+        }
+        $this->protocol = $protocol;
         $this->statusCode = $statusCode ? (int)$statusCode : $this->statusCode;
         $this->headers = $headers ? $headers : $this->headers;
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param $string
      * @param bool $override
      * @return int

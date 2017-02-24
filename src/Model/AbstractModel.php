@@ -3,16 +3,13 @@
 namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
+use Simples\Core\Data\Error\SimplesValidationError;
 use Simples\Core\Data\Record;
-use Simples\Core\Data\Validation;
-use Simples\Core\Error\RunTimeError;
+use Simples\Core\Error\SimplesRunTimeError;
+use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Engine;
 
 /**
- * @method  string __getCollection()
- * @method  string __getPrimaryKey()
- * @method  string __hashKey()
- *
  * Class AbstractModel
  * @package Simples\Core\Model
  */
@@ -41,6 +38,11 @@ abstract class AbstractModel extends Engine
      * @var array
      */
     protected $fields = [];
+
+    /**
+     * @var array
+     */
+    private $maps = [];
 
     /**
      * Key used to relationships and to represent the primary key database
@@ -97,25 +99,11 @@ abstract class AbstractModel extends Engine
     }
 
     /**
-     * is triggered when invoking inaccessible methods in a static context.
-     *
-     * @param $name string
-     * @param $arguments array
-     * @return mixed
-     * @throws RunTimeError
-     * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.methods
+     * @return $this
      */
-    public static function __callStatic($name, $arguments)
+    public static function box()
     {
-        if (substr($name, 0, 2) === '__') {
-            //TODO: use Container ?
-            $name = substr($name, 2);
-            $instance = new static();
-            if (method_exists($instance, $name)) {
-                return call_user_func_array([$instance, $name], $arguments);
-            }
-        }
-        throw new RunTimeError("Method not found '{$name}'");
+        return Container::box()->make(static::class);
     }
 
     /**
@@ -135,76 +123,62 @@ abstract class AbstractModel extends Engine
 
     /**
      * Method with the responsibility of create a record of model
-     * @param mixed $record
+     * @param array|Record $record (null)
      * @return Record
      */
-    abstract public function create($record = null);
+    abstract public function create($record = null): Record;
 
     /**
      * Read records with the filters informed
-     * @param mixed $record
+     * @param array|Record $record (null)
      * @return Collection
      */
-    abstract public function read($record = null);
+    abstract public function read($record = null): Collection;
 
     /**
-     * @param mixed $record
+     * Update the record given
+     * @param array|Record $record (null)
      * @return Record
      */
-    abstract public function update($record = null);
+    abstract public function update($record = null): Record;
 
     /**
-     * @param mixed $record
+     * Remove the given record of database
+     * @param array|Record $record (null)
      * @return Record
      */
-    abstract public function destroy($record = null);
+    abstract public function destroy($record = null): Record;
 
     /**
-     * @param Record|null $record
+     * Get total of records based on filters
+     * @param array|Record $record (null)
      * @return int
      */
-    abstract public function count(Record $record = null) : int;
-
-    /**
-     * This method is called before the operation be executed, the changes made in Record will be save
-     * @param string $action
-     * @param Record $record
-     * @param Record $previous
-     * @return bool
-     */
-    protected function before(string $action, Record $record, Record $previous = null): bool
-    {
-        return true;
-    }
-
-    /**
-     * Triggered after operation be executed, the changes made in Record has no effect in storage
-     * @param string $action
-     * @param Record $record
-     * @return bool
-     */
-    protected function after(string $action, Record $record): bool
-    {
-        return true;
-    }
+    abstract public function count($record = null): int;
 
     /**
      * Configure the instance with reference properties
      * @param string $collection
      * @param string $primaryKey
-     * @param string $hashKey
-     * @return AbstractModel
+     * @param string $relationship
+     * @return $this
+     * @throws SimplesRunTimeError
      */
-    protected function instance(string $collection, string $primaryKey, string $hashKey = ''): AbstractModel
+    protected function instance(string $collection, string $primaryKey, string $relationship = '')
     {
-		if ($this->collection) {
-            $this->parents[$this->collection] = $this->primaryKey;
+        if ($this->collection) {
+            $this->parents[$relationship] =  clone $this;
+            $this->add($relationship)->integer()->collection($collection)->update(false);
+            if (!$relationship) {
+                throw new SimplesRunTimeError("When extending one model you need give a name to relationship");
+            }
         }
         $this->collection = $collection;
         $this->primaryKey = $primaryKey;
-        $this->hashKey = $hashKey ? $hashKey : $this->hashKey;
 
-        $this->addField($this->hashKey, 'string')->validator('unique');
+        $this->add($this->hashKey)->hashKey();
+        $this->add($primaryKey)->primaryKey();
+
         return $this;
     }
 
@@ -214,48 +188,48 @@ abstract class AbstractModel extends Engine
      * @param array $options
      * @return Field
      */
-    protected function addField(string $name, string $type, array $options = []): Field
+    protected function add(string $name, string $type = '', array $options = []): Field
     {
-        if ($this->primaryKey === $name) {
-            $options['primaryKey'] = true;
-        } else if (off($options, 'primaryKey')) {
-            $this->primaryKey = $name;
-        }
         $field = new Field($this->collection, $name, $type, $options);
         $this->fields[$name] = $field;
 
-        return $field;
+        return $this->fields[$name];
     }
 
     /**
-     * @return string
+     * Allow use this field like readonly in read filtering and getting it in record
+     * @param string $name
+     * @param string $relationship
+     * @param array $options
+     * @return Field
+     * @throws SimplesRunTimeError
      */
-    public function getCollection(): string
+    protected function import(string $name, string $relationship, array $options = []): Field
     {
-        return $this->collection;
-    }
+        $source = $this->get($relationship);
+        $reference = $source->getReferences();
 
-    /**
-     * @return string
-     */
-    public function getPrimaryKey(): string
-    {
-        return $this->primaryKey;
-    }
+        $class = off($reference, 'class');
+        if (!class_exists($class)) {
+            throw new SimplesRunTimeError("Cant not import '{$name}' from '{$class}'");
+        }
 
-    /**
-     * @return string
-     */
-    public function getHashKey(): string
-    {
-        return $this->hashKey;
+        /** @var DataMapper $class */
+        $import = $class::box()->get($name);
+
+        $options = array_merge($import->getOptions(), $options);
+
+        $from = new Field($import->getCollection(), $name, $import->getType(), $options);
+        $this->fields[$name] = $from->from($source);
+
+        return $this->fields[$name];
     }
 
     /**
      * @param string $name
      * @return Field
      */
-    public function getField(string $name): Field
+    final public function get(string $name): Field
     {
         return off($this->fields, $name);
     }
@@ -264,77 +238,28 @@ abstract class AbstractModel extends Engine
      * @param string $name
      * @return bool
      */
-    public function hasField(string $name): bool
+    final public function has(string $name): bool
     {
         return isset($this->fields[$name]);
     }
 
     /**
-     * @param string $action
-     * @param Record $record
-     * @return array
+     * @param string $source
+     * @param string $target
      */
-    public function getValidators(string $action, Record $record): array
+    public function map(string $source, string $target)
     {
-        $validation = new Validation();
-        foreach ($this->fields as $key => $field) {
-            $validator = $this->getValidator($field, $action);
-            if ($validator) {
-                $validation->add($key, $record->get($key), $validator);
-            }
-        }
-        return $validation->rules();
+        $this->maps[$source] = $target;
     }
 
     /**
-     * @param Field $field
+     * @SuppressWarnings("BooleanArgumentFlag");
+     *
      * @param string $action
-     * @return array|null
-     */
-    private function getValidator(Field $field, string $action)
-    {
-        $rules = null;
-        $validators = $field->getValidators();
-        if ($validators) {
-            $rules = [];
-            foreach ($validators as $validator => $options) {
-                switch ($validator) {
-                    case 'unique':
-                        // TODO: fix this to support unique on update
-                        if ($action === Action::CREATE) {
-                            $options = [
-                                'class' => get_class($this),
-                                'field' => $field->getName()
-                            ];
-                        }
-                        break;
-                    default:
-                        $options = [];
-                        break;
-                }
-                if (!is_null($options)) {
-                    $rules[$validator] = $options;
-                }
-            }
-        }
-        return $rules;
-    }
-
-    /**
-     * @param string $action
-     * @param Record $record
+     * @param bool $strict
      * @return array
      */
-    public function getDefaults(string $action, Record $record = null): array
-    {
-        return [];
-    }
-
-    /**
-     * @param $action
-     * @return array
-     */
-    public function getFields(string $action): array
+    final public function getFields(string $action = '', bool $strict = true): array
     {
         $method = '';
         switch ($action) {
@@ -350,8 +275,30 @@ abstract class AbstractModel extends Engine
                 $method = 'isUpdate';
                 break;
             }
+            case Action::RECOVER: {
+                $method = 'isRecover';
+                break;
+            }
         }
-        return array_filter($this->fields, function ($field) use ($method) {
+
+        return $this->filterFields($this->getCollection(), $method, $strict);
+    }
+
+    /**
+     * @param string $collection
+     * @param string $method
+     * @param bool $strict
+     * @return array
+     */
+    private function filterFields(string $collection, string $method, bool $strict)
+    {
+        return array_filter($this->fields, function ($field) use ($collection, $method, $strict) {
+            if ($strict && $field->getCollection() !== $collection) {
+                return null;
+            }
+            if (!$method) {
+                return $field;
+            }
             if ($method && $field->$method()) {
                 return $field;
             }
@@ -360,10 +307,131 @@ abstract class AbstractModel extends Engine
     }
 
     /**
+     * @param string $action
+     * @param Record $record
+     */
+    public function configureFields(string $action, Record $record)
+    {
+        $action = ucfirst($action);
+        if (method_exists($this, "configureFields{$action}")) {
+            call_user_func_array([$this, "configureFields{$action}"], [$record]);
+        }
+        foreach ($this->maps as $source => $target) {
+            $record->set($target, $record->get($source));
+        }
+    }
+
+    /**
+     * This method is called before the operation be executed, the changes made in Record will be save
+     * @param string $action
+     * @param Record $record
+     * @param Record $previous
+     * @return bool
+     */
+    protected function before(string $action, Record $record, Record $previous = null): bool
+    {
+        $action = ucfirst($action);
+        if (method_exists($this, "before{$action}")) {
+            return call_user_func_array([$this, "before{$action}"], [$record, $previous]);
+        }
+        return true;
+    }
+
+    /**
+     * Triggered after operation be executed, the changes made in Record has no effect in storage
+     * @param string $action
+     * @param Record $record
+     * @return bool
+     */
+    protected function after(string $action, Record $record): bool
+    {
+        $action = ucfirst($action);
+        if (method_exists($this, "after{$action}")) {
+            return call_user_func_array([$this, "after{$action}"], [$record]);
+        }
+        return true;
+    }
+
+    /**
+     * @param string $action
+     * @param Record $record
+     * @return array
+     */
+    public function getDefaults(string $action, Record $record = null): array
+    {
+        $action = ucfirst($action);
+        if (method_exists($this, "getDefaults{$action}")) {
+            return call_user_func_array([$this, "getDefaults{$action}"], [$record]);
+        }
+        return [];
+    }
+
+    /**
      * @return string
      */
-    public function hashKey(): string
+    final public function hashKey(): string
     {
         return uniqid();
+    }
+
+    /**
+     * @return array
+     */
+    final public function getParents(): array
+    {
+        return $this->parents;
+    }
+
+    /**
+     * @return string
+     */
+    final public function getCollection(): string
+    {
+        return $this->collection;
+    }
+
+    /**
+     * @return string
+     */
+    final public function getPrimaryKey(): string
+    {
+        return $this->primaryKey;
+    }
+
+    /**
+     * @return string
+     */
+    final public function getHashKey(): string
+    {
+        return $this->hashKey;
+    }
+
+    /**
+     * @param $action
+     * @throws SimplesRunTimeError
+     */
+    protected function throwAction($action)
+    {
+        throw new SimplesRunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
+    }
+
+    /**
+     * @param $action
+     * @param $hook
+     * @throws SimplesRunTimeError
+     */
+    protected function throwHook($action, $hook)
+    {
+        throw new SimplesRunTimeError("Can't resolve hook `{$action}`.`{$hook}` in '" . get_class($this) . "'");
+    }
+
+    /**
+     * @param array $details
+     * @param string $message
+     * @throws SimplesValidationError
+     */
+    protected function throwValidation(array $details, string $message = '')
+    {
+        throw new SimplesValidationError($details, $message);
     }
 }

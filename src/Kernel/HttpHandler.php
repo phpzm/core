@@ -2,6 +2,8 @@
 
 namespace Simples\Core\Kernel;
 
+use Simples\Core\Error\SimplesRunTimeError;
+use Simples\Core\Http\Controller;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Route\Match;
@@ -11,6 +13,8 @@ use Throwable;
 /**
  * Class HandlerHttp
  * @package Simples\Core\Kernel
+ *
+ * @SuppressWarnings("camelCasePropertyName")
  */
 class HttpHandler extends Response
 {
@@ -23,11 +27,6 @@ class HttpHandler extends Response
      * @var Match
      */
     private $__match;
-
-    /**
-     * @var Container
-     */
-    private $__container;
 
     /**
      * @var string
@@ -50,7 +49,6 @@ class HttpHandler extends Response
 
         $this->__request = $request;
         $this->__match = $match;
-        $this->__container = $container = Container::getInstance();
     }
 
     /**
@@ -67,14 +65,6 @@ class HttpHandler extends Response
     public function match()
     {
         return $this->__match;
-    }
-
-    /**
-     * @return Container
-     */
-    public function container()
-    {
-        return $this->__container;
     }
 
     /**
@@ -148,6 +138,7 @@ class HttpHandler extends Response
     /**
      * @param $callback
      * @return Response
+     * @throws SimplesRunTimeError
      */
     private function controller($callback)
     {
@@ -176,9 +167,11 @@ class HttpHandler extends Response
         }
 
         if (isset($class) && isset($method) && method_exists($class, $method)) {
-
             /** @var \Simples\Core\Http\Controller $controller */
-            $controller = $this->container()->make($class);
+            $controller = Container::box()->make($class);
+            if (!($controller instanceof Controller)) {
+                throw new SimplesRunTimeError("The class must be a instance of Controller, '{$class}' given");
+            }
             if (is_callable($controller)) {
                 $controller($this->request(), $this, $this->match());
             }
@@ -200,9 +193,9 @@ class HttpHandler extends Response
 
         $labels = isset($options['labels']) ? $options['labels'] : true;
         if ($method) {
-            return $this->container()->resolveMethodParameters($callable, $method, $data, $labels);
+            return Container::box()->resolveMethodParameters($callable, $method, $data, $labels);
         }
-        return $this->container()->resolveFunctionParameters($callable, $data, $labels);
+        return Container::box()->resolveFunctionParameters($callable, $data, $labels);
     }
 
     /**
@@ -213,7 +206,6 @@ class HttpHandler extends Response
     private function call($callback, $parameters)
     {
         ob_start();
-        // TODO: multi catch in line since 7.1
         try {
             $result = call_user_func_array($callback, $parameters);
         } catch (Throwable $throw) {
@@ -233,7 +225,7 @@ class HttpHandler extends Response
      * @param $content
      * @return Response
      */
-    private function parse($content) : Response
+    private function parse($content): Response
     {
         // TODO: organize usage of status codes
         $output = [];
@@ -259,9 +251,9 @@ class HttpHandler extends Response
         ];
         if ($content instanceof Throwable) {
             $status = 500;
-            if (env('TEST_MODE')) {
-                $meta['fail'] = get_class($content);
-                $meta['trace'] = $content->getTrace();
+            if ($content instanceof SimplesRunTimeError) {
+                $status = $content->getStatus();
+                $meta = array_merge($meta, error_format($content));
             }
             $content = throw_format($content);
         }

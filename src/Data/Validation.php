@@ -46,6 +46,17 @@ class Validation
     }
 
     /**
+     * @param $field
+     * @param $value
+     * @param array ...$arguments
+     * @return Validation
+     */
+    public function set($field, $value, ...$arguments)
+    {
+        return $this->add($field, $value, $arguments);
+    }
+
+    /**
      * @return array
      */
     public function rules(): array

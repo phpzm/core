@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Kernel;
 
+use ErrorException;
 use Simples\Core\Console\ControllerService;
 use Simples\Core\Console\HelpService;
 use Simples\Core\Console\ModelService;
@@ -11,9 +12,7 @@ use Simples\Core\Console\Service;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Persistence\Transaction;
-use Simples\Core\Route\Router;
 use Throwable;
-use ErrorException;
 
 /**
  * Class App
@@ -32,14 +31,9 @@ class App
     private static $CONFIGS = [];
 
     /**
-     * @var string
-     */
-    public static $ROOT;
-
-    /**
      * @var array
      */
-    private static $options;
+    private static $OPTIONS;
 
     /**
      * App constructor
@@ -58,21 +52,31 @@ class App
      */
     public function __construct($options)
     {
-        $default = [
-            'root' => __DIR__,
-            'lang' => [
-                'default' => 'en', 'fallback' => 'en'
-            ],
-            'labels' => true,
-            'headers' => [],
-            'type' => Response::CONTENT_TYPE_HTML,
-            'separator' => '@',
-            'filter' => '~>',
-            'strict' => false
-        ];
-        self::$options = array_merge($default, $options);
+        static::start($options);
+    }
 
-        self::$ROOT = off(self::$options, 'root');
+    /**
+     * @param array $options
+     * @return array
+     */
+    private static function start(array $options = [])
+    {
+        if (!self::$OPTIONS) {
+            $default = [
+                'root' => dirname(__DIR__, 5),
+                'lang' => [
+                    'default' => 'en', 'fallback' => 'en'
+                ],
+                'labels' => true,
+                'headers' => [],
+                'type' => Response::CONTENT_TYPE_HTML,
+                'separator' => '@',
+                'filter' => '~>',
+                'strict' => false
+            ];
+            self::$OPTIONS = array_merge($default, $options);
+        }
+        return self::$OPTIONS;
     }
 
     /**
@@ -84,16 +88,18 @@ class App
      */
     public static function options($key = null, $value = null)
     {
+        self::start();
         if ($key) {
             if (!$value) {
-                return self::$options[$key] ?? null;
+                return self::$OPTIONS[$key] ?? null;
             }
-            self::$options[$key] = $value;
+            self::$OPTIONS[$key] = $value;
         }
-        return self::$options;
+        return self::$OPTIONS;
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
      * Used to catch http requests and handle response to their
      *
      * @param bool $output (true) Define if the method will generate one output with the response
@@ -104,16 +110,15 @@ class App
     {
         $fail = null;
         $response = null;
+
         $http = new Http(self::request());
         try {
-
             $response = $http->handler();
             if ($response->isSuccess()) {
                 if (!Transaction::commit()) {
                     throw new ErrorException("Transaction can't commit the changes");
                 }
             }
-
         } catch (Throwable $throw) {
             $fail = $throw;
         }
@@ -177,7 +182,7 @@ class App
     {
         if (!self::$REQUEST) {
             // TODO: container
-            $request = new Request(self::$options['strict']);
+            $request = new Request(self::$OPTIONS['strict']);
             self::$REQUEST = $request->fromServer();
         }
         return self::$REQUEST;
@@ -215,21 +220,14 @@ class App
     }
 
     /**
-     * Load the routes of project
-     *
-     * @param Router $router The router what will be used
-     * @param array $files (null) If not informe will be used "route.files"
-     * @return Router Object with the routes loaded in
+     * Get value default created in defaults config to some class
+     * @param string $class
+     * @param string $property
+     * @return mixed
      */
-    public static function routes(Router $router, array $files = null)
+    public static function defaults(string $class, string $property)
     {
-        $files = $files ? $files : self::config('route.files');
-
-        foreach ($files as $file) {
-            $router->load(path(true, $file));
-        }
-
-        return $router;
+        return static::config("defaults.{$class}.{$property}");
     }
 
     /**
@@ -238,15 +236,38 @@ class App
      * Ex.: `self::route('/download/images/picture.png')`, will print //localhost/download/images/picture.png
      *
      * @param string $uri Path to route
-     * @param bool $print Output or not the route generated
      * @return string
      */
-    public static function route($uri, $print = true)
+    public static function route($uri)
     {
-        $route = '//' . self::request()->getUrl() . '/' . ($uri{0} === '/' ? substr($uri, 1) : $uri);
-        if ($print) {
-            out($route);
+        return '//' . self::request()->getUrl() . '/' . ($uri{0} === '/' ? substr($uri, 1) : $uri);
+    }
+
+    /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
+     * @param array $trace
+     * @param bool $filter
+     * @return array
+     */
+    public static function beautifulTrace(array $trace, bool $filter = true): array
+    {
+        $stack = [];
+        foreach ($trace as $value) {
+            $trace = off($value, 'function');
+            if ($trace === 'call_user_func_array') {
+                continue;
+            }
+            $class = off($value, 'class');
+            $function = off($value, 'function');
+            if ($filter && strpos($class, 'Simples\\Core\\Kernel') === 0) {
+                continue;
+            }
+            if ($class && $function) {
+                $trace = $class . App::options('separator') . $function;
+            }
+            $stack[] = $trace;
         }
-        return $route;
+        return $stack;
     }
 }

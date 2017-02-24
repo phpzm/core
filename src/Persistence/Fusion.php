@@ -21,6 +21,11 @@ class Fusion
     /**
      * @var string
      */
+    private $source;
+
+    /**
+     * @var string
+     */
     private $references;
 
     /**
@@ -29,18 +34,30 @@ class Fusion
     private $exclusive;
 
     /**
+     * @var bool
+     */
+    private $rename;
+
+    /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Fusion constructor.
-     * @param string $referenced
      * @param string $collection
+     * @param string $referenced
+     * @param string $source
      * @param string $references
      * @param bool $exclusive
+     * @param bool $rename
      */
-    public function __construct($referenced, $collection, $references, $exclusive = false)
+    public function __construct(string $collection, string $referenced, string $source, string $references,
+                                $exclusive = false, $rename = true)
     {
-        $this->referenced = $referenced;
         $this->collection = $collection;
+        $this->referenced = $referenced;
+        $this->source = $source;
         $this->references = $references;
         $this->exclusive = $exclusive;
+        $this->rename = $rename;
     }
 
     /**
@@ -98,6 +115,24 @@ class Fusion
     }
 
     /**
+     * @return string
+     */
+    public function getSource(): string
+    {
+        return $this->source;
+    }
+
+    /**
+     * @param string $source
+     * @return Fusion
+     */
+    public function setSource(string $source): Fusion
+    {
+        $this->source = $source;
+        return $this;
+    }
+
+    /**
      * @return bool
      */
     public function isExclusive(): bool
@@ -112,6 +147,24 @@ class Fusion
     public function setExclusive(bool $exclusive): Fusion
     {
         $this->exclusive = $exclusive;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRename(): bool
+    {
+        return $this->rename;
+    }
+
+    /**
+     * @param bool $rename
+     * @return Fusion
+     */
+    public function setRename(bool $rename): Fusion
+    {
+        $this->rename = $rename;
         return $this;
     }
 }

@@ -11,20 +11,6 @@ abstract class Action
     /**
      * @var string
      */
-    const CREATE = 'create';
-
-    /**
-     * @var string
-     */
-    const READ = 'read';
-
-    /**
-     * @var string
-     */
-    const UPDATE = 'update';
-
-    /**
-     * @var string
-     */
-    const DESTROY = 'destroy';
+    const
+        CREATE = 'create', READ = 'read', UPDATE = 'update', DESTROY = 'destroy', RECOVER = 'recover';
 }

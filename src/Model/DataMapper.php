@@ -4,7 +4,9 @@ namespace Simples\Core\Model;
 
 use Exception;
 use Simples\Core\Data\Collection;
+use Simples\Core\Data\Error\SimplesResourceError;
 use Simples\Core\Data\Record;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Filter;
@@ -18,242 +20,285 @@ use Simples\Core\Security\Auth;
 class DataMapper extends AbstractModel
 {
     /**
-     * @param Record|array $record
-     * @return null|Record
-     * @throws \Exception
+     * Method with the responsibility of create a record of model
+     * @param array|Record $record (null)
+     * @return Record
+     * @throws SimplesRunTimeError
      */
-    final public function create($record = null)
+    final public function create($record = null): Record
     {
-        if (!$record) {
-            throw new \Exception('Create in DataMapper require parameters');
-        }
-        if (is_array($record)) {
-            $record = new Record($record);
+        $record = Record::parse($record);
+
+        foreach ($this->getParents() as $relationship => $parent) {
+            /** @var DataMapper $parent */
+            $create = $parent->create($record);
+            $record->set($relationship, $create->get($parent->getPrimaryKey()));
+            $record->import($create->all());
         }
 
         $action = Action::CREATE;
 
-        if ($this->before($action, $record)) {
-            if (!$record->get($this->hashKey)) {
-                $record->set($this->hashKey, $this->hashKey());
-            }
-
-            $fields = [];
-            $values = [];
-            foreach ($record->all() as $field => $value) {
-                if (!is_null($value)) {
-                    $fields[] = $field;
-                    $values[] = $value;
-                }
-            }
-            foreach ($this->createKeys as $type => $timestampsKey) {
-                $fields[] = $timestampsKey;
-                $values[] = $this->getTimestampValue($type);
-            }
-            $created = $this
-                ->source($this->getCollection())
-                ->fields($fields)
-                ->add($values);
-
-            if ($created) {
-
-                $record->set($this->getPrimaryKey(), $created);
-                if ($this->after($action, $record)) {
-                    return $record;
-                }
-            }
+        if (!$this->before($action, $record)) {
+            $this->throwHook($action, 'before');
         }
-        return null;
+        if (!$record->get($this->hashKey)) {
+            $record->set($this->hashKey, $this->hashKey());
+        }
+
+        $create = $this->configureRecord($action, $record);
+        $fields = $create->keys();
+        $values = $create->values();
+
+        foreach ($this->createKeys as $type => $timestampsKey) {
+            $fields[] = $timestampsKey;
+            $values[] = $this->getTimestampValue($type);
+        }
+
+        $created = $this
+            ->source($this->getCollection())
+            ->fields($fields)
+            ->register($values);
+
+        $this->reset();
+
+        if ($this->getPrimaryKey()) {
+            $record->set($this->getPrimaryKey(), $created);
+        }
+
+        if (!$this->after($action, $record)) {
+            $this->throwHook($action, 'after');
+        }
+        return $record;
     }
 
     /**
-     * @param mixed $record
+     * Read records with the filters informed
+     * @param array|Record $record (null)
      * @return Collection
+     * @throws SimplesRunTimeError
      */
-    final public function read($record = null)
+    final public function read($record = null): Collection
     {
-        if (!$record) {
-            $record = [];
-        }
-        if (is_array($record)) {
-            $record = new Record($record);
-        }
+        $record = Record::parse(of($record, []));
 
         $action = Action::READ;
 
-        if ($this->before($action, $record)) {
-            $where = [];
-            $filters = [];
-            if (!$record->isEmpty()) {
-                $where = $this->parseReadFilterFields($record->all());
-                $filters = $this->parseReadFilterValues($where);
-            }
-
-            if ($this->destroyKeys) {
-                $where[] = $this->getDestroyFilter();
-            }
-
-            $relations = $this->parseReadRelations();
-
-            $collection = $this
-                ->source($this->getCollection())
-                ->relation($relations)
-                ->fields($this->parseReadFields())
-                ->filter($where)
-                ->get($filters);
-
-            $this->relation(null);
-
-            $after = new Record(['collection' => $collection]);
-            if ($this->after($action, $after)) {
-                return new Collection($after->get('collection'));
-            }
+        if (!$this->before($action, $record)) {
+            $this->throwHook($action, 'before');
         }
-        return null;
+
+        $where = [];
+        $filters = [];
+        if (!$record->isEmpty()) {
+            $where = $this->parseFilterFields($record->all());
+            $filters = $this->parseFilterValues($where);
+        }
+
+        if ($this->destroyKeys) {
+            $where[] = $this->getDestroyFilter();
+        }
+
+        $array = $this
+            ->source($this->getCollection())
+            ->relation($this->parseReadRelations())
+            ->fields($this->getActionFields($action, false))
+            ->filter($where)// TODO: needs review
+            ->recover($filters);
+
+        $this->reset();
+
+        $record = Record::make($array);
+        if (!$this->after($action, $record)) {
+            $this->throwHook($action, 'after');
+        }
+        return Collection::make($record->all());
     }
 
     /**
-     * @param Record|array $record
-     * @return null|Record
-     * @throws \Exception
+     * Update the record given
+     * @param array|Record $record (null)
+     * @return Record
+     * @throws SimplesRunTimeError
      */
-    final public function update($record = null)
+    final public function update($record = null): Record
     {
-        if (!$record) {
-            throw new \Exception('Update in DataMapper require parameters');
-        }
-        if (is_array($record)) {
-            $record = new Record($record);
+        $record = Record::parse($record);
+
+        foreach ($this->getParents() as $parent) {
+            /** @var DataMapper $parent */
+            $record->import($parent->update($record)->all());
         }
 
         $action = Action::UPDATE;
 
         $previous = $this->previous($record);
+
         if ($previous->isEmpty()) {
-            return null;
+            throw new SimplesResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
 
-        if ($this->before($action, $record, $previous)) {
-            $fields = [];
-            $values = [];
-
-            foreach ($record->all([$this->hashKey, $this->getPrimaryKey()]) as $field => $value) {
-                if (!is_null($value)) {
-                    $fields[] = $field;
-                    $values[] = $value;
-                }
-            }
-            foreach ($this->updateKeys as $type => $timestampsKey) {
-                $fields[] = $timestampsKey;
-                $values[] = $this->getTimestampValue($type);
-            }
-
-            $filter = new Filter($this->getField($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
-
-            $updated = $this
-                ->source($this->getCollection())
-                ->fields($fields)
-                ->filter([$filter])
-                ->set($values, [$filter->getValue()]);
-
-            if ($updated) {
-                foreach ($record->all() as $name => $value) {
-                    $previous->set($name, $value);
-                }
-                $record = $previous;
-
-                if ($this->after($action, $record)) {
-                    return $record;
-                }
-            }
+        if (!$this->before($action, $record, $previous)) {
+            $this->throwHook($action, 'before');
         }
-        return null;
+
+        $record->setPrivate($this->getHashKey());
+
+        $update = $this->configureRecord($action, $record);
+        $fields = $update->keys();
+        $values = $update->values();
+
+        foreach ($this->updateKeys as $type => $timestampsKey) {
+            $fields[] = $timestampsKey;
+            $values[] = $this->getTimestampValue($type);
+        }
+
+        $filter = new Filter($this->get($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
+
+        $updated = $this
+            ->source($this->getCollection())
+            ->fields($fields)
+            ->filter([$filter])// TODO: needs review
+            ->change($values, [$filter->getValue()]);
+
+        $this->reset();
+
+        if (!$updated) {
+            $this->throwAction($action);
+        }
+        $record->setPublic($this->getHashKey());
+        $record = $previous->merge($record->all());
+
+        if (!$this->after($action, $record)) {
+            $this->throwHook($action, 'after');
+        }
+        return $record;
     }
 
     /**
-     * @param null $record
-     * @return null|Record
-     * @throws \Exception
+     * Remove the given record of database
+     * @param array|Record $record (null)
+     * @return Record
+     * @throws SimplesRunTimeError
      */
-    final public function destroy($record = null)
+    final public function destroy($record = null): Record
     {
-        if (!$record) {
-            throw new \Exception('Destroy in DataMapper require parameters');
-        }
-        if (is_array($record)) {
-            $record = new Record($record);
+        $record = Record::parse($record);
+
+        foreach ($this->getParents() as $parent) {
+            /** @var DataMapper $parent */
+            $record->import($parent->destroy($record)->all());
         }
 
         $action = Action::DESTROY;
 
         $previous = $this->previous($record);
+
         if ($previous->isEmpty()) {
-            return null;
+            throw new SimplesResourceError([$this->getHashKey() => $record->get($this->getHashKey())]);
         }
 
-        if ($this->before($action, $record, $previous)) {
-            $filter = new Filter($this->getField($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
-            $filters = [$filter];
-
-            if ($this->destroyKeys) {
-                $fields = [];
-                $values = [];
-                foreach ($this->destroyKeys as $type => $deletedKey) {
-                    $fields[] = $deletedKey;
-                    $values[] = $this->getTimestampValue($type);
-                }
-
-                $removed = $this
-                    ->source($this->getCollection())
-                    ->fields($fields)
-                    ->filter($filters)
-                    ->set($values, [$filter->getValue()]);
-            } else {
-                $removed = $this
-                    ->source($this->getCollection())
-                    ->filter($filters)
-                    ->remove([$record->get($this->getPrimaryKey())]);
-            }
-
-            if ($removed) {
-                foreach ($record->all() as $name => $value) {
-                    $previous->set($name, $value);
-                }
-                $record = $previous;
-
-                if ($this->after($action, $record)) {
-                    return $record;
-                }
-            }
+        if (!$this->before($action, $record, $previous)) {
+            $this->throwHook($action, 'before');
         }
 
-        return null;
+        $filter = new Filter($this->get($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
+        $filters = [$filter];
+
+        if ($this->destroyKeys) {
+            $fields = [];
+            $values = [];
+            foreach ($this->destroyKeys as $type => $deletedKey) {
+                $fields[] = $deletedKey;
+                $values[] = $this->getTimestampValue($type);
+            }
+
+            $removed = $this
+                ->source($this->getCollection())
+                ->fields($fields)
+                ->filter($filters)// TODO: needs review
+                ->change($values, [$filter->getValue()]);
+        }
+
+        if (!isset($removed)) {
+            $removed = $this
+                ->source($this->getCollection())
+                ->filter($filters)// TODO: needs review
+                ->remove([$record->get($this->getPrimaryKey())]);
+        }
+
+        $this->reset();
+
+        if (!$removed) {
+            $this->throwAction($action);
+        }
+        $record = $previous->merge($record->all());
+
+        if (!$this->after($action, $record)) {
+            $this->throwHook($action, 'after');
+        }
+        return $record;
     }
 
     /**
-     * @param Record|null $record
+     * Get total of records based on filters
+     * @param array|Record $record (null)
      * @return int
      */
-    public function count(Record $record = null): int
+    public function count($record = null): int
     {
+        // Record
         $alias = 'count';
-        $data = $this
+        $count = $this
             ->fields([
                 new Field($this->getCollection(), $this->getPrimaryKey(), Field::AGGREGATOR_COUNT, ['alias' => $alias])
             ])
             ->limit(null)
-            ->read($record);
+            ->read($record)->current();
 
-        if (!$data->current()->isEmpty()) {
-            return (int)$data->current()->get($alias);
+        $this->reset();
+
+        if (!$count->has($alias)) {
+            return $this->throwAction($alias);
         }
-        return 0;
+
+        return (int)$count->get($alias);
     }
 
     /**
-     * @return array
+     * @param string $action
+     * @param Record $record
+     * @return Record
      */
-    protected function parseReadFields()
+    private function configureRecord(string $action, Record $record): Record
+    {
+        $values = Record::make([]);
+        $fields = $this->getActionFields($action);
+        foreach ($fields as $field) {
+            /** @var Field $field */
+            $name = $field->getName();
+            if ($record->has($name)) {
+                $value = $record->get($name);
+            }
+            if ($field->isCalculated()) {
+                $value = $field->calculate($record);
+                $record->set($name, $value);
+            }
+            if (isset($value)) {
+                $values->set($name, $value);
+                unset($value);
+            }
+        }
+        return $values;
+    }
+
+    /**
+     * @SuppressWarnings("BooleanArgumentFlag");
+     *
+     * @param string $action
+     * @param bool $strict
+     * @return array|mixed
+     */
+    protected function getActionFields(string $action, bool $strict = true)
     {
         if (off($this->getClausules(), 'fields')) {
             $fields = off($this->getClausules(), 'fields');
@@ -263,7 +308,7 @@ class DataMapper extends AbstractModel
             $this->fields(null);
         }
         if (!isset($fields)) {
-            $fields = $this->getFields(Action::READ);
+            $fields = $this->getFields($action, $strict);
         }
         return $fields;
     }
@@ -273,13 +318,13 @@ class DataMapper extends AbstractModel
      * @return array
      * @throws Exception
      */
-    protected function parseReadFilterFields(array $data): array
+    protected function parseFilterFields(array $data): array
     {
         $filters = [];
         foreach ($data as $name => $value) {
-            $field = $this->getField($name);
+            $field = $this->get($name);
             if (is_null($field)) {
-                throw new Exception("Invalid field name '{$name}'");
+                throw new SimplesRunTimeError("Invalid field name '{$name}'");
             }
             $filters[] = new Filter($field, $value);
         }
@@ -290,7 +335,7 @@ class DataMapper extends AbstractModel
      * @param array $filters
      * @return array
      */
-    protected function parseReadFilterValues(array $filters): array
+    protected function parseFilterValues(array $filters): array
     {
         $values = [];
         /** @var Filter $filter */
@@ -313,7 +358,7 @@ class DataMapper extends AbstractModel
     {
         switch ($type) {
             case 'at':
-                return Date::create()->now();
+                return Date::now();
                 break;
             case 'by':
                 return Auth::getUser();
@@ -325,19 +370,22 @@ class DataMapper extends AbstractModel
     /**
      * @return array
      */
-    private function parseReadRelations(): array
+    protected function parseReadRelations(): array
     {
         $join = [];
+        /** @var DataMapper $parent */
+        foreach ($this->getParents() as $relationship => $parent) {
+            $join[] = new Fusion(
+                $parent->getCollection(), $parent->getPrimaryKey(), $this->getCollection(), $relationship, false, false
+            );
+        }
         foreach ($this->fields as $field) {
             /** @var Field $field */
-            $references = $field->getReferences();
-            if (count($references)) {
-                foreach ($references as $reference => $class) {
-                    /** @var DataMapper $instance */
-                    $instance = Container::getInstance()->make($class);
-                    $table = $instance->getCollection();
-                    $join[] = new Fusion($field->getName(), $table, $reference);
-                }
+            $reference = $field->getReferences();
+            if (off($reference, 'class')) {
+                /** @var DataMapper $instance */
+                $instance = Container::box()->make($reference->class);
+                $join[] = new Fusion($instance->getCollection(), $reference->referenced, $reference->collection, $field->getName());
             }
         }
         return $join;
@@ -347,13 +395,13 @@ class DataMapper extends AbstractModel
      * @param Record $record
      * @return Record
      */
-    private function previous(Record $record): Record
+    protected function previous(Record $record): Record
     {
-        $hashKey = $this->hashKey;
         $primaryKey = $this->getPrimaryKey();
+        $hashKey = $this->hashKey;
 
         $filter = [$hashKey => $record->get($hashKey)];
-        if ($record->get($primaryKey)) {
+        if (!$record->get($hashKey)) {
             $filter = [$primaryKey => $record->get($primaryKey)];
         }
 
@@ -369,9 +417,9 @@ class DataMapper extends AbstractModel
     /**
      * @return Filter
      */
-    private function getDestroyFilter(): Filter
+    protected function getDestroyFilter(): Filter
     {
         $field = new Field($this->getCollection(), $this->destroyKeys['at'], Field::TYPE_DATETIME);
-        return new Filter($field, Filter::rule(null, Filter::RULE_BLANK));
+        return new Filter($field, Filter::apply(Filter::RULE_BLANK));
     }
 }

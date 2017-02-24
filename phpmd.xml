@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<ruleset name="PHP Mess Detector"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0
+                     http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:noNamespaceSchemaLocation="
+                     http://pmd.sf.net/ruleset_xml_schema.xsd">
+  <description>
+    PHP Mess Detector
+  </description>
+
+  <!-- Clean Code Rules -->
+  <!--    BooleanArgumentFlag -->
+  <!--    ElseExpression -->
+  <!--    StaticAccess -->
+  <!--    Code Size Rules -->
+  <!--    CyclomaticComplexity -->
+  <!--    NPathComplexity -->
+  <!--    ExcessiveMethodLength -->
+  <!--    ExcessiveClassLength -->
+  <!--    ExcessiveParameterList -->
+  <!--    ExcessivePublicCount -->
+  <!--    TooManyFields -->
+  <!--    TooManyMethods -->
+  <!--    TooManyPublicMethods -->
+  <!--    ExcessiveClassComplexity -->
+
+  <!-- Controversial Rules -->
+  <!--    Superglobals -->
+  <!--    CamelCaseClassName -->
+  <!--    CamelCasePropertyName -->
+  <!--    CamelCaseMethodName -->
+  <!--    CamelCaseParameterName -->
+  <!--    CamelCaseVariableName -->
+
+  <!-- Design Rules -->
+  <!--    ExitExpression -->
+  <!--    EvalExpression -->
+  <!--    GotoStatement -->
+  <!--    NumberOfChildren -->
+  <!--    DepthOfInheritance -->
+  <!--    CouplingBetweenObjects -->
+  <!--    DevelopmentCodeFragment -->
+
+  <!-- Naming Rules -->
+  <!--    ShortVariable -->
+  <!--    LongVariable -->
+  <!--    ShortMethodName -->
+  <!--    ConstructorWithNameAsEnclosingClass -->
+  <!--    ConstantNamingConventions -->
+  <!--    BooleanGetMethodName -->
+
+  <!-- Unused Code Rules -->
+  <!--    UnusedPrivateField -->
+  <!--    UnusedLocalVariable -->
+  <!--    UnusedPrivateMethod -->
+  <!--    UnusedFormalParameter -->
+
+  <rule ref="rulesets/cleancode.xml">
+    <exclude name="StaticAccess"/>
+  </rule>
+
+  <rule ref="rulesets/codesize.xml">
+  </rule>
+
+  <rule ref="rulesets/controversial.xml">
+    <exclude name="CamelCaseVariableName"/>
+  </rule>
+
+  <rule ref="rulesets/design.xml">
+  </rule>
+
+  <rule ref="rulesets/naming.xml">
+    <exclude name="ShortVariable"/>
+    <exclude name="LongVariable"/>
+    <exclude name="ShortMethodName"/>
+  </rule>
+
+  <rule ref="rulesets/unusedcode.xml">
+  </rule>
+
+</ruleset>

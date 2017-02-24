@@ -12,6 +12,7 @@ abstract class HelpService extends Service
 {
     /**
      * @param App $app
+     * @SuppressWarnings("unused")
      */
     public static function execute(App $app)
     {

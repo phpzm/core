@@ -15,14 +15,14 @@ use Throwable;
 class Http
 {
     /**
+     * @var array
+     */
+    const METHODS = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'find', 'purge', 'deletehard'];
+
+    /**
      * @var Request
      */
     private $request;
-
-    /**
-     * @var string
-     */
-    private $contentType;
 
     /**
      * @var Match
@@ -39,16 +39,34 @@ class Http
     }
 
     /**
+     * Load the routes of project
+     *
+     * @param Router $router The router what will be used
+     * @param array $files (null) If not informe will be used "route.files"
+     * @return Router Object with the routes loaded in
+     */
+    public static function routes(Router $router, array $files = null)
+    {
+        $files = $files ? $files : App::config('route.files');
+
+        foreach ($files as $file) {
+            $router->load(path(true, $file));
+        }
+
+        return $router;
+    }
+
+    /**
      * @return Response
      */
     public function handler(): Response
     {
         // TODO: container
-        $router = new Router(App::options('separator'), App::options('labels'), App::options('type'));
+        $router = new Router(App::options('labels'), App::options('type'));
 
         // TODO: make routes here
         /** @var Match $match */
-        $this->match = App::routes($router)->match($this->request->getMethod(), $this->request->getUri());
+        $this->match = static::routes($router)->match($this->request->getMethod(), $this->request->getUri());
 
         $handler = new HttpHandler($this->request, $this->match);
 

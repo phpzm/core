@@ -3,13 +3,11 @@
 namespace Simples\Core\Persistence\SQL;
 
 use PDO;
-use Simples\Core\Error\RunTimeError;
-use Simples\Core\Model\Field;
+use Simples\Core\Persistence\SQL\Error\SimplesSQLDataErrorSimples;
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Persistence\Driver;
 use Simples\Core\Persistence\Filter;
 use Simples\Core\Persistence\Fusion;
-use Exception;
-use ErrorException;
 
 /**
  * Class SQLDriver
@@ -54,36 +52,42 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $clausules
      * @param array $values
      * @return string
-     * @throws ErrorException
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function create(array $clausules, array $values)
     {
         $sql = $this->getInsert($clausules);
-        $this->addLog($sql, $values, off($clausules, 'log', false));
+        $parameters = array_values($values);
+
+        $this->addLog($sql, $parameters, off($clausules, 'log', false));
         $statement = $this->statement($sql);
 
-        if ($statement && $statement->execute(array_values($values))) {
+        if ($statement && $statement->execute($parameters)) {
             return $this->connection()->lastInsertId();
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
      * @param array $clausules
      * @param array $values
      * @return array
-     * @throws ErrorException
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function read(array $clausules, array $values = [])
     {
         $sql = $this->getSelect($clausules);
-        $this->addLog($sql, $values, off($clausules, 'log', false));
+        $parameters = array_values($values);
+
+        $this->addLog($sql, $parameters, off($clausules, 'log', false));
         $statement = $this->statement($sql);
 
-        if ($statement && $statement->execute(array_values($values))) {
+        if ($statement && $statement->execute($parameters)) {
             return $statement->fetchAll(PDO::FETCH_ASSOC);
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -91,7 +95,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $values
      * @param array $filters
      * @return int
-     * @throws ErrorException
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function update(array $clausules, array $values, array $filters)
     {
@@ -105,26 +109,30 @@ abstract class SQLDriver extends SQLConnection implements Driver
         if ($statement && $statement->execute($parameters)) {
             return $statement->rowCount();
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
      * @param array $clausules
      * @param array $values
      * @return int
-     * @throws ErrorException
+     * @throws SimplesSQLDataErrorSimples
      */
     final public function destroy(array $clausules, array $values)
     {
         $sql = $this->getDelete($clausules);
+        $parameters = array_values($values);
+
         $this->addLog($sql, $values, off($clausules, 'log', false));
 
         $statement = $this->statement($sql);
 
-        if ($statement && $statement->execute(array_values($values))) {
+        if ($statement && $statement->execute($parameters)) {
             return $statement->rowCount();
         }
-        throw new ErrorException(implode(', ', $statement->errorInfo()));
+
+        throw new SimplesSQLDataErrorSimples([$statement->errorInfo()], [$sql, $parameters]);
     }
 
     /**
@@ -133,13 +141,10 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getInsert(array $clausules): string
     {
-        $source = off($clausules, 'source', '<source>');
-        $fields = off($clausules, 'fields', '<fields>');
+        $source = off($clausules, 'source', '<< source >>');
+        $fields = off($clausules, 'fields', '<< fields >>');
 
-        $inserts = [];
-        foreach ($fields as $key => $field) {
-            $inserts[] = '?';
-        }
+        $inserts = array_slice(explode(',', str_repeat(',?', count($fields))), 1);
 
         $command = [];
         $command[] = 'INSERT INTO';
@@ -157,8 +162,8 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getSelect(array $clausules): string
     {
-        $table = off($clausules, 'source', '<source>');
-        $columns = off($clausules, 'fields', '<fields>');
+        $table = off($clausules, 'source', '<< source >>');
+        $columns = off($clausules, 'fields', '<< fields >>');
         $join = off($clausules, 'relation');
 
         $command = [];
@@ -203,9 +208,9 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getUpdate(array $clausules): string
     {
-        $table = off($clausules, 'source', '<source>');
+        $table = off($clausules, 'source', '<< source >>');
         $join = off($clausules, 'relation');
-        $columns = off($clausules, 'fields', '<fields>');
+        $columns = off($clausules, 'fields', '<< fields >>');
 
         $sets = $columns;
         if (is_array($columns)) {
@@ -240,12 +245,12 @@ abstract class SQLDriver extends SQLConnection implements Driver
      */
     public function getDelete(array $clausules): string
     {
-        $source = off($clausules, 'source', '<source>');
+        $table = off($clausules, 'source', '<< source >>');
         $join = off($clausules, 'relation');
 
         $command = [];
         $command[] = 'DELETE FROM';
-        $command[] = $source;
+        $command[] = $table;
         if ($join) {
             $command[] = $this->parseJoin($join);
         }
@@ -265,7 +270,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $clausules
      * @param array $modifiers
      * @return array
-     * @throws Exception
+     * @throws SimplesRunTimeError
      */
     private function modifiers(array $clausules, array $modifiers): array
     {
@@ -276,7 +281,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
                 $key = ucfirst($key);
                 $key = "parse{$key}";
                 if (!method_exists($this, $key)) {
-                    throw new Exception("Invalid modifier {$key}");
+                    throw new SimplesRunTimeError("Invalid modifier {$key}");
                 }
                 $value = $this->$key($value, $modifier['separator']);
                 $command[] = $modifier['instruction'] . ' ' . $value;
@@ -345,16 +350,20 @@ abstract class SQLDriver extends SQLConnection implements Driver
      * @param array $resources
      * @return string
      */
-    private function parseJoin(array $resources): string
+    protected function parseJoin(array $resources): string
     {
         $join = [];
         /** @var Fusion $resource */
         foreach ($resources as $resource) {
             $type = $resource->isExclusive() ? 'INNER' : 'LEFT';
-            $table = $resource->getCollection();
-            $left = $resource->getReferenced();
-            $right = $resource->getReferences();
-            $join[] = "{$type} JOIN {$table} ON ({$left} = {$right})";
+            $collection = $resource->getCollection();
+            $left = "`{$resource->getSource()}`.`{$resource->getReferences()}`";
+            $alias = $resource->getCollection();
+            if ($resource->isRename()) {
+                $alias = '__' . strtoupper($resource->getReferences()) . '__';
+            }
+            $right = "`{$alias}`.`{$resource->getReferenced()}`";
+            $join[] = "{$type} JOIN `{$collection}` AS {$alias} ON ({$left} = {$right})";
         }
 
         return implode(' ', $join);
@@ -363,7 +372,7 @@ abstract class SQLDriver extends SQLConnection implements Driver
     /**
      * @param $columns
      * @return string
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function parseColumns($columns)
     {
@@ -379,6 +388,6 @@ abstract class SQLDriver extends SQLConnection implements Driver
             }
             return implode(', ', $fields);
         }
-        throw new RunTimeError("Columns must be an 'array' or 'string', {$type} given");
+        throw new SimplesRunTimeError("Columns must be an 'array' or 'string', {$type} given");
     }
 }

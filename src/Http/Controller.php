@@ -4,7 +4,6 @@ namespace Simples\Core\Http;
 
 use Simples\Core\Persistence\Transaction;
 use Simples\Core\Route\Match;
-use Simples\Core\Route\Wrapper;
 
 /**
  * @method Response answerContinue($data = null, $meta = []) // 100

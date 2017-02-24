@@ -3,7 +3,6 @@
 namespace Simples\Core\Persistence;
 
 use Simples\Core\Route\Wrapper;
-use \Throwable;
 
 /**
  * Class Connection
@@ -57,6 +56,8 @@ abstract class Connection
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $command
      * @param array $parameters
      * @param bool $logging (false)

@@ -14,7 +14,7 @@ class Date extends DateTime
     /**
      * @var string
      */
-    private $format = 'Y-m-d';
+    private static $format = 'Y-m-d';
 
     /**
      * Date constructor.
@@ -25,7 +25,7 @@ class Date extends DateTime
     {
         parent::__construct($time);
 
-        $this->format = of($format, $this->format);
+        static::$format = of($format, static::$format);
     }
 
     /**
@@ -41,7 +41,15 @@ class Date extends DateTime
     /**
      * @return string
      */
-    public function now()
+    public static function today(): string
+    {
+        return date('Y-m-d');
+    }
+
+    /**
+     * @return string
+     */
+    public static function now()
     {
         return date('Y-m-d H:i:s');
     }
@@ -50,42 +58,20 @@ class Date extends DateTime
      * @param $date
      * @return bool
      */
-    public function isDate($date)
+    public static function isDate($date)
     {
-        $temp = self::createFromFormat($this->format, $date);
-        return $temp && $temp->format($this->format) === $date;
+        $temp = self::createFromFormat(static::$format, $date);
+        return $temp && $temp->format(static::$format) === $date;
     }
 
     /**
-     * @param array $holidays Array with dates formatted with `d/m`
-     * @param int $forward Minimum of days to add
-     * @param array $weekend Days of week what will be like holidays
+     * @param string $date
+     * @param int $months
      * @return string
      */
-    public function next(array $holidays = [], int $forward = 0, $weekend = ['0', '6'])
+    public static function nextMonth(string $date, int $months): string
     {
-        $search = true;
-        $dated = 0;
-
-        do {
-            $week = $this->format('w');
-            $day = $this->format('d/m');
-
-            $is_weekend = in_array($week, $weekend);
-            $is_holiday = in_array($day, $holidays);
-            $is_dated = $dated >= $forward;
-
-            if (!$is_weekend && !$is_holiday && $is_dated) {
-                return $this->toString();
-            }
-
-            $this->addDays(1);
-            if (!$is_weekend && !$is_holiday) {
-                $dated++;
-            }
-        } while ($search);
-
-        return $this->toString();
+        return date('Y-m-d', strtotime($date . " +" . $months . " month"));
     }
 
     /**
@@ -109,13 +95,15 @@ class Date extends DateTime
     }
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * @param string $compare
      * @param bool $absolute
      * @return int
      */
     public function diffDays($compare = 'today', $absolute = false)
     {
-        if (!($compare instanceOf DateTime)) {
+        if (!($compare instanceof DateTime)) {
             $compare = new DateTime($compare);
         }
         return (int)parent::diff($compare, $absolute)->format('%d');
@@ -124,9 +112,9 @@ class Date extends DateTime
     /**
      * @return string
      */
-    public function toString()
+    protected function toString()
     {
-        return $this->format($this->format);
+        return $this->format(static::$format);
     }
 
     /**

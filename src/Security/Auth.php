@@ -54,7 +54,7 @@ abstract class Auth
             self::PAYLOAD_USER => $user,
             self::PAYLOAD_DEVICE => $device
         ];
-        return Jwt::create(array_merge($options, $data), env('SECURITY'));
+        return JWT::create(array_merge($options, $data), env('SECURITY'));
     }
 
     /**
@@ -67,7 +67,7 @@ abstract class Auth
         if (!$token) {
             return '';
         }
-        return off(Jwt::payload($token, env('SECURITY')), $property);
+        return off(JWT::payload($token, env('SECURITY')), $property);
     }
 
     /**

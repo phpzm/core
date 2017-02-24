@@ -2,8 +2,8 @@
 
 namespace Simples\Core\Persistence;
 
-use Simples\Core\Error\RunTimeError;
-use Simples\Core\Helper\Json;
+use Simples\Core\Error\SimplesRunTimeError;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Kernel\App;
 use Simples\Core\Model\Field;
 
@@ -36,11 +36,13 @@ class Filter
     /**
      * @var string
      */
-    const RULE_EQUAL = 'equal', RULE_NEAR = 'near', RULE_BETWEEN = 'between',
+    const RULE_EQUAL = 'equal',  RULE_NOT = 'not', RULE_NEAR = 'near', RULE_BETWEEN = 'between',
         RULE_DAY = 'day', RULE_MONTH = 'month', RULE_YEAR = 'year', RULE_COMPETENCE = 'competence',
         RULE_BLANK = 'blank';
 
     /**
+     * @SuppressWarnings("BooleanArgumentFlag")
+     *
      * Filter constructor.
      * @param Field $field
      * @param mixed $value
@@ -80,6 +82,22 @@ class Filter
     }
 
     /**
+     * @return bool
+     */
+    public function hasFrom(): bool
+    {
+        return $this->field->hasFrom();
+    }
+
+    /**
+     * @return Field
+     */
+    public function getFrom(): Field
+    {
+        return $this->field->getFrom();
+    }
+
+    /**
      * @return mixed
      */
     public function getValue()
@@ -113,18 +131,15 @@ class Filter
     }
 
     /**
-     * @param mixed $value
      * @param string $rule
+     * @param mixed $value
      * @return string
      */
-    public static function rule($value, $rule = null): string
+    public static function apply(string $rule, $value = null): string
     {
         $marker = App::options('filter');
         if (!is_scalar($value)) {
-            $value = Json::encode($value);
-        }
-        if (!$rule) {
-            $rule = static::RULE_EQUAL;
+            $value = JSON::encode($value);
         }
         return "{$rule}{$marker}{$value}";
     }
@@ -147,7 +162,7 @@ class Filter
             case static::RULE_NEAR: {
                 $value = $this->value;
                 if (!is_scalar($value)) {
-                    $value = Json::encode($value);
+                    $value = JSON::encode($value);
                 }
                 return "%{$value}%";
             }
@@ -160,14 +175,14 @@ class Filter
      * @param string $separator
      * @param int $size
      * @return array
-     * @throws RunTimeError
+     * @throws SimplesRunTimeError
      */
     protected function separator(string $value, string $separator, int $size): array
     {
         $array = explode($separator, $value);
         if (count($array) < $size) {
             $count = count($array);
-            throw new RunTimeError("Invalid number of arguments to create a rule. " .
+            throw new SimplesRunTimeError("Invalid number of arguments to create a rule. " .
                 "Expected '{$size}' given '{$count}' to rule '{$this->rule}'");
         }
         if (count($array) > $size) {

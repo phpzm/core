@@ -2,10 +2,9 @@
 
 namespace Simples\Core\Http;
 
+use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
-use \InvalidArgumentException;
-use \RuntimeException;
-use \Exception;
+use RuntimeException;
 
 /**
  * Class Stream
@@ -34,13 +33,16 @@ class Stream implements StreamInterface
 
         if (is_resource($stream)) {
             $this->resource = $stream;
-        } elseif (is_string($stream)) {
-            $this->resource = fopen($this->stream, $mode);
-        } else {
-            throw new InvalidArgumentException(
-                'Invalid stream provided; must be a string stream identifier or resource'
-            );
+            return $this;
         }
+        if (is_string($stream)) {
+            $this->resource = fopen($this->stream, $mode);
+            return $this;
+        }
+
+        throw new InvalidArgumentException(
+            'Invalid stream provided; must be a string stream identifier or resource'
+        );
     }
 
     /**

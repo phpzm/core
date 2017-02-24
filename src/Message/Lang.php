@@ -69,7 +69,7 @@ abstract class Lang
     public static function replace($i18n, $parameters)
     {
         foreach ($parameters as $key => $value) {
-            $i18n = str_replace('{' . $key . '}', out($value, false), $i18n);
+            $i18n = str_replace('{' . $key . '}', parse($value), $i18n);
         }
         return $i18n;
     }

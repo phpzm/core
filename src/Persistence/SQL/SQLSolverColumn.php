@@ -32,9 +32,15 @@ class SQLSolverColumn
      */
     private function parseColumnField(Field $column): string
     {
+        $collection = $column->getCollection();
+        if ($column->hasFrom()) {
+            $collection = '__' . strtoupper($column->getFrom()->getName()) . '__';
+        }
+        $name = $column->getName();
+
         switch ($column->getType()) {
             case Field::AGGREGATOR_COUNT: {
-                $field = "COUNT(`{$column->getCollection()}`.`{$column->getName()}`)";
+                $field = "COUNT(`{$collection}`.`{$name}`)";
                 /** @noinspection PhpAssignmentInConditionInspection */
                 if ($alias = off($column->getOptions(), 'alias')) {
                     $field = "{$field} AS {$alias}";
@@ -42,7 +48,7 @@ class SQLSolverColumn
                 break;
             }
             default:
-                $field = "`{$column->getCollection()}`.`{$column->getName()}`";
+                $field = "`{$collection}`.`{$name}`";
         }
         return $field;
     }

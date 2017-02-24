@@ -2,7 +2,7 @@
 
 namespace Simples\Core\Http;
 
-use Simples\Core\Helper\Json;
+use Simples\Core\Helper\JSON;
 use Simples\Core\Kernel\App;
 use Simples\Core\Template\View;
 
@@ -195,18 +195,19 @@ class Response extends ResponseStream
     public function meta($property, $value)
     {
         $contents = $this->getBody()->getContents();
-        if (Json::isJson($contents)) {
-            $contents = Json::decode($contents);
+        if (JSON::isJson($contents)) {
+            $contents = JSON::decode($contents);
             if (gettype($contents) === TYPE_OBJECT) {
                 if (isset($contents->meta)) {
                     if (gettype($contents->meta) === TYPE_OBJECT) {
+                        /** @noinspection PhpVariableVariableInspection */
                         $contents->meta->$property = $value;
                     }
                     if (gettype($contents->meta) === TYPE_ARRAY) {
                         $contents->meta[$property] = $value;
                     }
                 }
-                $this->write(Json::encode($contents), true);
+                $this->write(JSON::encode($contents), true);
             }
         }
         return $this;

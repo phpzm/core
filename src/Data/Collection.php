@@ -2,76 +2,140 @@
 
 namespace Simples\Core\Data;
 
-use Iterator;
-use Simples\Core\Unit\Origin;
+use Simples\Core\Error\SimplesRunTimeError;
+use Simples\Core\Model\AbstractModel;
 
 /**
  * Class Collection
+ * @property Collection map
+ * @property Collection filter
+ * @property Collection each
  * @package Simples\Core\Domain
  */
-class Collection extends Origin implements Iterator
+class Collection extends AbstractCollection
 {
+    /**
+     * @var AbstractModel
+     */
+    protected $model;
+
     /**
      * @var array
      */
-    private $records = [];
-
-    /**
-     * @var mixed
-     */
-    private $instance;
+    protected $higher = [];
 
     /**
      * Collection constructor.
-     * @param $array
-     * @param $instance
+     * @param array $records
+     * @param AbstractModel|null $model
      */
-    public function __construct($array, $instance = null)
+    public function __construct(array $records = [], AbstractModel $model = null)
     {
-        if (is_array($array)) {
-            $this->records = $array;
-        }
-        $this->instance = $instance;
+        $this->records = $records;
+        $this->model = $model;
     }
 
     /**
-     * @param $instance
-     * @return $this
+     * @param array $records
+     * @param AbstractModel|null $model
+     * @return Collection
      */
-    public function with($instance)
+    public static function make(array $records = [], AbstractModel $model = null): Collection
     {
-        $this->instance = $instance;
+        return new static($records, $model);
+    }
+
+    /**
+     * @param AbstractModel $model
+     * @return Collection
+     */
+    public function model(AbstractModel $model): Collection
+    {
+        $this->model = $model;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 
     /**
+     * is utilized for reading data from inaccessible members.
+     *
+     * @param $name string
+     * @return Collection
+     * @throws SimplesRunTimeError
+     * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members
+     */
+    public function __get($name): Collection
+    {
+        if (!method_exists($this, $name)) {
+            throw new SimplesRunTimeError("Method '{$name}' not found");
+        }
+        $this->higher[] = $name;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this;
+    }
+
+    /** @noinspection SpellCheckingInspection */
+    /**
+     * Ex.:
+     *   $result = Collection::create([new Example('apple'), new Example('orange')])
+     *      ->map->each->getFruit()->getRecords();
+     *   var_dump($result);
+     *   ["elppa", "egnaro"]
+     *
      * @param $name
      * @param $arguments
-     * @return Collection
+     * @return mixed
+     * @throws SimplesRunTimeError
      */
     public function __call($name, $arguments)
     {
-        $instance = $this->instance;
-        if ($instance) {
-            return $this->map(function($value, $key) use ($instance, $name, $arguments) {
-                return call_user_func_array([$instance, $name], array_merge($key, $value, $arguments));
+        if ($this->higher) {
+            $records = $this->records;
+            foreach ($this->higher as $higher) {
+                $records = $this->{$higher}(function ($value) use ($name, $arguments) {
+                    return call_user_func_array([$value, $name], $arguments);
+                });
+            }
+            $this->higher = [];
+            return $records;
+        }
+        $model = $this->model;
+        if ($model) {
+            return $this->map(function ($value) use ($model, $name, $arguments) {
+                return call_user_func_array([$model, $name], [$value]);
             });
+        }
+        throw new SimplesRunTimeError("Not found '{$name}'");
+    }
+
+    /**
+     * @param callable $callback
+     * @return Collection
+     */
+    public function each(callable $callback): Collection
+    {
+        foreach ($this->records as $key => $record) {
+            $this->records[$key] = $callback($record);
         }
         return $this;
     }
 
     /**
      * @param callable $callback
-     * @return $this
+     * @return array
      */
-    public function each(callable $callback)
+    public function map(callable $callback)
     {
-        foreach ($this->records as $record) {
-            if ($callback($record) === false) {
-                break;
-            }
-        }
-        return $this;
+        return array_map($callback, $this->records);
+    }
+
+    /**
+     * @param callable $callback
+     * @return array
+     */
+    public function filter(callable $callback)
+    {
+        return array_filter($this->records, $callback);
     }
 
     /**
@@ -80,72 +144,5 @@ class Collection extends Origin implements Iterator
     public function size()
     {
         return count($this->records);
-    }
-
-    /**
-     *
-     */
-    public function rewind()
-    {
-        reset($this->records);
-    }
-
-    /**
-     * @return Record
-     */
-    public function current()
-    {
-        $var = current($this->records);
-        if ($var) {
-            return new Record($var);
-        }
-        return new Record([]);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function key()
-    {
-        $var = key($this->records);
-        return $var;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function next()
-    {
-        $var = next($this->records);
-        return $var;
-    }
-
-    /**
-     * @return bool
-     */
-    public function valid()
-    {
-        $key = key($this->records);
-        $var = ($key !== null && $key !== false);
-        return $var;
-    }
-
-    /**
-     * @return array
-     */
-    public function getRecords()
-    {
-        return $this->records;
-    }
-
-    /**
-     * @param $closure
-     * @return $this
-     */
-    public function map($closure)
-    {
-        $this->records = array_map($closure, $this->records);
-
-        return $this;
     }
 }
