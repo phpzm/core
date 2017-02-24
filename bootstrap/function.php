@@ -1,4 +1,5 @@
 <?php
+
 use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Kernel\App;
 
