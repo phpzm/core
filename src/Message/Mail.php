@@ -199,8 +199,7 @@ class Mail
      * @param $filename
      * @return Mail
      */
-    public
-    static function load($filename): Mail
+    public static function load($filename): Mail
     {
         $instance = new static();
         if (File::exists($filename)) {
@@ -217,8 +216,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function json()
+    public function json()
     {
         $properties = [];
         foreach ($this as $key => $value) {
@@ -232,8 +230,7 @@ class Mail
      * @param $address
      * @param string $name
      */
-    public
-    function addCC($address, $name = '')
+    public function addCC($address, $name = '')
     {
         $this->ccs[] = (object)['address' => $address, 'name' => $name];
     }
@@ -243,8 +240,7 @@ class Mail
      * @param string $description
      * @return bool
      */
-    public
-    function addAttachment($filename, $description = '')
+    public function addAttachment($filename, $description = '')
     {
         if (File::exists($filename)) {
             $this->attachments[] = (object)['filename' => $filename, 'description' => $description];
@@ -256,8 +252,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getSubject()
+    public function getSubject()
     {
         return $this->subject;
     }
@@ -265,8 +260,7 @@ class Mail
     /**
      * @param string $subject
      */
-    public
-    function setSubject($subject)
+    public function setSubject($subject)
     {
         $this->subject = $subject;
     }
@@ -274,8 +268,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getMessage()
+    public function getMessage()
     {
         return $this->message;
     }
@@ -283,8 +276,7 @@ class Mail
     /**
      * @param string $message
      */
-    public
-    function setMessage($message)
+    public function setMessage($message)
     {
         $this->message = $message;
     }
@@ -292,8 +284,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getToAddress()
+    public function getToAddress()
     {
         return $this->toAddress;
     }
@@ -301,8 +292,7 @@ class Mail
     /**
      * @param string $toAddress
      */
-    public
-    function setToAddress($toAddress)
+    public function setToAddress($toAddress)
     {
         $this->toAddress = $toAddress;
     }
@@ -310,8 +300,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getToName()
+    public function getToName()
     {
         return $this->toName;
     }
@@ -319,8 +308,7 @@ class Mail
     /**
      * @param string $toName
      */
-    public
-    function setToName($toName)
+    public function setToName($toName)
     {
         $this->toName = $toName;
     }
@@ -328,8 +316,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getAlt()
+    public function getAlt()
     {
         return $this->alt;
     }
@@ -337,8 +324,7 @@ class Mail
     /**
      * @param string $alt
      */
-    public
-    function setAlt($alt)
+    public function setAlt($alt)
     {
         $this->alt = $alt;
     }
@@ -346,8 +332,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getFromAddress()
+    public function getFromAddress()
     {
         return $this->fromAddress;
     }
@@ -355,8 +340,7 @@ class Mail
     /**
      * @param string $fromAddress
      */
-    public
-    function setFromAddress($fromAddress)
+    public function setFromAddress($fromAddress)
     {
         $this->fromAddress = $fromAddress;
     }
@@ -364,8 +348,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getFromName()
+    public function getFromName()
     {
         return $this->fromName;
     }
@@ -373,8 +356,7 @@ class Mail
     /**
      * @param string $fromName
      */
-    public
-    function setFromName($fromName)
+    public function setFromName($fromName)
     {
         $this->fromName = $fromName;
     }
@@ -382,8 +364,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getReplyToAddress()
+    public function getReplyToAddress()
     {
         return $this->replyToAddress;
     }
@@ -391,8 +372,7 @@ class Mail
     /**
      * @param string $replyToAddress
      */
-    public
-    function setReplyToAddress($replyToAddress)
+    public function setReplyToAddress($replyToAddress)
     {
         $this->replyToAddress = $replyToAddress;
     }
@@ -400,8 +380,7 @@ class Mail
     /**
      * @return string
      */
-    public
-    function getReplyToName()
+    public function getReplyToName()
     {
         return $this->replyToName;
     }
@@ -409,8 +388,7 @@ class Mail
     /**
      * @param string $replyToName
      */
-    public
-    function setReplyToName($replyToName)
+    public function setReplyToName($replyToName)
     {
         $this->replyToName = $replyToName;
     }
@@ -418,8 +396,7 @@ class Mail
     /**
      * @return array
      */
-    public
-    function getAttachments()
+    public function getAttachments()
     {
         return $this->attachments;
     }
@@ -427,8 +404,7 @@ class Mail
     /**
      * @param array $attachments
      */
-    public
-    function setAttachments($attachments)
+    public function setAttachments($attachments)
     {
         $this->attachments = $attachments;
     }
@@ -436,8 +412,7 @@ class Mail
     /**
      * @return array
      */
-    public
-    function getCcs()
+    public function getCcs()
     {
         return $this->ccs;
     }
@@ -445,8 +420,7 @@ class Mail
     /**
      * @param array $ccs
      */
-    public
-    function setCcs($ccs)
+    public function setCcs($ccs)
     {
         $this->ccs = $ccs;
     }

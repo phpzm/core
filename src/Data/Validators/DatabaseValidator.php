@@ -34,7 +34,7 @@ trait DatabaseValidator
      * @param $value
      * @return bool
      */
-    public function isReject ($value): bool
+    public function isReject($value): bool
     {
         return empty($value);
     }

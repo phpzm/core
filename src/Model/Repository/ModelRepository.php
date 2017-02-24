@@ -199,7 +199,7 @@ class ModelRepository
      */
     public function getFields(): array
     {
-        return $this->model->getFields(Action::RECOVER);
+        return $this->model->getFields(Action::RECOVER, false);
     }
 
     /**

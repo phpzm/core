@@ -22,6 +22,6 @@ class SimplesValidationError extends SimplesRunTimeError
      */
     public function __construct(array $details = [], string $message = '')
     {
-        parent::__construct('Validation error' . ($message ? 'in `' . $message . '`' : '') , $details);
+        parent::__construct('Validation error' . ($message ? 'in `' . $message . '`' : ''), $details);
     }
 }

@@ -11,7 +11,6 @@ use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
 use Simples\Core\Persistence\Filter;
 use Simples\Core\Persistence\Fusion;
-use Simples\Core\Route\Wrapper;
 use Simples\Core\Security\Auth;
 
 /**
@@ -218,7 +217,9 @@ class DataMapper extends AbstractModel
                 ->fields($fields)
                 ->filter($filters)// TODO: needs review
                 ->change($values, [$filter->getValue()]);
-        } else {
+        }
+
+        if (!isset($removed)) {
             $removed = $this
                 ->source($this->getCollection())
                 ->filter($filters)// TODO: needs review

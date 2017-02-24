@@ -2,8 +2,8 @@
 
 namespace Simples\Core\Model;
 
-use Simples\Core\Data\Record;
 use Simples\Core\Error\SimplesRunTimeError;
+use stdClass;
 
 /**
  * @method Field string($size = 255)
@@ -15,10 +15,44 @@ use Simples\Core\Error\SimplesRunTimeError;
  * @method Field file()
  * @method Field array()
  * @method Field boolean()
+ *
+ * @method Field collection($collection)
+ * @method Field name($name)
+ * @method Field type($type)
+ * @method Field label($label)
+ * @method Field alias($alias)
+ * @method Field create($create)
+ * @method Field read($read)
+ * @method Field update($update)
+ * @method Field recover($recover)
+ *
+ * @method string getCollection()
+ * @method Field setCollection($collection)
+ * @method string getName()
+ * @method Field setName($name)
+ * @method string getType()
+ * @method Field setType($type)
+ * @method string getLabel()
+ * @method Field setLabel($label)
+ * @method string getAlias()
+ * @method Field setAlias($alias)
+ * @method bool isPrimaryKey()
+ * @method Field setPrimaryKey($primaryKey)
+ * @method bool isCreate()
+ * @method Field setCreate($create)
+ * @method bool isRead()
+ * @method Field setRead($read)
+ * @method bool isUpdate()
+ * @method Field setUpdate($update)
+ * @method bool isRecover()
+ * @method Field setRecover($recover)
+ *
+ * @method Field default($default)
+ *
  * Class Field
  * @package Simples\Core\Model
  */
-class Field extends AbstractField
+class Field
 {
     /**
      * @var string
@@ -38,37 +72,118 @@ class Field extends AbstractField
     private $supported = ['string', 'text', 'datetime', 'date', 'integer', 'float', 'file', 'array', 'boolean'];
 
     /**
+     * @var array
+     */
+    private $options = [];
+
+    /**
+     * @var array
+     */
+    protected $validators;
+
+    /**
+     * @var array
+     */
+    protected $enum;
+
+    /**
+     * @var array
+     */
+    protected $referenced;
+
+    /**
+     * @var stdClass
+     */
+    protected $references;
+
+    /**
+     * @var Field
+     */
+    protected $from;
+
+    /**
+     * @var callable
+     */
+    protected $calculated;
+
+    /**
+     * @var callable
+     */
+    protected $map;
+
+    /**
      * Field constructor.
      * @param string $collection
      * @param string $name
-     * @param string $type
-     * @param array $options
+     * @param string $type (null)
+     * @param array $options ([])
      */
-    public function __construct(string $collection, string $name, string $type = '', array $options = [])
+    public function __construct(string $collection, string $name, string $type = null, array $options = [])
     {
-        $this->collection = $collection;
-        $this->name = $name;
-        $this->type = $type ? $type : Field::TYPE_STRING;
-        $this->options = $options;
-
         $default = [
-            'primaryKey' => false, 'label' => '', 'validators' => [],
-            'create' => true, 'read' => true, 'update' => true, 'recover' => true, 'readonly' => false,
-            'enum' => [], 'referenced' => [], 'references' => (object)[], 'default' => ''
+            'collection' => $collection, 'name' => $name, 'type' => $type ?? Field::TYPE_STRING,
+            'primaryKey' => false, 'label' => '', 'default' => '', 'alias' => '',
+            'create' => true, 'read' => true, 'update' => true, 'recover' => true
         ];
-        $options = array_merge($default, $options);
+        $this->options = array_merge($default, $options);
 
-        foreach ($options as $key => $value) {
-            /** @noinspection PhpVariableVariableInspection */
-            $this->$key = $value;
-        }
-        if (off($options, 'primaryKey')) {
+        if (off($this->options, 'primaryKey')) {
             $this->create(false);
             $this->update(false);
         }
         if (!is_array($this->validators)) {
             $this->optional();
         }
+
+        $this->validators = [];
+        $this->enum = [];
+        $this->referenced = [];
+        $this->references = (object)[];
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     * @return mixed
+     * @throws SimplesRunTimeError
+     */
+    public function __call($name, $arguments)
+    {
+        if (in_array($name, array_keys($this->options), true) && isset($arguments[0])) {
+            $this->options[$name] = $arguments[0];
+            return $this;
+        }
+        if (substr($name, 0, 3) === 'get') {
+            return $this->option(lcfirst(substr($name, 3)));
+        }
+        if (substr($name, 0, 2) === 'is') {
+            return $this->option(lcfirst(substr($name, 2)));
+        }
+        if (substr($name, 0, 3) === 'set' && isset($arguments[0])) {
+            $this->option(lcfirst(substr($name, 3)), $arguments[0]);
+            return $this;
+        }
+        if (in_array($name, $this->supported, true)) {
+            $this->option('type', $name);
+            if (!$this->validators) {
+                $this->optional();
+            }
+            return $this;
+        }
+        throw new SimplesRunTimeError("Type '{$name}' not supported");
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value (null)
+     * @return mixed
+     */
+    public function option(string $key, $value = null)
+    {
+        if ($value) {
+            $this->options[$key] = $value;
+        }
+        return off($this->options, $key);
     }
 
     /**
@@ -130,7 +245,7 @@ class Field extends AbstractField
             'class' => $class
         ];
         if ($nullable) {
-            $this->default = null;
+            $this->option('default', null);
         }
         return $this;
     }
@@ -141,7 +256,7 @@ class Field extends AbstractField
      */
     public function enum(array $items): Field
     {
-        if (!$this->type) {
+        if (!$this->option('type')) {
             $this->string();
         }
         $this->enum = $items;
@@ -153,7 +268,7 @@ class Field extends AbstractField
      */
     public function nullable(): Field
     {
-        $this->default = null;
+        $this->option('default', null);
         return $this;
     }
 
@@ -176,7 +291,7 @@ class Field extends AbstractField
      */
     public function required(array $rules = []): Field
     {
-        $this->validator(['required', $this->type], null, true);
+        $this->validator(['required', $this->option('type')], null, true);
         foreach ($rules as $rule) {
             $this->validator($rule, ['optional' => true], false);
         }
@@ -189,7 +304,7 @@ class Field extends AbstractField
      */
     public function optional(array $rules = []): Field
     {
-        $this->validator($this->type, ['optional' => true], true);
+        $this->validator($this->option('type'), ['optional' => true], true);
         foreach ($rules as $rule) {
             $this->validator($rule, ['optional' => true], false);
         }
@@ -217,24 +332,6 @@ class Field extends AbstractField
     }
 
     /**
-     * @param $name
-     * @param $arguments
-     * @return Field
-     * @throws SimplesRunTimeError
-     */
-    public function __call($name, $arguments): Field
-    {
-        if (in_array($name, $this->supported)) {
-            $this->type = $name;
-            if (!$this->validators) {
-                $this->optional();
-            }
-            return $this;
-        }
-        throw new SimplesRunTimeError("Type '{$name}' not supported");
-    }
-
-    /**
      * @return bool
      */
     public function hasFrom(): bool
@@ -247,7 +344,7 @@ class Field extends AbstractField
      */
     public function readonly()
     {
-        $this->readonly = true;
+        $this->option('readonly', true);
         return $this->create(false)->read(false)->update(false);
     }
 
@@ -266,7 +363,7 @@ class Field extends AbstractField
      */
     public function primaryKey(): Field
     {
-        $this->primaryKey = true;
+        $this->option('primaryKey', true);
         return $this->integer()->recover(false);
     }
 
@@ -276,5 +373,81 @@ class Field extends AbstractField
     public function hashKey(): Field
     {
         return $this->optional(['unique'])->update(false);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefault()
+    {
+        if (is_callable($this->option('default'))) {
+            $callable = $this->option('default');
+            return $callable();
+        }
+        return $this->option('default');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCalculated(): bool
+    {
+        return is_callable($this->calculated);
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @return array
+     */
+    public function getEnum(): array
+    {
+        return $this->enum;
+    }
+
+    /**
+     * @return array
+     */
+    public function getReferenced(): array
+    {
+        return $this->referenced;
+    }
+
+    /**
+     * @return stdClass
+     */
+    public function getReferences(): stdClass
+    {
+        return $this->references;
+    }
+
+    /**
+     * @return Field
+     */
+    public function getFrom(): Field
+    {
+        return $this->from;
+    }
+
+    /**
+     * @return callable
+     */
+    public function getCalculated(): callable
+    {
+        return $this->calculated;
+    }
+
+    /**
+     * @return callable
+     */
+    public function getMap(): callable
+    {
+        return $this->map;
     }
 }

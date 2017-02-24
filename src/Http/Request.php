@@ -522,7 +522,7 @@ class Request implements RequestInterface
     public function withMethod($method)
     {
         if (!in_array($method, Http::METHODS)) {
-
+            throw new \InvalidArgumentException("The method `{$method}` is not valid");
         }
         $copy = clone $this;
         $copy->method = $method;

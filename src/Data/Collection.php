@@ -64,7 +64,7 @@ class Collection extends AbstractCollection
      * @throws SimplesRunTimeError
      * @link http://php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members
      */
-    function __get($name): Collection
+    public function __get($name): Collection
     {
         if (!method_exists($this, $name)) {
             throw new SimplesRunTimeError("Method '{$name}' not found");

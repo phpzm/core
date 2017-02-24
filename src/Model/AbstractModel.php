@@ -168,8 +168,7 @@ abstract class AbstractModel extends Engine
     {
         if ($this->collection) {
             $this->parents[$relationship] =  clone $this;
-            $this->add($relationship)->integer()->setCollection($collection)->update(false);
-
+            $this->add($relationship)->integer()->collection($collection)->update(false);
             if (!$relationship) {
                 throw new SimplesRunTimeError("When extending one model you need give a name to relationship");
             }
@@ -194,7 +193,7 @@ abstract class AbstractModel extends Engine
         $field = new Field($this->collection, $name, $type, $options);
         $this->fields[$name] = $field;
 
-        return $field;
+        return $this->fields[$name];
     }
 
     /**
@@ -218,10 +217,12 @@ abstract class AbstractModel extends Engine
         /** @var DataMapper $class */
         $import = $class::box()->get($name);
 
+        $options = array_merge($import->getOptions(), $options);
+
         $from = new Field($import->getCollection(), $name, $import->getType(), $options);
         $this->fields[$name] = $from->from($source);
 
-        return $from;
+        return $this->fields[$name];
     }
 
     /**

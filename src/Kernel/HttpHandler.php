@@ -167,7 +167,6 @@ class HttpHandler extends Response
         }
 
         if (isset($class) && isset($method) && method_exists($class, $method)) {
-
             /** @var \Simples\Core\Http\Controller $controller */
             $controller = Container::box()->make($class);
             if (!($controller instanceof Controller)) {
@@ -207,7 +206,6 @@ class HttpHandler extends Response
     private function call($callback, $parameters)
     {
         ob_start();
-
         try {
             $result = call_user_func_array($callback, $parameters);
         } catch (Throwable $throw) {

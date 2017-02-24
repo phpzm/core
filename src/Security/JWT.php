@@ -2,7 +2,6 @@
 
 namespace Simples\Core\Security;
 
-use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Helper\JSON;
 use Simples\Core\Http\Error\SimplesForbiddenError;
 
