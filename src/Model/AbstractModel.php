@@ -405,33 +405,4 @@ abstract class AbstractModel extends Engine
     {
         return $this->hashKey;
     }
-
-    /**
-     * @param $action
-     * @throws SimplesRunTimeError
-     */
-    protected function throwAction($action)
-    {
-        throw new SimplesRunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
-    }
-
-    /**
-     * @param $action
-     * @param $hook
-     * @throws SimplesRunTimeError
-     */
-    protected function throwHook($action, $hook)
-    {
-        throw new SimplesRunTimeError("Can't resolve hook `{$action}`.`{$hook}` in '" . get_class($this) . "'");
-    }
-
-    /**
-     * @param array $details
-     * @param string $message
-     * @throws SimplesValidationError
-     */
-    protected function throwValidation(array $details, string $message = '')
-    {
-        throw new SimplesValidationError($details, $message);
-    }
 }
