@@ -355,3 +355,24 @@ function test($output, $optional = null)
     }
     return $optional;
 }
+
+/**
+ * @param array $argv
+ * @return array
+ */
+function argv(array $argv): array
+{
+    array_shift($argv);
+
+    $parameters = [];
+    foreach ($argv as $arg) {
+        $parameter = explode('=', $arg);
+        $value = $parameter[0];
+        if (count($parameter) === 2) {
+            $parameters[$value] = $parameter[1];
+            continue;
+        }
+        $parameters[] = $value;
+    }
+    return $parameters;
+}

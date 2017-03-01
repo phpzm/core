@@ -14,9 +14,10 @@ class MigratoryService extends Service
 {
     /**
      * @param App $app
+     * @param array $parameters
      * @SuppressWarnings("unused")
      */
-    public static function execute(App $app)
+    public static function execute(App $app, array $parameters = [])
     {
         // TODO: Implement execute() method.
     }

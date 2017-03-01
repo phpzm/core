@@ -14,8 +14,10 @@ abstract class RouteService extends Service
 {
     /**
      * @param App $app
+     * @param array $parameters
+     * @SuppressWarnings("unused")
      */
-    public static function execute(App $app)
+    public static function execute(App $app, array $parameters = [])
     {
         $router = new Router($app::options('labels'), $app::options('type'));
 
