@@ -376,3 +376,34 @@ function argv(array $argv): array
     }
     return $parameters;
 }
+
+/**
+ * @param string $camelCase
+ * @return string
+ */
+function dasherize(string $camelCase): string
+{
+    $dashes = preg_replace_callback('/([A-Z])/',
+        create_function('$matches', 'return \'-\' . strtolower($matches[1]);'), $camelCase
+    );
+    return substr($dashes, 1);
+}
+
+/**
+ * @param string $dashes
+ * @param bool $first
+ * @return mixed
+ * @SuppressWarnings("BooleanArgumentFlag")
+ */
+function camelize(string $dashes, $first = true): string
+{
+    $camelCase = preg_replace_callback('/-(.)/',
+        create_function('$matches', 'return strtoupper($matches[1]);'), $dashes
+    );
+    $case = 'strtoupper';
+    if (!$first) {
+        $case = 'strtolower';
+    }
+    $camelCase[0] = $case($camelCase[0]);
+    return (string)$camelCase;
+}
