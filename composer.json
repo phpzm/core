@@ -19,7 +19,6 @@
   "require": {
     "php": ">=7.0",
     "psr/http-message": "^1.0",
-    "danielstjules/stringy": "^2.3",
     "phpmailer/phpmailer": "^5.2",
     "neitanod/forceutf8": "^2.0"
   },
