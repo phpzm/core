@@ -355,3 +355,55 @@ function test($output, $optional = null)
     }
     return $optional;
 }
+
+/**
+ * @param array $argv
+ * @return array
+ */
+function argv(array $argv): array
+{
+    array_shift($argv);
+
+    $parameters = [];
+    foreach ($argv as $arg) {
+        $parameter = explode('=', $arg);
+        $value = $parameter[0];
+        if (count($parameter) === 2) {
+            $parameters[$value] = $parameter[1];
+            continue;
+        }
+        $parameters[] = $value;
+    }
+    return $parameters;
+}
+
+/**
+ * @param string $camelCase
+ * @return string
+ */
+function dasherize(string $camelCase): string
+{
+    $dashes = preg_replace_callback('/([A-Z])/',
+        create_function('$matches', 'return \'-\' . strtolower($matches[1]);'), $camelCase
+    );
+    return substr($dashes, 1);
+}
+
+/**
+ * @param string $dashes
+ * @param bool $first
+ * @return mixed
+ * @SuppressWarnings("BooleanArgumentFlag")
+ */
+function camelize(string $dashes, $first = true): string
+{
+    $camelCase = preg_replace_callback('/-(.)/',
+        create_function('$matches', 'return strtoupper($matches[1]);'), $dashes
+    );
+    $case = 'strtoupper';
+    if (!$first) {
+        $case = 'strtolower';
+    }
+    $camelCase[0] = $case($camelCase[0]);
+    return (string)$camelCase;
+}

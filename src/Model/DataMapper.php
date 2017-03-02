@@ -9,6 +9,8 @@ use Simples\Core\Data\Record;
 use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Helper\Date;
 use Simples\Core\Kernel\Container;
+use Simples\Core\Model\Error\SimplesActionError;
+use Simples\Core\Model\Error\SimplesHookError;
 use Simples\Core\Persistence\Filter;
 use Simples\Core\Persistence\Fusion;
 use Simples\Core\Security\Auth;
@@ -23,7 +25,7 @@ class DataMapper extends AbstractModel
      * Method with the responsibility of create a record of model
      * @param array|Record $record (null)
      * @return Record
-     * @throws SimplesRunTimeError
+     * @throws SimplesHookError
      */
     final public function create($record = null): Record
     {
@@ -39,7 +41,7 @@ class DataMapper extends AbstractModel
         $action = Action::CREATE;
 
         if (!$this->before($action, $record)) {
-            $this->throwHook($action, 'before');
+            throw new SimplesHookError(get_class($this), $action, 'before');
         }
         if (!$record->get($this->hashKey)) {
             $record->set($this->hashKey, $this->hashKey());
@@ -66,7 +68,7 @@ class DataMapper extends AbstractModel
         }
 
         if (!$this->after($action, $record)) {
-            $this->throwHook($action, 'after');
+            throw new SimplesHookError(get_class($this), $action, 'after');
         }
         return $record;
     }
@@ -75,7 +77,7 @@ class DataMapper extends AbstractModel
      * Read records with the filters informed
      * @param array|Record $record (null)
      * @return Collection
-     * @throws SimplesRunTimeError
+     * @throws SimplesHookError
      */
     final public function read($record = null): Collection
     {
@@ -84,7 +86,7 @@ class DataMapper extends AbstractModel
         $action = Action::READ;
 
         if (!$this->before($action, $record)) {
-            $this->throwHook($action, 'before');
+            throw new SimplesHookError(get_class($this), $action, 'before');
         }
 
         $where = [];
@@ -109,7 +111,7 @@ class DataMapper extends AbstractModel
 
         $record = Record::make($array);
         if (!$this->after($action, $record)) {
-            $this->throwHook($action, 'after');
+            throw new SimplesHookError(get_class($this), $action, 'after');
         }
         return Collection::make($record->all());
     }
@@ -118,7 +120,9 @@ class DataMapper extends AbstractModel
      * Update the record given
      * @param array|Record $record (null)
      * @return Record
-     * @throws SimplesRunTimeError
+     * @throws SimplesActionError
+     * @throws SimplesHookError
+     * @throws SimplesResourceError
      */
     final public function update($record = null): Record
     {
@@ -138,7 +142,7 @@ class DataMapper extends AbstractModel
         }
 
         if (!$this->before($action, $record, $previous)) {
-            $this->throwHook($action, 'before');
+            throw new SimplesHookError(get_class($this), $action, 'before');
         }
 
         $record->setPrivate($this->getHashKey());
@@ -163,13 +167,13 @@ class DataMapper extends AbstractModel
         $this->reset();
 
         if (!$updated) {
-            $this->throwAction($action);
+            throw new SimplesActionError(get_class($this), $action);
         }
         $record->setPublic($this->getHashKey());
         $record = $previous->merge($record->all());
 
         if (!$this->after($action, $record)) {
-            $this->throwHook($action, 'after');
+            throw new SimplesHookError(get_class($this), $action, 'after');
         }
         return $record;
     }
@@ -178,7 +182,9 @@ class DataMapper extends AbstractModel
      * Remove the given record of database
      * @param array|Record $record (null)
      * @return Record
-     * @throws SimplesRunTimeError
+     * @throws SimplesActionError
+     * @throws SimplesHookError
+     * @throws SimplesResourceError
      */
     final public function destroy($record = null): Record
     {
@@ -198,7 +204,7 @@ class DataMapper extends AbstractModel
         }
 
         if (!$this->before($action, $record, $previous)) {
-            $this->throwHook($action, 'before');
+            throw new SimplesHookError(get_class($this), $action, 'before');
         }
 
         $filter = new Filter($this->get($this->getPrimaryKey()), $record->get($this->getPrimaryKey()));
@@ -229,12 +235,12 @@ class DataMapper extends AbstractModel
         $this->reset();
 
         if (!$removed) {
-            $this->throwAction($action);
+            throw new SimplesActionError(get_class($this), $action);
         }
         $record = $previous->merge($record->all());
 
         if (!$this->after($action, $record)) {
-            $this->throwHook($action, 'after');
+            throw new SimplesHookError(get_class($this), $action, 'after');
         }
         return $record;
     }
@@ -243,6 +249,7 @@ class DataMapper extends AbstractModel
      * Get total of records based on filters
      * @param array|Record $record (null)
      * @return int
+     * @throws SimplesActionError
      */
     public function count($record = null): int
     {
@@ -258,7 +265,7 @@ class DataMapper extends AbstractModel
         $this->reset();
 
         if (!$count->has($alias)) {
-            return $this->throwAction($alias);
+            throw new SimplesActionError(get_class($this), $alias);
         }
 
         return (int)$count->get($alias);

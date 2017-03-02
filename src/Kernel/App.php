@@ -3,12 +3,6 @@
 namespace Simples\Core\Kernel;
 
 use ErrorException;
-use Simples\Core\Console\ControllerService;
-use Simples\Core\Console\HelpService;
-use Simples\Core\Console\ModelService;
-use Simples\Core\Console\RepositoryService;
-use Simples\Core\Console\RouteService;
-use Simples\Core\Console\Service;
 use Simples\Core\Http\Request;
 use Simples\Core\Http\Response;
 use Simples\Core\Persistence\Transaction;
@@ -137,40 +131,11 @@ class App
     /**
      * Handler to cli services, provide a interface to access services
      *
-     * @param string $service The requested service
+     * @param array $service The requested service
      */
-    public function cli($service)
+    public function cli(array $service)
     {
-        echo "@start/\n";
-        echo "Press ^C or type 'exit' at any time to quit.\n";
-
-        do {
-            switch ($service) {
-                case 'route': {
-                    RouteService::execute($this);
-                    $service = '';
-                    break;
-                }
-                case 'model': {
-                    ModelService::execute($this);
-                    $service = '';
-                    break;
-                }
-                case 'controller':
-                    ControllerService::execute($this);
-                    $service = '';
-                    break;
-                case 'repository':
-                    RepositoryService::execute($this);
-                    $service = '';
-                    break;
-            };
-            if (!$service || $service === 'help') {
-                HelpService::execute($this);
-            }
-
-            $service = read();
-        } while (!in_array($service, Service::KILLERS));
+        Console::handler($this, $service);
     }
 
     /**

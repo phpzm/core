@@ -10,7 +10,7 @@
   ],
   "homepage": "https://github.com/phpzm/core",
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "package",
   "authors": [
     {"name": "William", "email": "wilcorrea@gmail.com"},
@@ -19,7 +19,6 @@
   "require": {
     "php": ">=7.0",
     "psr/http-message": "^1.0",
-    "danielstjules/stringy": "^2.3",
     "phpmailer/phpmailer": "^5.2",
     "neitanod/forceutf8": "^2.0"
   },

@@ -93,7 +93,7 @@ abstract class Controller
      * @param Match $match
      * @return $this
      */
-    public function __invoke(Request $request, Response $response, Match $match)
+    public final function boot(Request $request, Response $response, Match $match)
     {
         $this->request = $request;
         $this->response = $response;

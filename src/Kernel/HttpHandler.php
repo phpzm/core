@@ -142,43 +142,67 @@ class HttpHandler extends Response
      */
     private function controller($callback)
     {
-        // TODO: simplify
+        $callable = $this->getCallable($callback);
+
+        if (isset($callable['class'])) {
+            $class = $callable['class'];
+
+            /** @var \Simples\Core\Http\Controller $controller */
+            $controller = Container::box()->make($class);
+            if (!($controller instanceof Controller)) {
+                throw new SimplesRunTimeError("The class must be a instance of Controller, `{$class}` given");
+            }
+            $controller->boot($this->request(), $this, $this->match());
+
+            $method = $callable['method'] ?? null;
+            /** @noinspection PhpParamsInspection */
+            if (!method_exists($controller, $method) && is_callable($controller)) {
+                $method = '__invoke';
+            }
+            if ($method) {
+                return $this->call([$controller, $method], $this->parameters($controller, $method));
+            }
+        }
+
+        return $this->parse(null);
+    }
+
+    /**
+     * @param $callback
+     * @return array
+     */
+    private function getCallable($callback): array
+    {
         switch (gettype($callback)) {
             case TYPE_ARRAY: {
                 if (isset($callback[0]) && isset($callback[1])) {
-                    $class = $callback[0];
-                    $method = $callback[1];
-                } else {
-                    foreach ($callback as $key => $value) {
-                        $class = $key;
-                        $method = $value;
-                    }
+                    return [
+                        'class' => $callback[0],
+                        'method' => $callback[1]
+                    ];
+                }
+                foreach ($callback as $key => $value) {
+                    return [
+                        'class' => $key,
+                        'method' => $value
+                    ];
                 }
                 break;
             }
             case TYPE_STRING: {
                 $peaces = explode(App::options('separator'), $callback);
                 $class = $peaces[0];
-                $method = substr($this->match()->getUri(), 1, -1);
+                $method = camelize(substr($this->match()->getUri(), 1, -1), false);
                 if (isset($peaces[1])) {
                     $method = $peaces[1];
                 }
+                return [
+                    'class' => $class,
+                    'method' => $method
+                ];
             }
         }
-
-        if (isset($class) && isset($method) && method_exists($class, $method)) {
-            /** @var \Simples\Core\Http\Controller $controller */
-            $controller = Container::box()->make($class);
-            if (!($controller instanceof Controller)) {
-                throw new SimplesRunTimeError("The class must be a instance of Controller, '{$class}' given");
-            }
-            if (is_callable($controller)) {
-                $controller($this->request(), $this, $this->match());
-            }
-            return $this->call([$controller, $method], $this->parameters($controller, $method));
-        }
-
-        return $this->parse(null);
+        return [];
     }
 
     /**

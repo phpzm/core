@@ -9,7 +9,6 @@ use Simples\Core\Data\Validators\LogicalValidator;
 use Simples\Core\Data\Validators\NumberValidator;
 use Simples\Core\Data\Validators\StringValidator;
 use Simples\Core\Helper\JSON;
-use Stringy\Stringy;
 
 /**
  * Class Validator
@@ -75,7 +74,7 @@ class Validator
      */
     public function apply(string $rule, $value, $options): bool
     {
-        $method = (string)Stringy::create("is-{$rule}")->camelize();
+        $method = camelize("is-{$rule}");
         if (method_exists($this, $method)) {
             return $this->$method($value, $options);
         }

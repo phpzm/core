@@ -16,7 +16,7 @@ use Simples\Core\Persistence\Engine;
 abstract class AbstractModel extends Engine
 {
     /**
-     * Connection name
+     * Connection id
      * @var string
      */
     protected $connection;
@@ -404,34 +404,5 @@ abstract class AbstractModel extends Engine
     final public function getHashKey(): string
     {
         return $this->hashKey;
-    }
-
-    /**
-     * @param $action
-     * @throws SimplesRunTimeError
-     */
-    protected function throwAction($action)
-    {
-        throw new SimplesRunTimeError("Can't resolve '{$action}' in '" . get_class($this) . "'");
-    }
-
-    /**
-     * @param $action
-     * @param $hook
-     * @throws SimplesRunTimeError
-     */
-    protected function throwHook($action, $hook)
-    {
-        throw new SimplesRunTimeError("Can't resolve hook `{$action}`.`{$hook}` in '" . get_class($this) . "'");
-    }
-
-    /**
-     * @param array $details
-     * @param string $message
-     * @throws SimplesValidationError
-     */
-    protected function throwValidation(array $details, string $message = '')
-    {
-        throw new SimplesValidationError($details, $message);
     }
 }
