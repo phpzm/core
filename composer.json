@@ -10,7 +10,7 @@
   ],
   "homepage": "https://github.com/phpzm/core",
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "package",
   "authors": [
     {"name": "William", "email": "wilcorrea@gmail.com"},
