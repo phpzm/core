@@ -18,8 +18,8 @@
   ],
   "require": {
     "php": ">=7.0",
+    "phpzm/message": "^0.1.2",
     "psr/http-message": "^1.0",
-    "phpmailer/phpmailer": "^5.2",
     "neitanod/forceutf8": "^2.0"
   },
   "autoload": {

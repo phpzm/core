@@ -3,8 +3,6 @@
 namespace Simples\Core\Persistence;
 
 use Simples\Core\Error\SimplesRunTimeError;
-use Simples\Core\Helper\JSON;
-use Simples\Core\Helper\Text;
 use Simples\Core\Kernel\App;
 
 /**
