@@ -2,6 +2,7 @@
 
 namespace Simples\Core\Persistence;
 
+use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Helper\JSON;
 use Simples\Core\Helper\Text;
 use Simples\Core\Kernel\App;
@@ -73,22 +74,21 @@ class Engine
 
     /**
      * @return Driver
-     * @throws \Exception
+     * @throws SimplesRunTimeError
      */
-    protected function driver()
+    protected function driver(): Driver
     {
         if ($this->driver) {
             return $this->driver;
         }
-        $settings = Text::replace(JSON::encode($this->settings), '"', "'");
-        throw new \Exception("Cant use driver: {$settings}");
+        throw new SimplesRunTimeError("Cant use the driver", $this->settings);
     }
 
     /**
      * @param array $values
      * @return string
      */
-    final public function register($values)
+    final public function register($values): string
     {
         return $this->driver()->create($this->clausules, $values);
     }
@@ -97,7 +97,7 @@ class Engine
      * @param $values
      * @return array
      */
-    final public function recover($values = [])
+    final public function recover($values = []): array
     {
         return $this->driver()->read($this->clausules, $values);
     }
@@ -107,7 +107,7 @@ class Engine
      * @param $filters
      * @return int
      */
-    final public function change($values, $filters = [])
+    final public function change($values, $filters = []): int
     {
         return $this->driver()->update($this->clausules, $values, $filters);
     }
@@ -116,7 +116,7 @@ class Engine
      * @param $filters
      * @return int
      */
-    final public function remove($filters)
+    final public function remove($filters): int
     {
         return $this->driver()->destroy($this->clausules, $filters);
     }

@@ -16,7 +16,7 @@ use Simples\Core\Persistence\Engine;
 abstract class AbstractModel extends Engine
 {
     /**
-     * Connection name
+     * Connection id
      * @var string
      */
     protected $connection;
