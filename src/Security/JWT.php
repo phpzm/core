@@ -53,7 +53,7 @@ abstract class JWT
     public static function verify(string $token, string $secret): bool
     {
         $peaces = explode('.', $token);
-        if (count($peaces) > 3) {
+        if (count($peaces) < 3) {
             return false;
         }
         $header = $peaces[0];

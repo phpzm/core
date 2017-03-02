@@ -36,6 +36,8 @@ class Container
     }
 
     /**
+     * A singleton to a Container instance
+     *
      * @return Container Current Container container instance
      */
     public static function box()
@@ -128,13 +130,14 @@ class Container
     }
 
     /**
-     * @SuppressWarnings("BooleanArgumentFlag")
+     * Generate a list of values to be used like parameters to one method
      *
      * @param $instance
      * @param $method
      * @param $parameters
      * @param bool $labels
      * @return array
+     * @SuppressWarnings("BooleanArgumentFlag")
      */
     public function resolveMethodParameters($instance, $method, $parameters, $labels = false)
     {
@@ -146,12 +149,13 @@ class Container
     }
 
     /**
-     * @SuppressWarnings("BooleanArgumentFlag")
+     * Generate a list of values to be used like parameters to one function
      *
      * @param $callable
      * @param $parameters
      * @param bool $labels
      * @return array
+     * @SuppressWarnings("BooleanArgumentFlag")
      */
     public function resolveFunctionParameters($callable, $parameters, $labels = false)
     {
@@ -163,12 +167,14 @@ class Container
     }
 
     /**
-     * @SuppressWarnings("BooleanArgumentFlag")
+     * Generate a list of values to be used like parameters to one method or function
      *
      * @param $parameters
      * @param $data
      * @param bool $labels
      * @return array
+     *
+     * @SuppressWarnings("BooleanArgumentFlag")
      */
     private function resolveParameters($parameters, $data, $labels = false)
     {
@@ -193,6 +199,8 @@ class Container
     }
 
     /**
+     * Configure the beste resource to each parameter of one method or function
+     *
      * @param ReflectionParameter $reflectionParameter
      * @param $data
      * @param $labels
@@ -214,6 +222,8 @@ class Container
     }
 
     /**
+     * Get the name of class related to a list of parameters
+     *
      * @param ReflectionParameter $reflectionParameter
      * @return string
      */
