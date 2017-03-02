@@ -3,7 +3,6 @@
 namespace Simples\Core\Model;
 
 use Simples\Core\Data\Collection;
-use Simples\Core\Data\Error\SimplesValidationError;
 use Simples\Core\Data\Record;
 use Simples\Core\Error\SimplesRunTimeError;
 use Simples\Core\Kernel\Container;
