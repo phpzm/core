@@ -1,5 +1,5 @@
 {
-  "name": "phpzm/core",
+  "name": "phpzm/simples",
   "description": "Simples Core package",
   "minimum-stability": "dev",
   "keywords": [
@@ -10,25 +10,32 @@
   ],
   "homepage": "https://github.com/phpzm/core",
   "license": "MIT",
-  "version": "0.1.3",
+  "version": "1.0.0",
   "type": "package",
   "authors": [
-    {"name": "William", "email": "wilcorrea@gmail.com"},
-    {"name": "Ezio", "email": "ezioadsr@gmail.com"}
+    {
+      "name": "William",
+      "email": "wilcorrea@gmail.com"
+    },
+    {
+      "name": "Ezio",
+      "email": "ezioadsr@gmail.com"
+    }
   ],
   "require": {
     "php": ">=7.0",
-    "phpzm/message": "^0.1.2",
-    "psr/http-message": "^1.0",
-    "neitanod/forceutf8": "^2.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "Simples\\Core\\": "src/"
-    },
-    "files": [
-      "bootstrap/index.php"
-    ]
+    "phpzm/console": "dev-master",
+    "phpzm/controller": "dev-master",
+    "phpzm/data": "dev-master",
+    "phpzm/helper": "dev-master",
+    "phpzm/http": "dev-master",
+    "phpzm/kernel": "dev-master",
+    "phpzm/message": "dev-master",
+    "phpzm/model": "dev-master",
+    "phpzm/persistence": "dev-master",
+    "phpzm/route": "dev-master",
+    "phpzm/security": "dev-master",
+    "phpzm/template": "dev-master"
   },
   "scripts": {
     "sami": "php sami.phar update config/sami.php"
