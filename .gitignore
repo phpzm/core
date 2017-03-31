@@ -3,7 +3,7 @@
 /.docs
 /.dev
 /vendor
-/scripts
+#/scripts
 # files
 *.cache
 sami.phar
