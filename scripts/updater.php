@@ -32,5 +32,5 @@ foreach (new DirectoryIterator($phpzm) as $fileInfo) {
     $json = json_encode($composer, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     file_put_contents($filename, preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $json));
 
-    echo $fileInfo->getFilename(), ' => ', $composer->version, PHP_EOL;
+    //echo $fileInfo->getFilename(), ' => ', $composer->version, PHP_EOL;
 }

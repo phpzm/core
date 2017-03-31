@@ -24,9 +24,11 @@ shopt -s dotglob
 find * -prune -type d | while read d; do
     cd "$d"
     tag=$(grep -Po '(?<="version": ")[^"]*' composer.json)
-    git add --all
-    git commit -m "Update version [$(date)]"
-    git tag "${tag}"
-    git push origin --porcelain --progress "tags/${tag}"
+    echo "${d} => ${tag}"
+    git add --all --quiet
+    git commit -m "Update version [$(date)]" --quiet
+    git tag "${tag}" --quiet
+    git push origin "tags/${tag}" --quiet
+    git push origin master --quiet
     cd ../
 done
