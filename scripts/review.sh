@@ -5,14 +5,12 @@ cd ../../
 
 shopt -s dotglob
 find * -prune -type d | while read d; do
-    if [[ ${d} != "core" ]]; then
-        cd "$d"
-        echo -n "$d"
-        output=$(git status)
-        if [[ ${output} == *"Changes not staged for commit"* ]]; then
-          echo -n "*"
-        fi
-        echo ""
-        cd ../
+    cd "$d"
+    echo -n "$d"
+    output=$(git status)
+    if [[ ${output} == *"Changes not staged for commit"* ]]; then
+      echo -n "*"
     fi
+    echo ""
+    cd ../
 done
