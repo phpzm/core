@@ -24,18 +24,19 @@
   ],
   "require": {
     "php": ">=7.0",
-    "phpzm/console": "dev-master",
-    "phpzm/controller": "dev-master",
-    "phpzm/data": "dev-master",
-    "phpzm/helper": "dev-master",
-    "phpzm/http": "dev-master",
-    "phpzm/kernel": "dev-master",
-    "phpzm/message": "dev-master",
-    "phpzm/model": "dev-master",
-    "phpzm/persistence": "dev-master",
-    "phpzm/route": "dev-master",
-    "phpzm/security": "dev-master",
-    "phpzm/template": "dev-master"
+    "phpzm/console": ">=1.0.2",
+    "phpzm/controller": ">=1.0.2",
+    "phpzm/core": ">=1.0.1",
+    "phpzm/data": ">=1.0.2",
+    "phpzm/helper": ">=1.0.2",
+    "phpzm/http": ">=1.0.4",
+    "phpzm/kernel": ">=1.0.3",
+    "phpzm/message": ">=1.0.1",
+    "phpzm/model": ">=1.0.2",
+    "phpzm/persistence": ">=1.0.3",
+    "phpzm/route": ">=1.0.1",
+    "phpzm/security": ">=1.0.1",
+    "phpzm/template": ">=1.0.1"
   },
   "scripts": {
     "sami": "php sami.phar update config/sami.php"
