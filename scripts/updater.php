@@ -6,11 +6,11 @@ if (!isset($argv[1])) {
 }
 
 $version = $argv[1];
-foreach (new DirectoryIterator($phpzm) as $fileInfo) {
-    if ($fileInfo->isDot()) {
+foreach (new DirectoryIterator($phpzm) as $file) {
+    if ($file->isDot() or $file->getFilename() === 'core') {
         continue;
     }
-    $filename = $fileInfo->getPathname() . '/composer.json';
+    $filename = $file->getPathname() . '/composer.json';
     $composer = json_decode(file_get_contents($filename));
     $peaces = explode('.', $composer->version);
     switch ($version) {
@@ -32,5 +32,5 @@ foreach (new DirectoryIterator($phpzm) as $fileInfo) {
     $json = json_encode($composer, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     file_put_contents($filename, preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $json));
 
-    //echo $fileInfo->getFilename(), ' => ', $composer->version, PHP_EOL;
+    //echo $file->getFilename(), ' => ', $composer->version, PHP_EOL;
 }
