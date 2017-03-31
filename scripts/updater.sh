@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 clear
-#update=1
+version=$2
 cd ../../
 
 shopt -s dotglob
@@ -16,5 +16,5 @@ find * -prune -type d | while read d; do
 done
 
 if [[ ${update} -ne 0 ]]; then
-    php "core/scripts/updater.php"
+    php core/scripts/updater.php ${version}
 fi
