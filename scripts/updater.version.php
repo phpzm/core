@@ -7,7 +7,7 @@ if (!isset($argv[1])) {
 
 $version = $argv[1];
 foreach (new DirectoryIterator($phpzm) as $file) {
-    if ($file->isDot() or $file->getFilename() === 'core') {
+    if ($file->isDot() or !file_exists($file->getPathname() . '/.dirty')) {
         continue;
     }
     $filename = $file->getPathname() . '/composer.json';
@@ -29,8 +29,7 @@ foreach (new DirectoryIterator($phpzm) as $file) {
     }
     $release = implode('.', $peaces);
     $composer->version = $release;
+
     $json = json_encode($composer, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
     file_put_contents($filename, preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $json));
-
-    //echo $file->getFilename(), ' => ', $composer->version, PHP_EOL;
 }
