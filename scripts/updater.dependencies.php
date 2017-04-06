@@ -32,8 +32,8 @@ foreach ($packages as $package => $project) {
     }
     $project['composer']->require = $requires;
 
-    //$json = json_encode($project['composer'], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
-    //file_put_contents($project['filename'], preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $json));
+    $json = json_encode($project['composer'], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+    file_put_contents($project['filename'], preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $json));
 
     echo PHP_EOL;
 }
