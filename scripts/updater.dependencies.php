@@ -31,8 +31,9 @@ foreach ($packages as $package => $project) {
                 echo '*';
             }
             echo PHP_EOL;
+
             /** @noinspection PhpVariableVariableInspection */
-            $requires[$key] = '>=' . $versions[$key];
+            $requires[$key] = '^' . $versions[$key];
         }
     }
     if ($project['composer']->require !== $requires) {
