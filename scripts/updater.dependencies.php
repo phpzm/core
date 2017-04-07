@@ -25,7 +25,7 @@ foreach ($packages as $package => $project) {
     $requires = (array)$project['composer']->require;
     foreach ($requires as $key => $value) {
         if (isset($versions[$key])) {
-            echo '    ', $key , ' [', $versions[$key], ' = ', substr($value, 2), '] ', PHP_EOL;
+            echo '    ', $key , ' [', substr($value, 2), ' => ', $versions[$key], '] ', PHP_EOL;
             /** @noinspection PhpVariableVariableInspection */
             $requires[$key] = '>=' . $versions[$key];
         }
