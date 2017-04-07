@@ -36,7 +36,12 @@ foreach ($packages as $package => $project) {
         }
     }
     if ($project['composer']->require !== $requires) {
-        touch($project['path'] . '/.dirty');
+        if (!file_exists($project['path'] . '/.dirty')) {
+            touch($project['path'] . '/.dirty');
+            $peaces = explode('.', $project['composer']->version);
+            $peaces[2] = $peaces[2] + 1;
+            $project['composer']->version = implode('.', $peaces);
+        }
 
         $project['composer']->require = $requires;
         $json = json_encode($project['composer'], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
