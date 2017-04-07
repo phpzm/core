@@ -29,10 +29,10 @@ foreach (new DirectoryIterator($phpzm) as $file) {
     }
     $version = implode('.', $peaces);
     if ($version !== $composer->version) {
-        touch(file_exists($file->getPathname() . '/.dirty'));
-    }
-    $composer->version = $version;
+        touch($file->getPathname() . '/.dirty');
 
-    $json = json_encode($composer, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
-    file_put_contents($filename, preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $json));
+        $composer->version = $version;
+        $json = json_encode($composer, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+        file_put_contents($filename, preg_replace('/^(  +?)\\1(?=[^ ])/m', '$1', $json));
+    }
 }
