@@ -30,6 +30,9 @@ foreach ($packages as $package => $project) {
             $requires[$key] = '>=' . $versions[$key];
         }
     }
+    if ($project['composer']->require !== $requires) {
+        touch(file_exists($file->getPathname() . '/.dirty'));
+    }
     $project['composer']->require = $requires;
 
     $json = json_encode($project['composer'], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
