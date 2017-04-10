@@ -21,19 +21,21 @@ foreach (new DirectoryIterator($phpzm) as $file) {
     ];
 }
 
+$operator = '^';
+
 foreach ($packages as $package => $project) {
     echo $package, PHP_EOL;
     $requires = (array)$project['composer']->require;
     foreach ($requires as $key => $value) {
         if (isset($versions[$key])) {
-            echo '    ', $key , ' [', substr($value, 2), ' => ', $versions[$key], '] ';
-            if (substr($value, 2) !== $versions[$key]) {
+            echo '    ', $key , ' [', substr($value, strlen($operator)), ' => ', $versions[$key], '] ';
+            if (substr($value, strlen($operator)) !== $versions[$key]) {
                 echo '*';
             }
             echo PHP_EOL;
 
             /** @noinspection PhpVariableVariableInspection */
-            $requires[$key] = '^' . $versions[$key];
+            $requires[$key] = $operator . $versions[$key];
         }
     }
     if ($project['composer']->require !== $requires) {
