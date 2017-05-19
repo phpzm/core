@@ -6,6 +6,11 @@ if (!isset($argv[1])) {
 }
 
 $change = $argv[1];
+if (!in_array($change, ['major', 'minor', 'patch'])) {
+    echo "You need inform: ['major', 'minor', 'patch']";
+    exit(1);
+}
+
 foreach (new DirectoryIterator($phpzm) as $file) {
     if ($file->isDot() or !file_exists($file->getPathname() . '/.dirty')) {
         continue;
@@ -14,16 +19,16 @@ foreach (new DirectoryIterator($phpzm) as $file) {
     $composer = json_decode(file_get_contents($filename));
     $peaces = explode('.', $composer->version);
     switch ($change) {
-        case '1':
+        case 'major':
             $peaces[0] = $peaces[0] + 1;
             $peaces[1] = 0;
             $peaces[2] = 0;
             break;
-        case '2':
+        case 'minor':
             $peaces[1] = $peaces[1] + 1;
             $peaces[2] = 0;
             break;
-        case '3':
+        case 'patch':
             $peaces[2] = $peaces[2] + 1;
             break;
     }

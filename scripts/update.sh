@@ -2,7 +2,13 @@
 
 clear
 cd ../../
+options="major,minor,patch"
 version=$1
+
+if [[ ",$list," = *",$version,"* ]]; then
+   echo "You need to enter one of these options: major, minor, patch"
+   exit
+fi
 
 php core/scripts/updater.version.php ${version}
 
