@@ -5,15 +5,23 @@ cd ../../
 options="major,minor,patch"
 version=$1
 
-if [[ ",$list," = *",$version,"* ]]; then
-   echo "You need to enter one of these options: major, minor, patch"
-   exit
+if [ -z $version ];then
+    echo "You need to enter one of these options: $options"
+    exit
 fi
 
+if [[ ! ",$options," =~ ",$version," ]]; then
+    echo "You need to enter one of these options: $options"
+    exit
+fi
+
+echo "~> apply [$version] to project"
 php core/scripts/updater.version.php ${version}
 
+echo "~> update dependencies"
 php core/scripts/updater.dependencies.php
 
+echo "~> commiting changes"
 shopt -s dotglob
 find * -prune -type d | while read d; do
     cd "$d"
