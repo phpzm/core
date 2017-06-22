@@ -31,6 +31,7 @@
     "phpzm/http": "^1.3.0",
     "phpzm/kernel": "^1.4.1",
     "phpzm/message": "^1.2.0",
+    "phpzm/migration": "^0.1.0",
     "phpzm/model": "^1.5.0",
     "phpzm/persistence": "^1.4.0",
     "phpzm/route": "^1.3.0",
