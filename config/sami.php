@@ -1,10 +1,29 @@
 <?php
 
-use Sami\RemoteRepository\GitHubRemoteRepository;
 use Sami\Sami;
+use Sami\RemoteRepository\AbstractRemoteRepository;
 use Symfony\Component\Finder\Finder;
 
-$dir = dirname(__DIR__);
+class GitHubPath extends AbstractRemoteRepository
+{
+    public function getFileUrl($projectVersion, $relativePath, $line)
+    {
+        $pieces = explode('/', $relativePath);
+        $package = $pieces[1];
+        unset($pieces[1]);
+        $path = implode('/', $pieces);
+        $url = 'https://github.com/' . $this->name . '/' . $package .
+            '/blob/' . str_replace('\\', '/', $projectVersion . $path);
+
+        if (null !== $line) {
+            $url .= '#L' . (int)$line;
+        }
+
+        return $url;
+    }
+}
+
+$dir = dirname(__DIR__, 2);
 
 /** @noinspection PhpUndefinedClassInspection, PhpUndefinedMethodInspection */
 $iterator = Finder::create()
@@ -21,9 +40,9 @@ $iterator = Finder::create()
 $options = [
     'theme' => 'default',
     'title' => 'Simples',
-    'build_dir' => $dir . '/.docs/html',
-    'cache_dir' => $dir . '/.docs/cache',
-    'remote_repository' => new GitHubRemoteRepository('phpzm/core', $dir),
+    'build_dir' => $dir . '/core/.docs/html',
+    'cache_dir' => $dir . '/core/.docs/cache',
+    'remote_repository' => new GitHubPath('phpzm', $dir),
     'default_opened_level' => 2,
 ];
 
