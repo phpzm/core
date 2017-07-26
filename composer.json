@@ -10,7 +10,7 @@
   ],
   "homepage": "https://github.com/phpzm/core",
   "license": "MIT",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "type": "package",
   "authors": [
     {
@@ -24,19 +24,19 @@
   ],
   "require": {
     "php": ">=7.0",
-    "phpzm/console": "^1.5.11",
-    "phpzm/controller": "^1.5.11",
-    "phpzm/data": "^1.8.4",
-    "phpzm/helper": "^1.5.11",
-    "phpzm/http": "^1.5.11",
+    "phpzm/console": "^1.5.12",
+    "phpzm/controller": "^1.5.12",
+    "phpzm/data": "^1.8.5",
+    "phpzm/helper": "^1.5.12",
+    "phpzm/http": "^1.5.12",
     "phpzm/kernel": "^1.8.2",
-    "phpzm/message": "^1.4.11",
-    "phpzm/migration": "^0.4.6",
-    "phpzm/model": "^1.11.1",
-    "phpzm/persistence": "^1.11.1",
-    "phpzm/route": "^1.6.6",
-    "phpzm/security": "^1.4.11",
-    "phpzm/template": "^1.4.11"
+    "phpzm/message": "^1.4.12",
+    "phpzm/migration": "^0.4.7",
+    "phpzm/model": "^1.11.2",
+    "phpzm/persistence": "^1.11.2",
+    "phpzm/route": "^1.6.7",
+    "phpzm/security": "^1.4.12",
+    "phpzm/template": "^1.4.12"
   },
   "scripts": {
     "sami": "php sami.phar update config/sami.php"
