@@ -10,7 +10,7 @@
   ],
   "homepage": "https://github.com/phpzm/core",
   "license": "MIT",
-  "version": "1.6.20",
+  "version": "1.6.21",
   "type": "package",
   "authors": [
     {
@@ -25,15 +25,15 @@
   "require": {
     "php": ">=7.0",
     "phpzm/console": "^1.6.24",
-    "phpzm/controller": "^1.7.14",
-    "phpzm/data": "^1.10.14",
+    "phpzm/controller": "^1.7.15",
+    "phpzm/data": "^1.10.15",
     "phpzm/helper": "^1.6.21",
-    "phpzm/http": "^1.7.23",
+    "phpzm/http": "^1.7.24",
     "phpzm/kernel": "^1.11.14",
     "phpzm/message": "^1.5.20",
     "phpzm/migration": "^0.5.20",
-    "phpzm/model": "^1.14.14",
-    "phpzm/persistence": "^1.13.14",
+    "phpzm/model": "^1.14.15",
+    "phpzm/persistence": "^1.13.15",
     "phpzm/route": "^1.8.14",
     "phpzm/security": "^1.5.20",
     "phpzm/template": "^1.5.20"
